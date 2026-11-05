@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
+  <channel>
+    <title>Español rioplatense — mis frases</title>
+    <link>https://nll-language.github.io/feed/</link>
+    <description>Private practice feed.</description>
+    <language>es-ar</language>
+    <itunes:block>yes</itunes:block>
+    <lastBuildDate>Thu, 05 Nov 2026 02:25:39 +0000</lastBuildDate>
+  </channel>
+</rss>
