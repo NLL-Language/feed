@@ -6,7 +6,23 @@
     <description>Private practice feed.</description>
     <language>es-ar</language>
     <itunes:block>yes</itunes:block>
-    <lastBuildDate>Thu, 05 Nov 2026 02:27:04 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 06 Nov 2026 01:37:50 +0000</lastBuildDate>
+    <item>
+      <title>Nov 5 · Probando la grabación · Drill</title>
+      <guid isPermaLink="false">2026-11-05_223206-drill</guid>
+      <pubDate>Thu, 05 Nov 2026 22:32:01 -0300</pubDate>
+      <enclosure url="https://nll-language.github.io/feed/episodes/2026-11-05_223206_drill.mp3" length="347948" type="audio/mpeg"/>
+      <itunes:duration>43</itunes:duration>
+      <description><![CDATA[<ol><li>Okay, I&#x27;m recording now as a test.<br><b>Ok, ahora estoy grabando como prueba.</b></li><li>I think it&#x27;s going to work this time.<br><b>Creo que esta vez va a funcionar.</b></li><li>Earlier I realized I had made a mistake.<br><b>Antes me di cuenta de que me había equivocado.</b></li><li>I didn&#x27;t have the right settings.<br><b>No tenía la configuración correcta.</b></li><li>Now I&#x27;m talking with Clark, my best friend.<br><b>Ahora estoy hablando con Clark, mi mejor amigo.</b></li><li>We&#x27;re sorting everything out, you know?<br><b>Estamos arreglando todo, ¿viste?</b></li></ol>]]></description>
+    </item>
+    <item>
+      <title>Nov 5 · Probando la grabación · Escuchar</title>
+      <guid isPermaLink="false">2026-11-05_223206-immersion</guid>
+      <pubDate>Thu, 05 Nov 2026 22:32:00 -0300</pubDate>
+      <enclosure url="https://nll-language.github.io/feed/episodes/2026-11-05_223206_immersion.mp3" length="196844" type="audio/mpeg"/>
+      <itunes:duration>25</itunes:duration>
+      <description><![CDATA[<ol><li>Okay, I&#x27;m recording now as a test.<br><b>Ok, ahora estoy grabando como prueba.</b></li><li>I think it&#x27;s going to work this time.<br><b>Creo que esta vez va a funcionar.</b></li><li>Earlier I realized I had made a mistake.<br><b>Antes me di cuenta de que me había equivocado.</b></li><li>I didn&#x27;t have the right settings.<br><b>No tenía la configuración correcta.</b></li><li>Now I&#x27;m talking with Clark, my best friend.<br><b>Ahora estoy hablando con Clark, mi mejor amigo.</b></li><li>We&#x27;re sorting everything out, you know?<br><b>Estamos arreglando todo, ¿viste?</b></li></ol>]]></description>
+    </item>
     <item>
       <title>Nov 4 · Preparando el asado · Drill</title>
       <guid isPermaLink="false">2026-11-04_232558-drill</guid>
