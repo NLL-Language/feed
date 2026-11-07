@@ -221,7 +221,8 @@ const connected = () => DEMO || (conn().repo && conn().token);
 
 async function gh(path, opts = {}) {
   const { repo, token } = conn();
-  const res = await fetch(`https://api.github.com/repos/${repo}/${path}`, {
+  // No trailing slash: GitHub 404s "/repos/o/r/" before CORS, which Safari reports as "Load failed".
+  const res = await fetch(`https://api.github.com/repos/${repo}${path ? "/" + path : ""}`, {
     ...opts,
     headers: { Authorization: `Bearer ${token}`, "X-GitHub-Api-Version": "2022-11-28",
       Accept: opts.raw ? "application/vnd.github.raw+json" : "application/vnd.github+json", ...(opts.headers || {}) },
@@ -622,10 +623,17 @@ function openSettings() {
 $("openSettings").onclick = openSettings;
 $("sSave").onclick = async (ev) => {
   ev.preventDefault();
-  store.set("repo", $("sRepo").value.trim()); store.set("token", $("sToken").value.trim());
+  // Phones love to add spaces and capitals; the repo name and token never contain spaces.
+  store.set("repo", $("sRepo").value.replace(/\s+/g, "").replace(/^https?:\/\/github\.com\//, "").replace(/\/$/, ""));
+  store.set("token", $("sToken").value.replace(/\s+/g, ""));
   $("sStatus").textContent = "Probando…";
   try { await gh(""); $("sStatus").textContent = "✓ Conectado"; setTimeout(() => $("settings").close(), 600); loadData(); flushQueue(); }
-  catch (e) { $("sStatus").textContent = `No pude conectar (${e.message}). Revisá el repositorio y el token.`; }
+  catch (e) {
+    const hint = { "GitHub 401": "el token no es válido (copialo de nuevo)",
+      "GitHub 403": "el token espera aprobación de la organización",
+      "GitHub 404": "el token no ve ese repositorio (¿dueño NLL-Language? ¿Contents: Read and write?)" }[e.message];
+    $("sStatus").textContent = `No pude conectar: ${hint || e.message}.`;
+  }
 };
 
 const startTab = store.get("tab", "record");
