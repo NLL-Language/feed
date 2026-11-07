@@ -6,7 +6,15 @@
     <description>Private practice feed.</description>
     <language>es-ar</language>
     <itunes:block>yes</itunes:block>
-    <lastBuildDate>Fri, 06 Nov 2026 01:37:50 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 07 Nov 2026 18:02:20 +0000</lastBuildDate>
+    <item>
+      <title>Nov 7 · Repaso · 6 frases</title>
+      <guid isPermaLink="false">review-2026-11-07</guid>
+      <pubDate>Sat, 07 Nov 2026 15:02:20 -0300</pubDate>
+      <enclosure url="https://nll-language.github.io/feed/episodes/review_2026-11-07.mp3" length="425132" type="audio/mpeg"/>
+      <itunes:duration>53</itunes:duration>
+      <description><![CDATA[<ol><li>But I don&#x27;t know what time it leaves.<br><b>Pero no sé a qué hora sale.</b></li><li>Then I have to take the bus to go to work.<br><b>Después tengo que tomar el colectivo para ir al laburo.</b></li><li>I went to the supermarket and bought lots of things for the barbecue.<br><b>Fui al supermercado y compré muchas cosas para el asado.</b></li><li>Well, I&#x27;m really tired today because I didn&#x27;t sleep at all last night.<br><b>Bueno, hoy estoy muy cansado porque anoche no dormí nada.</b></li><li>My friend Martín says he&#x27;s going to come tomorrow if he has time.<br><b>Mi amigo Martín dice que va a venir mañana si tiene tiempo.</b></li><li>I want him to bring his guitar because it&#x27;s really fun when he plays.<br><b>Quiero que traiga su guitarra, porque es muy divertido cuando toca.</b></li></ol>]]></description>
+    </item>
     <item>
       <title>Nov 5 · Probando la grabación · Drill</title>
       <guid isPermaLink="false">2026-11-05_223206-drill</guid>
