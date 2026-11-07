@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Español">
+<meta name="theme-color" content="#f6f3ee" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181c" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Español</title>
+<style>
+:root {
+  --bg: #f6f3ee; --card: #ffffff; --ink: #1d1f23; --muted: #6b6f76; --line: #e4e0d8;
+  --accent: #1f6f78; --accent-ink: #ffffff; --accent-soft: #e2f0f1;
+  --warn: #b2452f; --warn-soft: #f8e6e1; --ok: #2f7d4f;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16181c; --card: #20232a; --ink: #eceae6; --muted: #9a9ea6; --line: #30343c;
+    --accent: #5fb3bc; --accent-ink: #0f1a1c; --accent-soft: #1d3336;
+    --warn: #e58b75; --warn-soft: #3a2420; --ok: #6cc28f;
+  }
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 17px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; }
+button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+input { font: inherit; color: var(--ink); }
+header { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between;
+  padding: calc(env(safe-area-inset-top) + 10px) 16px 10px; background: var(--bg); border-bottom: 1px solid var(--line); }
+header h1 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+.icon-btn { width: 40px; height: 40px; border-radius: 20px; display: grid; place-items: center; color: var(--muted); }
+.icon-btn svg { width: 22px; height: 22px; }
+main { padding: 16px 16px calc(env(safe-area-inset-bottom) + 160px); max-width: 640px; margin: 0 auto; }
+.view { display: none; } .view.on { display: block; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+.muted { color: var(--muted); } .small { font-size: 14px; }
+h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 20px 4px 8px; font-weight: 600; }
+.btn { display: block; width: 100%; padding: 15px; border-radius: 14px; background: var(--accent); color: var(--accent-ink);
+  font-weight: 600; text-align: center; }
+.btn.secondary { background: var(--accent-soft); color: var(--accent); }
+.btn.ghost { background: transparent; color: var(--muted); }
+.row { display: flex; gap: 10px; } .row > * { flex: 1; }
+.notice { padding: 12px 14px; border-radius: 12px; background: var(--warn-soft); color: var(--warn); font-size: 15px; margin-bottom: 12px; }
+
+/* Record */
+.topic { width: 100%; padding: 13px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); margin: 8px 0 14px; }
+.stage { text-align: center; padding: 28px 16px; }
+.round-label { font-weight: 600; color: var(--accent); }
+.clock { font-size: 72px; font-weight: 300; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; margin: 8px 0; }
+.dots { display: flex; justify-content: center; gap: 8px; margin: 6px 0 18px; }
+.dots span { width: 10px; height: 10px; border-radius: 5px; background: var(--line); }
+.dots span.done { background: var(--accent); } .dots span.now { background: var(--warn); }
+.rec-pulse { display: inline-block; width: 10px; height: 10px; border-radius: 5px; background: var(--warn); margin-right: 6px;
+  animation: pulse 1.2s infinite; }
+@keyframes pulse { 50% { opacity: 0.25; } }
+.uploads { list-style: none; padding: 0; margin: 0; font-size: 15px; }
+.uploads li { display: flex; justify-content: space-between; padding: 6px 0; border-top: 1px solid var(--line); }
+.uploads li:first-child { border-top: 0; }
+
+/* Listen */
+.ep { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 14px; }
+.ep + .ep { border-top: 1px solid var(--line); }
+.ep .t { flex: 1; min-width: 0; }
+.ep .t div:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ep.played .t div:first-child { color: var(--muted); }
+.badge { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); }
+.badge.review { background: var(--warn-soft); color: var(--warn); }
+.list { padding: 0; overflow: hidden; }
+.player { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom) + 64px); z-index: 6;
+  background: var(--card); border-top: 1px solid var(--line); padding: 10px 16px; display: none; }
+.player.on { display: block; }
+.player .title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.player input[type=range] { width: 100%; accent-color: var(--accent); margin: 6px 0 2px; }
+.controls { display: flex; align-items: center; justify-content: space-between; }
+.controls button { min-width: 48px; height: 44px; border-radius: 22px; font-weight: 600; color: var(--accent); }
+.controls .play { width: 52px; height: 52px; border-radius: 26px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; }
+.controls .play svg { width: 24px; height: 24px; }
+.times { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* Recall */
+.flash { min-height: 300px; display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 28px 20px; }
+.flash .en { font-size: 22px; font-weight: 500; }
+.flash .es { font-size: 22px; font-weight: 700; color: var(--accent); margin-top: 18px; }
+.flash .fix { text-align: left; margin-top: 18px; font-size: 15px; }
+.progress { height: 4px; border-radius: 2px; background: var(--line); margin: 4px 0 14px; overflow: hidden; }
+.progress div { height: 100%; background: var(--accent); }
+.speak { margin-top: 10px; color: var(--accent); font-weight: 600; font-size: 15px; }
+
+/* Sessions */
+.session > button { width: 100%; text-align: left; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.session .detail { display: none; margin-top: 12px; }
+.session.open .detail { display: block; }
+.sent { padding: 12px 0; border-top: 1px solid var(--line); }
+.sent .es { font-weight: 600; }
+.heard { color: var(--muted); font-size: 15px; margin-top: 4px; }
+.corr { font-size: 14px; margin-top: 6px; }
+.corr b { color: var(--warn); font-weight: 600; } .corr i { color: var(--ok); font-style: normal; font-weight: 600; }
+.pace { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+svg.chart { width: 100%; height: 120px; display: block; }
+
+/* Tabs */
+nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; display: flex; background: var(--card); border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom); }
+nav button { flex: 1; height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  font-size: 11px; font-weight: 600; color: var(--muted); }
+nav button svg { width: 24px; height: 24px; }
+nav button.on { color: var(--accent); }
+
+/* Settings */
+dialog { border: 0; border-radius: 18px; padding: 20px; width: min(92vw, 420px); background: var(--card); color: var(--ink); }
+dialog::backdrop { background: rgba(0,0,0,0.4); }
+dialog label { display: block; font-size: 14px; color: var(--muted); margin: 12px 0 4px; }
+dialog input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); }
+</style>
+</head>
+<body>
+<header>
+  <h1 id="heading">Grabar</h1>
+  <button class="icon-btn" id="openSettings" aria-label="Ajustes">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+  </button>
+</header>
+
+<main>
+  <div id="setupNotice"></div>
+
+  <section class="view on" id="v-record">
+    <div id="recIdle">
+      <p class="muted small" style="margin:0 4px">Contá la misma historia tres veces: 4, 3 y 2 minutos. Cada ronda se sube sola.</p>
+      <input class="topic" id="topic" placeholder="Tema (opcional): el video que viste hoy…" autocomplete="off">
+      <button class="btn" id="startRec">Empezar 4/3/2</button>
+    </div>
+    <div id="recLive" class="card stage" hidden>
+      <div class="round-label" id="roundLabel"></div>
+      <div class="muted small" id="topicLive"></div>
+      <div class="clock" id="clock">4:00</div>
+      <div class="dots" id="dots"><span></span><span></span><span></span></div>
+      <div class="row">
+        <button class="btn secondary" id="endRound">Terminar ronda</button>
+      </div>
+      <button class="btn ghost" id="cancelRec" style="margin-top:6px">Cancelar</button>
+    </div>
+    <h2 id="uploadsHead" hidden>Subidas</h2>
+    <div class="card" id="uploadsCard" hidden><ul class="uploads" id="uploads"></ul></div>
+  </section>
+
+  <section class="view" id="v-listen">
+    <div id="episodes"></div>
+  </section>
+
+  <section class="view" id="v-recall">
+    <div id="recall"></div>
+  </section>
+
+  <section class="view" id="v-sessions">
+    <div id="sessions"></div>
+  </section>
+</main>
+
+<div class="player" id="player">
+  <div class="title" id="pTitle"></div>
+  <input type="range" id="pSeek" min="0" max="1000" value="0" aria-label="Posición">
+  <div class="times"><span id="pCur">0:00</span><span id="pDur">0:00</span></div>
+  <div class="controls">
+    <button id="pBack" aria-label="Atrás 15 segundos">−15</button>
+    <button class="play" id="pPlay" aria-label="Reproducir"></button>
+    <button id="pFwd" aria-label="Adelante 15 segundos">+15</button>
+    <button id="pRate" aria-label="Velocidad">1×</button>
+  </div>
+</div>
+<audio id="audio" preload="none"></audio>
+
+<nav>
+  <button class="on" data-view="record"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Grabar</button>
+  <button data-view="listen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="3" y="14" width="4" height="7" rx="1.5"/><rect x="17" y="14" width="4" height="7" rx="1.5"/></svg>Escuchar</button>
+  <button data-view="recall"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="6" width="14" height="14" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v12"/></svg>Repaso</button>
+  <button data-view="sessions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19V5M4 19h16M8 15l4-4 3 3 5-6"/></svg>Sesiones</button>
+</nav>
+
+<dialog id="settings">
+  <form method="dialog">
+    <strong>Conexión</strong>
+    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono.</p>
+    <label for="sRepo">Repositorio (dueño/nombre)</label>
+    <input id="sRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dueño/repositorio">
+    <label for="sToken">Token de GitHub</label>
+    <input id="sToken" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <p class="small" id="sStatus" style="min-height:1.4em"></p>
+    <div class="row" style="margin-top:8px">
+      <button class="btn ghost" value="cancel">Cerrar</button>
+      <button class="btn" id="sSave" value="save">Guardar</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const store = {
+  get(k, d = null) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+const DEMO = new URLSearchParams(location.search).has("demo");
+const ROUNDS = [240, 180, 120];
+const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>';
+const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4.5" width="4" height="15" rx="1"/><rect x="14" y="4.5" width="4" height="15" rx="1"/></svg>';
+
+const todayISO = () => new Date().toLocaleDateString("sv-SE");
+const dayDiff = (a, b) => Math.round((Date.parse(b + "T00:00:00Z") - Date.parse(a + "T00:00:00Z")) / 86400000);
+const mmss = (s) => { s = Math.max(0, Math.round(s || 0)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+const fmtDate = (iso) => new Date(iso + "T12:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" });
+
+/* ---------- GitHub connection ---------- */
+const conn = () => ({ repo: store.get("repo", ""), token: store.get("token", "") });
+const connected = () => DEMO || (conn().repo && conn().token);
+
+async function gh(path, opts = {}) {
+  const { repo, token } = conn();
+  const res = await fetch(`https://api.github.com/repos/${repo}/${path}`, {
+    ...opts,
+    headers: { Authorization: `Bearer ${token}`, "X-GitHub-Api-Version": "2022-11-28",
+      Accept: opts.raw ? "application/vnd.github.raw+json" : "application/vnd.github+json", ...(opts.headers || {}) },
+  });
+  if (!res.ok) throw new Error(`GitHub ${res.status}`);
+  return opts.raw ? res.text() : res.json();
+}
+
+/* ---------- Data ---------- */
+let DATA = store.get("dataCache", { review_intervals: [1, 3, 7, 14, 30, 60, 120], sessions: [], episodes: [] });
+
+async function loadData() {
+  if (!connected()) return;
+  try {
+    const text = DEMO ? await (await fetch("demo-data.json", { cache: "no-store" })).text()
+                      : await gh(`contents/data.json?t=${Date.now()}`, { raw: true });
+    DATA = JSON.parse(text);
+    store.set("dataCache", DATA);
+  } catch (e) {
+    console.warn("data", e);
+  }
+  renderAll();
+}
+
+/* ---------- Upload queue (IndexedDB, so a failed upload is never lost) ---------- */
+const idb = new Promise((resolve, reject) => {
+  const r = indexedDB.open("espanol", 1);
+  r.onupgradeneeded = () => r.result.createObjectStore("queue", { keyPath: "name" });
+  r.onsuccess = () => resolve(r.result);
+  r.onerror = () => reject(r.error);
+});
+async function q(mode, fn) {
+  const db = await idb;
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("queue", mode);
+    const req = fn(tx.objectStore("queue"));
+    tx.oncomplete = () => resolve(req && req.result);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+const uploadState = {}; // name -> "subiendo" | "subida" | "error"
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result).split(",")[1]);
+    fr.onerror = () => reject(fr.error);
+    fr.readAsDataURL(blob);
+  });
+}
+
+async function uploadOne(item) {
+  uploadState[item.name] = "subiendo"; renderUploads();
+  try {
+    if (DEMO) { await new Promise((r) => setTimeout(r, 800)); }
+    else {
+      await gh(`contents/inbox/${encodeURIComponent(item.name)}`, {
+        method: "PUT",
+        body: JSON.stringify({ message: `Recording ${item.name}`, content: await blobToBase64(item.blob) }),
+      });
+    }
+    await q("readwrite", (s) => s.delete(item.name));
+    uploadState[item.name] = "subida";
+  } catch (e) {
+    console.warn("upload", e);
+    uploadState[item.name] = "error";
+  }
+  renderUploads();
+}
+
+let flushing = false;
+async function flushQueue() {
+  if (flushing || !connected()) return;
+  flushing = true;
+  try {
+    const items = await q("readonly", (s) => s.getAll());
+    for (const item of items || []) await uploadOne(item);
+  } finally { flushing = false; }
+}
+
+function renderUploads() {
+  const names = Object.keys(uploadState);
+  $("uploadsHead").hidden = $("uploadsCard").hidden = names.length === 0;
+  const label = { subiendo: "Subiendo…", subida: "✓ Subida", error: "Error · reintentar" };
+  $("uploads").innerHTML = names.sort().map((n) => {
+    const m = n.match(/-(\d)\.\w+$/);
+    return `<li><span>Ronda ${m ? m[1] : "?"}</span><span class="${uploadState[n] === "error" ? "muted" : ""}">${label[uploadState[n]]}</span></li>`;
+  }).join("");
+}
+$("uploads").addEventListener("click", () => flushQueue());
+
+/* ---------- Record 4/3/2 ---------- */
+let rec = null; // { stream, recorder, round, id, timer, left, ext, wake, ctx }
+
+function beep(ctx, times = 2) {
+  if (!ctx) return;
+  for (let i = 0; i < times; i++) {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.frequency.value = 880; o.connect(g); g.connect(ctx.destination);
+    const t = ctx.currentTime + i * 0.25;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.3, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+    o.start(t); o.stop(t + 0.2);
+  }
+}
+
+function stamp() {
+  const d = new Date(), p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+}
+
+function pickMime() {
+  for (const [mime, ext] of [["audio/mp4", "m4a"], ["audio/webm;codecs=opus", "webm"], ["audio/webm", "webm"]])
+    if (window.MediaRecorder && MediaRecorder.isTypeSupported(mime)) return { mime, ext };
+  return { mime: "", ext: "m4a" };
+}
+
+async function startSession() {
+  if (!connected()) { openSettings(); return; }
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: true } }); }
+  catch { alert("Necesito acceso al micrófono para grabar."); return; }
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  let wake = null;
+  try { wake = await navigator.wakeLock?.request("screen"); } catch {}
+  rec = { stream, ctx, wake, id: stamp(), round: 0, ...pickMime() };
+  $("recIdle").hidden = true; $("recLive").hidden = false;
+  $("topicLive").textContent = $("topic").value.trim();
+  startRound();
+}
+
+function startRound() {
+  const r = rec, secs = ROUNDS[r.round];
+  const chunks = [];
+  r.recorder = new MediaRecorder(r.stream, r.mime ? { mimeType: r.mime, audioBitsPerSecond: 64000 } : undefined);
+  r.recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+  const round = r.round + 1;
+  r.recorder.onstop = async () => {
+    const blob = new Blob(chunks, { type: r.recorder.mimeType || r.mime || "audio/mp4" });
+    const item = { name: `432-${r.id}-${round}.${r.ext}`, blob };
+    await q("readwrite", (s) => s.put(item));
+    uploadOne(item);
+  };
+  r.recorder.start(1000);
+  r.left = secs;
+  $("roundLabel").innerHTML = `<span class="rec-pulse"></span>Ronda ${round} · ${secs / 60} minutos`;
+  $("dots").innerHTML = ROUNDS.map((_, i) => `<span class="${i < r.round ? "done" : i === r.round ? "now" : ""}"></span>`).join("");
+  $("clock").textContent = mmss(r.left);
+  const started = Date.now();
+  clearInterval(r.timer);
+  r.timer = setInterval(() => {
+    r.left = secs - (Date.now() - started) / 1000;
+    $("clock").textContent = mmss(Math.ceil(r.left));
+    if (r.left <= 0) endRound();
+  }, 250);
+}
+
+function endRound() {
+  const r = rec; if (!r) return;
+  clearInterval(r.timer);
+  if (r.recorder.state !== "inactive") r.recorder.stop();
+  beep(r.ctx, r.round === ROUNDS.length - 1 ? 3 : 2);
+  r.round++;
+  if (r.round >= ROUNDS.length) return finishSession(true);
+  // Short breather, then the next round starts by itself.
+  let wait = 5;
+  $("roundLabel").textContent = `Ronda ${r.round + 1} · ${ROUNDS[r.round] / 60} minutos`;
+  $("dots").innerHTML = ROUNDS.map((_, i) => `<span class="${i < r.round ? "done" : ""}"></span>`).join("");
+  $("clock").textContent = `${wait}`;
+  r.timer = setInterval(() => {
+    wait--;
+    $("clock").textContent = `${wait}`;
+    if (wait <= 0) { clearInterval(r.timer); startRound(); }
+  }, 1000);
+}
+
+function finishSession(done) {
+  const r = rec; if (!r) return;
+  clearInterval(r.timer);
+  if (r.recorder && r.recorder.state !== "inactive") r.recorder.stop();
+  setTimeout(() => r.stream.getTracks().forEach((t) => t.stop()), 300);
+  try { r.wake?.release(); } catch {}
+  rec = null;
+  $("recLive").hidden = true; $("recIdle").hidden = false;
+  if (done) $("topic").value = "";
+}
+
+$("startRec").onclick = startSession;
+$("endRound").onclick = endRound;
+$("cancelRec").onclick = () => { if (confirm("¿Terminar la sesión? Las rondas grabadas se suben igual.")) finishSession(false); };
+
+/* ---------- Listen ---------- */
+const audio = $("audio");
+let current = null;
+const KIND = { review: ["Repaso", "review"], drill: ["Drill", ""], immersion: ["Escuchar", ""] };
+
+function renderEpisodes() {
+  const eps = DATA.episodes || [];
+  if (!eps.length) { $("episodes").innerHTML = emptyState("Todavía no hay episodios."); return; }
+  const played = store.get("played", {});
+  $("episodes").innerHTML = `<div class="card list">` + eps.map((e, i) => {
+    const [label, cls] = KIND[e.kind] || ["", ""];
+    const title = e.title.split(" · ").slice(1).filter((t) => !["Drill", "Escuchar"].includes(t)).join(" · ") || e.title;
+    return `<button class="ep ${played[e.guid] ? "played" : ""}" data-i="${i}">
+      <div class="t"><div>${esc(title)}</div><div class="small muted">${esc(e.title.split(" · ")[0])} · ${mmss(e.duration)}</div></div>
+      <span class="badge ${cls}">${label}</span></button>`;
+  }).join("") + `</div>`;
+}
+$("episodes").addEventListener("click", (ev) => {
+  const b = ev.target.closest(".ep"); if (!b) return;
+  playEpisode(DATA.episodes[+b.dataset.i]);
+});
+
+function playEpisode(e) {
+  if (current?.guid !== e.guid) {
+    current = e;
+    audio.src = e.url;
+    audio.playbackRate = store.get("rate", 1);
+    const pos = store.get("pos", {})[e.guid];
+    audio.addEventListener("loadedmetadata", () => { if (pos && pos < (audio.duration || e.duration) - 5) audio.currentTime = pos; }, { once: true });
+    $("pTitle").textContent = e.title;
+    $("player").classList.add("on");
+    if ("mediaSession" in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: e.title, artist: "Español" });
+  }
+  audio.play();
+}
+const setPlayIcon = () => {
+  $("pPlay").innerHTML = audio.paused ? ICON_PLAY : ICON_PAUSE;
+  $("pPlay").setAttribute("aria-label", audio.paused ? "Reproducir" : "Pausar");
+};
+audio.addEventListener("play", setPlayIcon);
+audio.addEventListener("pause", setPlayIcon);
+audio.addEventListener("timeupdate", () => {
+  const d = audio.duration || current?.duration || 0;
+  $("pCur").textContent = mmss(audio.currentTime); $("pDur").textContent = mmss(d);
+  if (d && !seeking) $("pSeek").value = Math.round((audio.currentTime / d) * 1000);
+  if (current) {
+    const pos = store.get("pos", {}); pos[current.guid] = audio.currentTime; store.set("pos", pos);
+    if (d && audio.currentTime / d > 0.95) markPlayed(current.guid);
+  }
+});
+audio.addEventListener("ended", () => current && markPlayed(current.guid));
+function markPlayed(guid) {
+  const p = store.get("played", {}); if (p[guid]) return;
+  p[guid] = 1; store.set("played", p); renderEpisodes();
+}
+let seeking = false;
+$("pSeek").addEventListener("input", () => { seeking = true; });
+$("pSeek").addEventListener("change", () => {
+  const d = audio.duration || current?.duration || 0;
+  audio.currentTime = ($("pSeek").value / 1000) * d; seeking = false;
+});
+$("pPlay").onclick = () => (audio.paused ? audio.play() : audio.pause());
+$("pBack").onclick = () => { audio.currentTime = Math.max(0, audio.currentTime - 15); };
+$("pFwd").onclick = () => { audio.currentTime = Math.min(audio.duration || 1e9, audio.currentTime + 15); };
+$("pRate").onclick = () => {
+  const rates = [1, 1.25, 1.5, 0.85], next = rates[(rates.indexOf(audio.playbackRate) + 1) % rates.length] || 1;
+  audio.playbackRate = next; store.set("rate", next); $("pRate").textContent = `${next}×`;
+};
+$("pRate").textContent = `${store.get("rate", 1)}×`;
+setPlayIcon();
+if ("mediaSession" in navigator) {
+  navigator.mediaSession.setActionHandler("seekbackward", () => $("pBack").click());
+  navigator.mediaSession.setActionHandler("seekforward", () => $("pFwd").click());
+}
+
+/* ---------- Recall ---------- */
+let deck = [], deckKey = "", shown = false;
+
+function dueToday() {
+  const today = todayISO(), iv = new Set([0, ...(DATA.review_intervals || [])]);
+  return (DATA.sessions || []).filter((s) => iv.has(dayDiff(s.date, today)))
+    .flatMap((s) => s.sentences.map((x, i) => ({ ...x, key: `${s.id}:${i}` })));
+}
+function allSentences() {
+  return (DATA.sessions || []).flatMap((s) => s.sentences.map((x, i) => ({ ...x, key: `${s.id}:${i}` })));
+}
+function shuffle(arr, seed) {
+  let h = 0; for (const c of seed) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { h = (h * 1103515245 + 12345) >>> 0; const j = h % (i + 1); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+function startDeck(mode) {
+  deckKey = `${mode}-${todayISO()}`;
+  const src = mode === "all" ? allSentences() : dueToday();
+  // Sentences you got wrong come first; the rest in a stable shuffled order for the day.
+  deck = shuffle(src, deckKey).sort((a, b) => (b.corrections.length > 0) - (a.corrections.length > 0));
+  if (store.get("deckKey") !== deckKey) { store.set("deckKey", deckKey); store.set("deckPos", 0); }
+  shown = false; renderRecall();
+}
+function renderRecall() {
+  const el = $("recall");
+  if (!deckKey) {
+    const n = dueToday().length, total = allSentences().length;
+    el.innerHTML = n
+      ? `<div class="card"><div style="font-size:34px;font-weight:700">${n}</div><div class="muted">frases para hoy</div></div>
+         <button class="btn" data-a="due">Empezar</button>
+         ${total > n ? `<button class="btn ghost" data-a="all" style="margin-top:6px">Mezclar todas (${total})</button>` : ""}`
+      : total
+        ? `<div class="card"><strong>Nada pendiente hoy.</strong><div class="muted small">Las frases vuelven 1, 3, 7, 14, 30, 60 y 120 días después.</div></div>
+           <button class="btn secondary" data-a="all">Mezclar todas (${total})</button>`
+        : emptyState("Tus frases aparecen acá después de tu primera sesión 4/3/2.");
+    return;
+  }
+  const pos = store.get("deckPos", 0);
+  if (pos >= deck.length) {
+    el.innerHTML = `<div class="card flash"><div style="font-size:40px">✓</div><div class="en">Listo por hoy</div><div class="muted small">${deck.length} frases</div></div>
+      <button class="btn secondary" data-a="back">Volver</button>`;
+    return;
+  }
+  const c = deck[pos];
+  el.innerHTML = `<div class="small muted">${pos + 1} / ${deck.length}</div>
+    <div class="progress"><div style="width:${(pos / deck.length) * 100}%"></div></div>
+    <div class="card flash" data-a="flip">
+      <div class="en">${esc(c.english)}</div>
+      ${shown ? `<div class="es">${esc(c.spanish)}</div>
+        <div><button class="speak" data-a="speak">▶︎ Escuchar</button></div>
+        ${c.corrections.length ? `<div class="fix"><div class="heard">Dijiste: “${esc(c.heard)}”</div>
+          ${c.corrections.map((x) => `<div class="corr"><b>${esc(x.wrong)}</b> → <i>${esc(x.right)}</i> <span class="muted">· ${esc(x.why)}</span></div>`).join("")}</div>` : ""}`
+        : `<div class="muted small" style="margin-top:22px">Decilo en voz alta · tocá para ver</div>`}
+    </div>
+    ${shown ? `<button class="btn" data-a="next">Siguiente</button>` : `<button class="btn secondary" data-a="flip">Mostrar</button>`}
+    <button class="btn ghost" data-a="back" style="margin-top:6px">Salir</button>`;
+}
+$("recall").addEventListener("click", (ev) => {
+  const a = ev.target.closest("[data-a]")?.dataset.a; if (!a) return;
+  if (a === "due" || a === "all") startDeck(a);
+  else if (a === "flip") { if (!shown) { shown = true; renderRecall(); } }
+  else if (a === "next") { store.set("deckPos", store.get("deckPos", 0) + 1); shown = false; renderRecall(); }
+  else if (a === "back") { deckKey = ""; renderRecall(); }
+  else if (a === "speak") { ev.stopPropagation(); speak(deck[store.get("deckPos", 0)].spanish); }
+});
+function speak(text) {
+  if (!("speechSynthesis" in window)) return;
+  const voices = speechSynthesis.getVoices();
+  const v = ["es-AR", "es-US", "es-MX", "es-419", "es"].map((l) => voices.find((x) => x.lang.replace("_", "-").startsWith(l))).find(Boolean);
+  const u = new SpeechSynthesisUtterance(text); u.lang = v?.lang || "es-AR"; if (v) u.voice = v; u.rate = 0.95;
+  speechSynthesis.cancel(); speechSynthesis.speak(u);
+}
+
+/* ---------- Sessions ---------- */
+function paceChart(sessions) {
+  const pts = sessions.filter((s) => s.rounds.length).map((s) => ({ d: s.date, r: s.rounds }));
+  if (pts.length < 2) return "";
+  const W = 320, H = 120, P = 22;
+  const vals = pts.flatMap((p) => p.r.map((r) => r.wpm));
+  const lo = Math.min(...vals) - 10, hi = Math.max(...vals) + 10;
+  const x = (i) => P + (i * (W - 2 * P)) / (pts.length - 1), y = (v) => H - P - ((v - lo) * (H - 2 * P)) / (hi - lo || 1);
+  const line = (k, op) => `<polyline fill="none" stroke="var(--accent)" stroke-opacity="${op}" stroke-width="2" points="${pts.map((p, i) => { const r = p.r.find((r) => r.round === k); return r ? `${x(i)},${y(r.wpm)}` : ""; }).filter(Boolean).join(" ")}"/>`;
+  const last = pts[pts.length - 1].r.find((r) => r.round === 3) || pts[pts.length - 1].r.slice(-1)[0];
+  return `<div class="card"><div class="small muted">Palabras por minuto (ronda 1 claro → ronda 3 oscuro)</div>
+    <svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${line(1, 0.3)}${line(2, 0.6)}${line(3, 1)}
+    <text x="${W - P}" y="${y(last.wpm) - 6}" text-anchor="end" font-size="12" fill="var(--ink)">${last.wpm}</text></svg></div>`;
+}
+function renderSessions() {
+  const ss = (DATA.sessions || []).slice().reverse();
+  if (!ss.length) { $("sessions").innerHTML = emptyState("Todavía no hay sesiones."); return; }
+  $("sessions").innerHTML = paceChart(DATA.sessions) + ss.map((s) => {
+    const errs = s.sentences.reduce((n, x) => n + x.corrections.length, 0);
+    return `<div class="card session"><button data-a="toggle">
+      <div><div style="font-weight:600">${esc(s.title)}</div>
+        <div class="small muted">${fmtDate(s.date)} · ${s.sentences.length} frases · ${errs} correcciones</div>
+        ${s.rounds.length ? `<div class="pace">${s.rounds.map((r) => `${r.wpm}`).join(" → ")} palabras/min</div>` : ""}</div>
+      <span class="muted">›</span></button>
+      <div class="detail">${s.sentences.map((x) => `<div class="sent"><div class="es">${esc(x.spanish)}</div>
+        <div class="small muted">${esc(x.english)}</div>
+        ${x.corrections.length ? `<div class="heard">Dijiste: “${esc(x.heard)}”</div>` + x.corrections.map((c) =>
+          `<div class="corr"><b>${esc(c.wrong)}</b> → <i>${esc(c.right)}</i> <span class="muted">· ${esc(c.why)}</span></div>`).join("") : ""}
+      </div>`).join("")}</div></div>`;
+  }).join("");
+}
+$("sessions").addEventListener("click", (ev) => {
+  const b = ev.target.closest("[data-a=toggle]"); if (b) b.parentElement.classList.toggle("open");
+});
+
+/* ---------- Shell ---------- */
+const emptyState = (msg) => `<div class="card muted">${esc(msg)}</div>`;
+const TITLES = { record: "Grabar", listen: "Escuchar", recall: "Repaso", sessions: "Sesiones" };
+document.querySelector("nav").addEventListener("click", (ev) => {
+  const b = ev.target.closest("button"); if (!b) return;
+  document.querySelectorAll("nav button").forEach((x) => x.classList.toggle("on", x === b));
+  document.querySelectorAll(".view").forEach((v) => v.classList.toggle("on", v.id === `v-${b.dataset.view}`));
+  $("heading").textContent = TITLES[b.dataset.view];
+  store.set("tab", b.dataset.view);
+  window.scrollTo(0, 0);
+});
+
+function renderAll() {
+  $("setupNotice").innerHTML = connected() ? "" :
+    `<div class="notice">Falta conectar el repositorio. Tocá ⚙︎ arriba a la derecha.</div>`;
+  renderEpisodes(); renderRecall(); renderSessions(); renderUploads();
+}
+
+function openSettings() {
+  $("sRepo").value = conn().repo; $("sToken").value = conn().token; $("sStatus").textContent = "";
+  $("settings").showModal();
+}
+$("openSettings").onclick = openSettings;
+$("sSave").onclick = async (ev) => {
+  ev.preventDefault();
+  store.set("repo", $("sRepo").value.trim()); store.set("token", $("sToken").value.trim());
+  $("sStatus").textContent = "Probando…";
+  try { await gh(""); $("sStatus").textContent = "✓ Conectado"; setTimeout(() => $("settings").close(), 600); loadData(); flushQueue(); }
+  catch (e) { $("sStatus").textContent = `No pude conectar (${e.message}). Revisá el repositorio y el token.`; }
+};
+
+const startTab = store.get("tab", "record");
+document.querySelector(`nav button[data-view="${startTab}"]`)?.click();
+renderAll();
+loadData();
+flushQueue();
+document.addEventListener("visibilitychange", () => { if (!document.hidden && !rec) { loadData(); flushQueue(); } });
+window.addEventListener("online", flushQueue);
+</script>
+</body>
+</html>
