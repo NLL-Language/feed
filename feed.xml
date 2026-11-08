@@ -6,7 +6,15 @@
     <description>Private practice feed.</description>
     <language>es-ar</language>
     <itunes:block>yes</itunes:block>
-    <lastBuildDate>Sat, 07 Nov 2026 18:02:20 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 08 Nov 2026 13:16:22 +0000</lastBuildDate>
+    <item>
+      <title>Nov 8 · Repaso · 6 frases</title>
+      <guid isPermaLink="false">review-2026-11-08</guid>
+      <pubDate>Sun, 08 Nov 2026 10:16:22 -0300</pubDate>
+      <enclosure url="https://nll-language.github.io/feed/episodes/review_2026-11-08.mp3" length="347948" type="audio/mpeg"/>
+      <itunes:duration>43</itunes:duration>
+      <description><![CDATA[<ol><li>Okay, I&#x27;m recording now as a test.<br><b>Ok, ahora estoy grabando como prueba.</b></li><li>We&#x27;re sorting everything out, you know?<br><b>Estamos arreglando todo, ¿viste?</b></li><li>Now I&#x27;m talking with Clark, my best friend.<br><b>Ahora estoy hablando con Clark, mi mejor amigo.</b></li><li>I didn&#x27;t have the right settings.<br><b>No tenía la configuración correcta.</b></li><li>Earlier I realized I had made a mistake.<br><b>Antes me di cuenta de que me había equivocado.</b></li><li>I think it&#x27;s going to work this time.<br><b>Creo que esta vez va a funcionar.</b></li></ol>]]></description>
+    </item>
     <item>
       <title>Nov 7 · Repaso · 6 frases</title>
       <guid isPermaLink="false">review-2026-11-07</guid>
