@@ -68,7 +68,8 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: 
 .seg button[aria-pressed="true"] { color: var(--ink); }
 .seg .thumb { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 10px; background: var(--card);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); transition: transform 0.28s cubic-bezier(0.3, 0.7, 0.2, 1); }
-.seg[data-mode="432"] .thumb { transform: translateX(100%); }
+.seg[data-mode="432"] .thumb, .seg[data-mode="listen"] .thumb { transform: translateX(100%); }
+.seg-hint { margin: -8px 2px 14px; font-size: 14px; color: var(--muted); }
 .hero { text-align: center; padding: 30px 18px 26px; }
 .hero p { margin: 0 auto 20px; max-width: 300px; color: var(--muted); font-size: 15px; }
 .mic { width: 132px; height: 132px; border-radius: 66px; display: grid; place-items: center; margin: 4px auto 14px; color: #fff;
@@ -163,6 +164,10 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: 
 .corr i { color: var(--ok); font-style: normal; font-weight: 650; }
 .pace { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: 2px; }
 .tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); margin-left: 6px; vertical-align: 1px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chips span { font-size: 14px; font-weight: 600; padding: 3px 10px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); }
+.flash .ctx { margin-top: 14px; font-size: 15px; color: var(--muted); }
+.flash .ctx b { color: var(--ink); font-weight: 650; }
 svg.chart { width: 100%; height: 120px; display: block; margin-top: 8px; }
 
 /* Tabs */
@@ -228,7 +233,15 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
     <div class="card" id="uploadsCard" hidden><ul class="uploads" id="uploads"></ul></div>
   </section>
 
-  <section class="view" id="v-listen"><div id="episodes"></div></section>
+  <section class="view" id="v-listen">
+    <div class="seg" id="listenSeg" data-mode="recall" role="group" aria-label="Tipo de episodio">
+      <div class="thumb"></div>
+      <button data-mode="recall" aria-pressed="true">Recordar</button>
+      <button data-mode="listen" aria-pressed="false">Solo escuchar</button>
+    </div>
+    <p class="seg-hint" id="listenHint"></p>
+    <div id="episodes"></div>
+  </section>
   <section class="view" id="v-recall"><div id="recall"></div></section>
   <section class="view" id="v-sessions"><div id="sessions"></div></section>
 </main>
@@ -256,7 +269,7 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 <dialog id="settings">
   <form method="dialog">
     <strong style="font-size:19px">Conexión</strong>
-    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v3</p>
+    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v4</p>
     <label for="sRepo">Repositorio (dueño/nombre)</label>
     <input id="sRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dueño/repositorio">
     <label for="sToken">Token de GitHub</label>
@@ -588,17 +601,39 @@ const audio = $("audio");
 let current = null;
 const KIND = { review: "Repaso", drill: "Drill", immersion: "Escuchar" };
 
+// Escuchar has two tabs: active recall (drill + daily review, in chunks) and Spanish-only listening.
+const LISTEN_TABS = {
+  recall: { kinds: ["drill", "review"], hint: "Escuchás el inglés, lo decís en castellano, y después Tomás lo confirma. Todo en chunks.", empty: "Todavía no hay episodios para recordar." },
+  listen: { kinds: ["immersion"], hint: "Tus frases corregidas, solo en castellano, una atrás de la otra.", empty: "Todavía no hay episodios para escuchar." },
+};
+let listenTab = LISTEN_TABS[store.get("listenTab")] ? store.get("listenTab") : "recall";
+function setListenTab(m) {
+  listenTab = LISTEN_TABS[m] ? m : "recall"; store.set("listenTab", listenTab);
+  $("listenSeg").dataset.mode = listenTab;
+  $("listenSeg").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === listenTab)));
+  $("listenHint").textContent = LISTEN_TABS[listenTab].hint;
+  renderEpisodes();
+}
+$("listenSeg").addEventListener("click", (ev) => { const b = ev.target.closest("button[data-mode]"); if (b) setListenTab(b.dataset.mode); });
+
+function epParts(e) {
+  // "Nov 8 · Title · Drill · 24 chunks" → title "Title", extra "24 chunks"
+  const parts = e.title.split(" · ").slice(1);
+  const extra = parts.filter((t) => /^\d+ (chunks|frases)$/.test(t));
+  const title = parts.filter((t) => !["Drill", "Escuchar", "Repaso"].includes(t) && !extra.includes(t)).join(" · ");
+  return { title: title || (e.kind === "review" ? "Repaso del día" : e.title), extra: extra[0] || "" };
+}
 function renderEpisodes() {
-  const eps = DATA.episodes || [];
-  if (!eps.length) { $("episodes").innerHTML = emptyState("Todavía no hay episodios."); return; }
+  const tab = LISTEN_TABS[listenTab];
+  const eps = (DATA.episodes || []).map((e, i) => ({ e, i, kind: KIND[e.kind] ? e.kind : "drill" })).filter((x) => tab.kinds.includes(x.kind));
+  if (!eps.length) { $("episodes").innerHTML = emptyState(tab.empty); return; }
   const played = store.get("played", {});
-  $("episodes").innerHTML = `<div class="card list">` + eps.map((e, i) => {
-    const kind = KIND[e.kind] ? e.kind : "drill";
-    const title = e.title.split(" · ").slice(1).filter((t) => !["Drill", "Escuchar"].includes(t)).join(" · ") || e.title;
+  $("episodes").innerHTML = `<div class="card list">` + eps.map(({ e, i, kind }) => {
+    const { title, extra } = epParts(e);
     return `<button class="ep ${played[e.guid] ? "played" : ""} ${current?.guid === e.guid ? "now" : ""}" data-i="${i}">
       <span class="ep-ic ${kind}">${ICON_EP[kind]}</span>
       <div class="t"><div>${esc(title)}</div>
-        <div class="small muted"><span class="kind">${KIND[kind]}</span> · ${esc(e.title.split(" · ")[0])} · ${mmss(e.duration)}</div></div>
+        <div class="small muted"><span class="kind">${KIND[kind]}</span> · ${esc(e.title.split(" · ")[0])}${extra ? ` · ${esc(extra)}` : ""} · ${mmss(e.duration)}</div></div>
     </button>`;
   }).join("") + `</div>`;
 }
@@ -664,14 +699,26 @@ if ("mediaSession" in navigator) {
 /* ---------- Recall ---------- */
 let deck = [], deckKey = "", shown = false;
 
+// Cards are chunks; each keeps its sentence as context. Older data without chunks uses the sentence.
+function chunkCards(sessions) {
+  const seen = new Set(), out = [];
+  for (const s of sessions) s.sentences.forEach((x, i) => {
+    const chunks = x.chunks?.length ? x.chunks : [{ spanish: x.spanish, english: x.english }];
+    for (const c of chunks) {
+      const k = norm(c.spanish);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      out.push({ english: c.english, spanish: c.spanish, sentence: x.spanish, sentenceEn: x.english,
+        heard: x.heard, corrections: x.corrections, key: `${s.id}:${i}:${k}` });
+    }
+  });
+  return out;
+}
 function dueToday() {
   const today = todayISO(), iv = new Set([0, ...(DATA.review_intervals || [])]);
-  return (DATA.sessions || []).filter((s) => iv.has(dayDiff(s.date, today)))
-    .flatMap((s) => s.sentences.map((x, i) => ({ ...x, key: `${s.id}:${i}` })));
+  return chunkCards((DATA.sessions || []).filter((s) => iv.has(dayDiff(s.date, today))));
 }
-function allSentences() {
-  return (DATA.sessions || []).flatMap((s) => s.sentences.map((x, i) => ({ ...x, key: `${s.id}:${i}` })));
-}
+function allSentences() { return chunkCards(DATA.sessions || []); }
 function shuffle(arr, seed) {
   let h = 0; for (const c of seed) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   const a = arr.slice();
@@ -691,18 +738,18 @@ function renderRecall() {
   if (!deckKey) {
     const n = dueToday().length, total = allSentences().length;
     el.innerHTML = n
-      ? `<div class="card due"><div class="big-num">${n}</div><div class="muted">frases para hoy</div></div>
+      ? `<div class="card due"><div class="big-num">${n}</div><div class="muted">chunks para hoy</div></div>
          <button class="btn" data-a="due">Empezar</button>
          ${total > n ? `<button class="btn ghost" data-a="all" style="margin-top:6px">Mezclar todas (${total})</button>` : ""}`
       : total
-        ? `<div class="card due"><div class="big-num">✓</div><strong>Nada pendiente hoy</strong><div class="muted small">Las frases vuelven 1, 3, 7, 14, 30, 60 y 120 días después.</div></div>
+        ? `<div class="card due"><div class="big-num">✓</div><strong>Nada pendiente hoy</strong><div class="muted small">Los chunks vuelven 1, 3, 7, 14, 30, 60 y 120 días después.</div></div>
            <button class="btn secondary" data-a="all">Mezclar todas (${total})</button>`
-        : emptyState("Tus frases aparecen acá después de tu primera grabación.");
+        : emptyState("Tus chunks aparecen acá después de tu primera grabación.");
     return;
   }
   const pos = store.get("deckPos", 0);
   if (pos >= deck.length) {
-    el.innerHTML = `<div class="card flash"><div class="big-num">✓</div><div class="en" style="margin-top:10px">Listo por hoy</div><div class="muted small">${deck.length} frases</div></div>
+    el.innerHTML = `<div class="card flash"><div class="big-num">✓</div><div class="en" style="margin-top:10px">Listo por hoy</div><div class="muted small">${deck.length} chunks</div></div>
       <button class="btn secondary" data-a="back">Volver</button>`;
     return;
   }
@@ -713,6 +760,7 @@ function renderRecall() {
       <div class="en">${esc(c.english)}</div>
       ${shown ? `<div class="es">${esc(c.spanish)}</div>
         <div><button class="speak" data-a="speak">▶︎ Escuchar</button></div>
+        ${norm(c.sentence) !== norm(c.spanish) ? `<div class="ctx">${ctxHtml(c.sentence, c.spanish)}</div>` : ""}
         ${c.corrections.length ? `<div class="fix"><div class="heard">Dijiste: “${esc(c.heard)}”</div>
           ${c.corrections.map((x) => `<div class="corr"><b>${esc(x.wrong)}</b> → <i>${esc(x.right)}</i> <span class="muted">· ${esc(x.why)}</span></div>`).join("")}</div>` : ""}`
         : `<div class="muted small" style="margin-top:24px">Decilo en voz alta · tocá para ver</div>`}
@@ -728,6 +776,12 @@ $("recall").addEventListener("click", (ev) => {
   else if (a === "back") { deckKey = ""; renderRecall(); }
   else if (a === "speak") { ev.stopPropagation(); speak(deck[store.get("deckPos", 0)].spanish); }
 });
+const norm = (s) => s.replace(/[.,¿?¡!]/g, "").trim().toLowerCase();
+function ctxHtml(sentence, chunk) {
+  const i = sentence.toLowerCase().indexOf(chunk.toLowerCase());
+  if (i < 0) return esc(sentence);
+  return esc(sentence.slice(0, i)) + `<b>${esc(sentence.slice(i, i + chunk.length))}</b>` + esc(sentence.slice(i + chunk.length));
+}
 function speak(text) {
   if (!("speechSynthesis" in window)) return;
   const voices = speechSynthesis.getVoices();
@@ -762,6 +816,7 @@ function renderSessions() {
       <span class="chev">›</span></button>
       <div class="detail">${s.sentences.map((x) => `<div class="sent"><div class="es">${esc(x.spanish)}</div>
         <div class="small muted">${esc(x.english)}</div>
+        ${x.chunks?.length ? `<div class="chips">${x.chunks.map((c) => `<span>${esc(c.spanish)}</span>`).join("")}</div>` : ""}
         ${x.corrections.length ? `<div class="heard">Dijiste: “${esc(x.heard)}”</div>` + x.corrections.map((c) =>
           `<div class="corr"><b>${esc(c.wrong)}</b> → <i>${esc(c.right)}</i> <span class="muted">· ${esc(c.why)}</span></div>`).join("") : ""}
       </div>`).join("")}</div></div>`;
@@ -786,7 +841,7 @@ document.querySelector("nav").addEventListener("click", (ev) => {
 function renderAll() {
   $("setupNotice").innerHTML = connected() ? "" :
     `<div class="notice">Falta conectar el repositorio. Tocá ⚙︎ arriba a la derecha.</div>`;
-  renderEpisodes(); renderRecall(); renderSessions(); renderUploads();
+  setListenTab(listenTab); renderRecall(); renderSessions(); renderUploads();
 }
 
 function openSettings() {
