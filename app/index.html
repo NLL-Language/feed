@@ -145,6 +145,9 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: 
   border-radius: 20px; padding: 12px 16px 10px; display: none; box-shadow: 0 12px 34px rgba(0, 0, 0, 0.18), 0 0 0 1px var(--line);
   max-width: 620px; margin: 0 auto; }
 .player.on { display: block; animation: rise 0.25s ease both; }
+.player .top { display: flex; align-items: center; gap: 8px; }
+.player .top .title { flex: 1; min-width: 0; }
+.player .close { flex: none; width: 30px; height: 30px; margin: -4px -6px -4px 0; border-radius: 15px; font-size: 22px; line-height: 1; color: var(--muted); background: var(--line); display: grid; place-items: center; }
 .player .title { font-size: 15px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .player input[type=range] { width: 100%; accent-color: var(--accent); margin: 8px 0 0; height: 4px; }
 .controls { display: flex; align-items: center; justify-content: space-between; }
@@ -258,7 +261,7 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 </main>
 
 <div class="player" id="player">
-  <div class="title" id="pTitle"></div>
+  <div class="top"><div class="title" id="pTitle"></div><button class="close" id="pClose" aria-label="Cerrar reproductor">×</button></div>
   <input type="range" id="pSeek" min="0" max="1000" value="0" aria-label="Posición">
   <div class="times"><span id="pCur">0:00</span><span id="pDur">0:00</span></div>
   <div class="controls">
@@ -280,7 +283,7 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 <dialog id="settings">
   <form method="dialog">
     <strong style="font-size:19px">Conexión</strong>
-    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v6</p>
+    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v7</p>
     <label for="sRepo">Repositorio (dueño/nombre)</label>
     <input id="sRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dueño/repositorio">
     <label for="sToken">Token de GitHub</label>
@@ -436,7 +439,8 @@ let mode = store.get("recMode", "libre");
 function setMode(m) {
   mode = MODES[m] ? m : "libre"; store.set("recMode", mode);
   $("seg").dataset.mode = mode;
-  $("seg").style.setProperty("--i", Object.keys(MODES).indexOf(mode));
+  const order = [...$("seg").querySelectorAll("button[data-mode]")].map((b) => b.dataset.mode);
+  $("seg").style.setProperty("--i", order.indexOf(mode));
   $("seg").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
   $("modeHint").textContent = MODES[mode].hint;
   $("startLabel").textContent = MODES[mode].label;
@@ -690,6 +694,14 @@ $("pSeek").addEventListener("change", () => {
   audio.currentTime = ($("pSeek").value / 1000) * d; seeking = false;
 });
 $("pPlay").onclick = () => (audio.paused ? audio.play() : audio.pause());
+// Close: stop and hide the bar. Where you left off is kept, so the episode resumes there next time.
+$("pClose").onclick = () => {
+  audio.pause();
+  $("player").classList.remove("on");
+  current = null;
+  if ("mediaSession" in navigator) navigator.mediaSession.metadata = null;
+  renderEpisodes();
+};
 $("pBack").onclick = () => { audio.currentTime = Math.max(0, audio.currentTime - 15); };
 $("pFwd").onclick = () => { audio.currentTime = Math.min(audio.duration || 1e9, audio.currentTime + 15); };
 $("pRate").onclick = () => {
