@@ -125,6 +125,21 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: 
 .ep-ic svg { width: 20px; height: 20px; }
 .ep-ic.immersion { background: color-mix(in srgb, var(--accent-2) 22%, transparent); color: var(--accent); }
 .ep-ic.review { background: var(--sun-soft); color: var(--sun); }
+.ep-ic.weak { background: color-mix(in srgb, var(--warn) 16%, transparent); color: var(--warn); }
+.ep-ic.category { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok); }
+.deck-row { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 10px; border-radius: 14px; }
+.deck-row .t { flex: 1; min-width: 0; font-weight: 600; }
+.deck-row .n { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 15px; }
+.deck-row .badge { font-size: 13px; font-weight: 700; padding: 1px 8px; border-radius: 9px; background: var(--accent-soft); color: var(--accent); margin-right: 4px; }
+.deck-row .chev { color: var(--muted); font-size: 20px; }
+.deck-row.weak .t { color: var(--warn); }
+.grade { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grade .btn { margin: 0; }
+.btn.miss { background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--warn); }
+.flash .src { margin-top: 10px; font-size: 13px; color: var(--muted); }
+.notes-card { display: flex; gap: 12px; align-items: center; }
+.notes-card .t { flex: 1; font-size: 15px; }
+.notes-card .btn { width: auto; margin: 0; padding: 10px 14px; font-size: 15px; }
 .kind { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
 .player { position: fixed; left: 10px; right: 10px; bottom: calc(env(safe-area-inset-bottom) + 72px); z-index: 6;
   background: var(--glass); -webkit-backdrop-filter: saturate(180%) blur(24px); backdrop-filter: saturate(180%) blur(24px);
@@ -229,6 +244,8 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
       <button class="btn ghost" id="cancelRec" style="margin-top:4px">Cancelar</button>
     </div>
 
+    <div id="pendingNotes"></div>
+
     <h2 id="uploadsHead" hidden>Subidas</h2>
     <div class="card" id="uploadsCard" hidden><ul class="uploads" id="uploads"></ul></div>
   </section>
@@ -269,7 +286,7 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 <dialog id="settings">
   <form method="dialog">
     <strong style="font-size:19px">Conexión</strong>
-    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v4</p>
+    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v5</p>
     <label for="sRepo">Repositorio (dueño/nombre)</label>
     <input id="sRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dueño/repositorio">
     <label for="sToken">Token de GitHub</label>
@@ -300,6 +317,8 @@ const ICON_EP = {
   drill: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11M4 12h7M4 17h11"/><path d="M17 10l3 2-3 2"/></svg>',
   immersion: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="3" y="14" width="4" height="7" rx="1.5"/><rect x="17" y="14" width="4" height="7" rx="1.5"/></svg>',
   review: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>',
+  category: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v14H4z"/><path d="M4 10h16M9 10v9"/></svg>',
+  weak: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>',
 };
 
 const todayISO = () => new Date().toLocaleDateString("sv-SE");
@@ -599,11 +618,11 @@ $("cancelRec").onclick = () => {
 /* ---------- Listen ---------- */
 const audio = $("audio");
 let current = null;
-const KIND = { review: "Repaso", drill: "Drill", immersion: "Escuchar" };
+const KIND = { review: "Repaso", drill: "Drill", immersion: "Escuchar", category: "Isla", weak: "Fallos" };
 
 // Escuchar has two tabs: active recall (drill + daily review, in chunks) and Spanish-only listening.
 const LISTEN_TABS = {
-  recall: { kinds: ["drill", "review"], hint: "Escuchás el inglés, lo decís en castellano, y después Tomás lo confirma. Todo en chunks.", empty: "Todavía no hay episodios para recordar." },
+  recall: { kinds: ["drill", "review", "weak", "category"], hint: "Escuchás el inglés, lo decís en castellano, y después Tomás lo confirma. Todo en chunks.", empty: "Todavía no hay episodios para recordar." },
   listen: { kinds: ["immersion"], hint: "Tus frases corregidas, solo en castellano, una atrás de la otra.", empty: "Todavía no hay episodios para escuchar." },
 };
 let listenTab = LISTEN_TABS[store.get("listenTab")] ? store.get("listenTab") : "recall";
@@ -620,7 +639,7 @@ function epParts(e) {
   // "Nov 8 · Title · Drill · 24 chunks" → title "Title", extra "24 chunks"
   const parts = e.title.split(" · ").slice(1);
   const extra = parts.filter((t) => /^\d+ (chunks|frases)$/.test(t));
-  const title = parts.filter((t) => !["Drill", "Escuchar", "Repaso"].includes(t) && !extra.includes(t)).join(" · ");
+  const title = parts.filter((t) => !["Drill", "Escuchar", "Repaso"].includes(t) && !extra.includes(t)).join(" · ").replace(/^Isla: /, "");
   return { title: title || (e.kind === "review" ? "Repaso del día" : e.title), extra: extra[0] || "" };
 }
 function renderEpisodes() {
@@ -628,14 +647,19 @@ function renderEpisodes() {
   const eps = (DATA.episodes || []).map((e, i) => ({ e, i, kind: KIND[e.kind] ? e.kind : "drill" })).filter((x) => tab.kinds.includes(x.kind));
   if (!eps.length) { $("episodes").innerHTML = emptyState(tab.empty); return; }
   const played = store.get("played", {});
-  $("episodes").innerHTML = `<div class="card list">` + eps.map(({ e, i, kind }) => {
+  const row = ({ e, i, kind }) => {
     const { title, extra } = epParts(e);
     return `<button class="ep ${played[e.guid] ? "played" : ""} ${current?.guid === e.guid ? "now" : ""}" data-i="${i}">
       <span class="ep-ic ${kind}">${ICON_EP[kind]}</span>
       <div class="t"><div>${esc(title)}</div>
         <div class="small muted"><span class="kind">${KIND[kind]}</span> · ${esc(e.title.split(" · ")[0])}${extra ? ` · ${esc(extra)}` : ""} · ${mmss(e.duration)}</div></div>
     </button>`;
-  }).join("") + `</div>`;
+  };
+  // Weekly "Lo que más fallo" and category episodes get their own section under the daily ones.
+  const daily = eps.filter((x) => x.kind !== "category" && x.kind !== "weak");
+  const weekly = eps.filter((x) => x.kind === "weak").concat(eps.filter((x) => x.kind === "category"));
+  $("episodes").innerHTML = (daily.length ? `<div class="card list">${daily.map(row).join("")}</div>` : "")
+    + (weekly.length ? `<h2>Islas de la semana</h2><div class="card list">${weekly.map(row).join("")}</div>` : "");
 }
 $("episodes").addEventListener("click", (ev) => {
   const b = ev.target.closest(".ep"); if (!b) return;
@@ -697,90 +721,183 @@ if ("mediaSession" in navigator) {
 }
 
 /* ---------- Recall ---------- */
-let deck = [], deckKey = "", shown = false;
-
-// Cards are chunks; each keeps its sentence as context. Older data without chunks uses the sentence.
-function chunkCards(sessions) {
-  const seen = new Set(), out = [];
-  for (const s of sessions) s.sentences.forEach((x, i) => {
-    const chunks = x.chunks?.length ? x.chunks : [{ spanish: x.spanish, english: x.english }];
-    for (const c of chunks) {
-      const k = norm(c.spanish);
-      if (seen.has(k)) continue;
-      seen.add(k);
-      out.push({ english: c.english, spanish: c.spanish, sentence: x.spanish, sentenceEn: x.english,
-        heard: x.heard, corrections: x.corrections, key: `${s.id}:${i}:${k}` });
-    }
+// cards.json (written by the Mac) holds every chunk, from your recordings and your study
+// sheet, with its schedule: due date, step and how often you've missed it. Grades go back
+// to the Mac as small files in results/; it reschedules and sends a fresh cards.json.
+let CARDS = [];
+const kv = (() => {
+  const db = new Promise((res, rej) => {
+    const r = indexedDB.open("espanol-kv", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("kv");
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
   });
-  return out;
+  const run = (mode, fn) => db.then((d) => new Promise((res, rej) => {
+    const tx = d.transaction("kv", mode), req = fn(tx.objectStore("kv"));
+    tx.oncomplete = () => res(req.result); tx.onerror = () => rej(tx.error);
+  }));
+  return { get: (k) => run("readonly", (s) => s.get(k)), set: (k, v) => run("readwrite", (s) => s.put(v, k)) };
+})();
+
+async function loadCards() {
+  try {
+    const cached = await kv.get("cards");
+    if (cached && !CARDS.length) { CARDS = cached.cards || []; renderRecall(); }
+    if (!connected()) return;
+    let data;
+    if (DEMO) data = await (await fetch("demo-cards.json", { cache: "no-store" })).json();
+    else {
+      const { repo, token } = conn();
+      const res = await fetch(`https://api.github.com/repos/${repo}/contents/cards.json`, {
+        headers: { Authorization: `Bearer ${token}`, "X-GitHub-Api-Version": "2022-11-28", Accept: "application/vnd.github.raw+json",
+          ...(cached?.etag ? { "If-None-Match": cached.etag } : {}) },
+        cache: "no-store",
+      });
+      if (res.status === 304 || res.status === 404) return;
+      if (!res.ok) throw new Error(`GitHub ${res.status}`);
+      data = { ...(await res.json()), etag: res.headers.get("ETag") };
+    }
+    CARDS = data.cards || [];
+    await kv.set("cards", data);
+    renderRecall();
+  } catch (e) { console.warn("cards", e); }
 }
-function dueToday() {
-  const today = todayISO(), iv = new Set([0, ...(DATA.review_intervals || [])]);
-  return chunkCards((DATA.sessions || []).filter((s) => iv.has(dayDiff(s.date, today))));
+
+// Today's grades, kept on the phone so graded cards leave "Hoy" before the Mac catches up.
+function gradedToday() {
+  const g = store.get("graded", {});
+  return g.d === todayISO() ? g.k : {};
 }
-function allSentences() { return chunkCards(DATA.sessions || []); }
+function grade(card, ok) {
+  const g = { d: todayISO(), k: gradedToday() }; g.k[card.k] = ok ? 1 : 0; store.set("graded", g);
+  const r = store.get("results", []); r.push({ k: card.k, ok, d: todayISO(), t: new Date().toISOString() }); store.set("results", r);
+  if (r.length >= 10) flushResults();
+}
+let flushingResults = false;
+async function flushResults() {
+  const items = store.get("results", []);
+  if (!items.length || flushingResults || !connected() || DEMO) return;
+  flushingResults = true;
+  try {
+    const name = `results/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.json`;
+    const body = JSON.stringify(items);
+    await gh(`contents/${name}`, { method: "PUT", body: JSON.stringify({ message: `Grades (${items.length})`,
+      content: btoa(unescape(encodeURIComponent(body))) }) });
+    store.set("results", store.get("results", []).slice(items.length));
+  } catch (e) { console.warn("results", e); }
+  flushingResults = false;
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushResults(); });
+
+const isDue = (c, today = todayISO()) => c.due && c.due <= today;
+function deckCards(name) {
+  const today = todayISO(), graded = gradedToday();
+  if (name === "hoy") return CARDS.filter((c) => isDue(c, today) && !(c.k in graded))
+    .sort((a, b) => (b.lapses || 0) - (a.lapses || 0) || (a.step > 0) - (b.step > 0) || a.due.localeCompare(b.due));
+  if (name === "weak") return CARDS.filter((c) => c.lapses > 0).sort((a, b) => b.lapses - a.lapses).slice(0, 150);
+  const pool = name === "todo" ? CARDS : CARDS.filter((c) => c.cat === name.slice(4));
+  // Missed ones first, then a stable shuffle for the day.
+  const missed = pool.filter((c) => c.lapses > 0).sort((a, b) => b.lapses - a.lapses);
+  return missed.concat(shuffle(pool.filter((c) => !(c.lapses > 0)), `${name}-${today}`));
+}
 function shuffle(arr, seed) {
   let h = 0; for (const c of seed) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) { h = (h * 1103515245 + 12345) >>> 0; const j = h % (i + 1); [a[i], a[j]] = [a[j], a[i]]; }
   return a;
 }
-function startDeck(mode) {
-  deckKey = `${mode}-${todayISO()}`;
-  const src = mode === "all" ? allSentences() : dueToday();
-  // Sentences you got wrong come first; the rest in a stable shuffled order for the day.
-  deck = shuffle(src, deckKey).sort((a, b) => (b.corrections.length > 0) - (a.corrections.length > 0));
-  if (store.get("deckKey") !== deckKey) { store.set("deckKey", deckKey); store.set("deckPos", 0); }
-  shown = false; renderRecall();
+const DECK_NAMES = { hoy: "Hoy", weak: "Lo que más fallo", todo: "Todo" };
+const deckName = (d) => DECK_NAMES[d] || d.slice(4);
+
+// The deck in progress: its card keys and position survive closing the app.
+let deck = null, shown = false;
+const byKey = () => { const m = new Map(); for (const c of CARDS) m.set(c.k, c); return m; };
+function startDeck(name) {
+  const keys = deckCards(name).map((c) => c.k);
+  deck = { name, keys, pos: 0, requeued: [] };
+  store.set("deck", deck); shown = false; renderRecall(); window.scrollTo(0, 0);
+}
+function sessionInfo(c) {
+  // What you said and the corrections, for chunks from your recordings.
+  const s = (DATA.sessions || []).find((x) => x.id === c.sid);
+  return s?.sentences.find((x) => x.spanish === c.ctx);
 }
 function renderRecall() {
   const el = $("recall");
-  if (!deckKey) {
-    const n = dueToday().length, total = allSentences().length;
-    el.innerHTML = n
-      ? `<div class="card due"><div class="big-num">${n}</div><div class="muted">chunks para hoy</div></div>
-         <button class="btn" data-a="due">Empezar</button>
-         ${total > n ? `<button class="btn ghost" data-a="all" style="margin-top:6px">Mezclar todas (${total})</button>` : ""}`
-      : total
-        ? `<div class="card due"><div class="big-num">✓</div><strong>Nada pendiente hoy</strong><div class="muted small">Los chunks vuelven 1, 3, 7, 14, 30, 60 y 120 días después.</div></div>
-           <button class="btn secondary" data-a="all">Mezclar todas (${total})</button>`
-        : emptyState("Tus chunks aparecen acá después de tu primera grabación.");
-    return;
-  }
-  const pos = store.get("deckPos", 0);
-  if (pos >= deck.length) {
-    el.innerHTML = `<div class="card flash"><div class="big-num">✓</div><div class="en" style="margin-top:10px">Listo por hoy</div><div class="muted small">${deck.length} chunks</div></div>
+  if (!deck) deck = store.get("deck", null);
+  if (deck && deck.pos >= deck.keys.length) {
+    el.innerHTML = `<div class="card flash"><div class="big-num">✓</div><div class="en" style="margin-top:10px">Listo</div>
+      <div class="muted small">${esc(deckName(deck.name))} · ${deck.keys.length} chunks</div></div>
       <button class="btn secondary" data-a="back">Volver</button>`;
+    flushResults();
     return;
   }
-  const c = deck[pos];
-  el.innerHTML = `<div class="small muted">${pos + 1} / ${deck.length}</div>
-    <div class="progress"><div style="width:${(pos / deck.length) * 100}%"></div></div>
-    <div class="card flash" data-a="flip">
-      <div class="en">${esc(c.english)}</div>
-      ${shown ? `<div class="es">${esc(c.spanish)}</div>
-        <div><button class="speak" data-a="speak">▶︎ Escuchar</button></div>
-        ${norm(c.sentence) !== norm(c.spanish) ? `<div class="ctx">${ctxHtml(c.sentence, c.spanish)}</div>` : ""}
-        ${c.corrections.length ? `<div class="fix"><div class="heard">Dijiste: “${esc(c.heard)}”</div>
-          ${c.corrections.map((x) => `<div class="corr"><b>${esc(x.wrong)}</b> → <i>${esc(x.right)}</i> <span class="muted">· ${esc(x.why)}</span></div>`).join("")}</div>` : ""}`
-        : `<div class="muted small" style="margin-top:24px">Decilo en voz alta · tocá para ver</div>`}
-    </div>
-    ${shown ? `<button class="btn" data-a="next">Siguiente</button>` : `<button class="btn secondary" data-a="flip">Mostrar</button>`}
-    <button class="btn ghost" data-a="back" style="margin-top:6px">Salir</button>`;
+  if (deck) {
+    const map = byKey(), c = map.get(deck.keys[deck.pos]);
+    if (!c) { deck.pos++; store.set("deck", deck); return renderRecall(); }
+    const info = c.src === "session" ? sessionInfo(c) : null;
+    el.innerHTML = `<div class="small muted">${esc(deckName(deck.name))} · ${deck.pos + 1} / ${deck.keys.length}</div>
+      <div class="progress"><div style="width:${(deck.pos / deck.keys.length) * 100}%"></div></div>
+      <div class="card flash" data-a="flip">
+        <div class="en">${esc(c.en)}</div>
+        ${shown ? `<div class="es">${esc(c.es)}</div>
+          <div><button class="speak" data-a="speak">▶︎ Escuchar</button></div>
+          ${norm(c.ctx) !== norm(c.es) ? `<div class="ctx">${ctxHtml(c.ctx, c.es)}</div>` : ""}
+          ${info?.corrections.length ? `<div class="fix"><div class="heard">Dijiste: “${esc(info.heard)}”</div>
+            ${info.corrections.map((x) => `<div class="corr"><b>${esc(x.wrong)}</b> → <i>${esc(x.right)}</i> <span class="muted">· ${esc(x.why)}</span></div>`).join("")}</div>` : ""}
+          <div class="src">${c.src === "library" ? `${esc(c.cat)} · ${esc(c.tab)}` : "De tus grabaciones"}${c.lapses ? ` · fallada ${c.lapses}×` : ""}</div>`
+          : `<div class="muted small" style="margin-top:24px">Decilo en voz alta · tocá para ver</div>`}
+      </div>
+      ${shown ? `<div class="grade"><button class="btn miss" data-a="miss">No me salió</button><button class="btn" data-a="ok">La sabía</button></div>`
+              : `<button class="btn secondary" data-a="flip">Mostrar</button>`}
+      <button class="btn ghost" data-a="back" style="margin-top:6px">Salir</button>`;
+    return;
+  }
+  // Home: today's count and the decks.
+  if (!CARDS.length) {
+    el.innerHTML = emptyState("Tus chunks aparecen acá después de tu primera grabación.");
+    return;
+  }
+  const hoy = deckCards("hoy"), weak = CARDS.filter((c) => c.lapses > 0).length;
+  const fresh = hoy.filter((c) => !c.step && !c.lapses).length;
+  const cats = {};
+  for (const c of CARDS) { const x = (cats[c.cat] ||= { n: 0, due: 0 }); x.n++; if (isDue(c)) x.due++; }
+  const row = (d, label, n, due, cls = "") => `<button class="deck-row ${cls}" data-a="deck" data-d="${esc(d)}">
+      <span class="t">${esc(label)}</span>${due ? `<span class="badge">${due}</span>` : ""}<span class="n">${n}</span><span class="chev">›</span></button>`;
+  el.innerHTML = (hoy.length
+      ? `<div class="card due"><div class="big-num">${hoy.length}</div><div class="muted">chunks para hoy</div>
+           <div class="small muted" style="margin-top:4px">${fresh} nuevos · ${hoy.length - fresh} para repasar</div></div>
+         <button class="btn" data-a="deck" data-d="hoy">Empezar</button>`
+      : `<div class="card due"><div class="big-num">✓</div><strong>Nada pendiente hoy</strong>
+           <div class="muted small">Mañana llegan chunks nuevos de tu planilla.</div></div>`)
+    + `<h2>Mazos</h2><div class="card list">`
+    + (weak ? row("weak", "Lo que más fallo", Math.min(weak, 150), 0, "weak") : "")
+    + Object.entries(cats).sort((a, b) => (a[0] === "Mis grabaciones" ? -1 : b[0] === "Mis grabaciones" ? 1 : a[0].localeCompare(b[0], "es")))
+        .map(([name, x]) => row(`cat:${name}`, name, x.n, x.due)).join("")
+    + row("todo", "Todo mezclado", CARDS.length, 0) + `</div>`;
 }
 $("recall").addEventListener("click", (ev) => {
-  const a = ev.target.closest("[data-a]")?.dataset.a; if (!a) return;
-  if (a === "due" || a === "all") startDeck(a);
+  const t = ev.target.closest("[data-a]"); if (!t) return;
+  const a = t.dataset.a;
+  if (a === "deck") startDeck(t.dataset.d);
   else if (a === "flip") { if (!shown) { shown = true; renderRecall(); } }
-  else if (a === "next") { store.set("deckPos", store.get("deckPos", 0) + 1); shown = false; renderRecall(); }
-  else if (a === "back") { deckKey = ""; renderRecall(); }
-  else if (a === "speak") { ev.stopPropagation(); speak(deck[store.get("deckPos", 0)].spanish); }
+  else if (a === "ok" || a === "miss") {
+    const c = byKey().get(deck.keys[deck.pos]);
+    grade(c, a === "ok");
+    // A miss comes back a few cards later in the same round (once).
+    if (a === "miss" && !deck.requeued.includes(c.k)) {
+      deck.keys.splice(Math.min(deck.pos + 5, deck.keys.length), 0, c.k); deck.requeued.push(c.k);
+    }
+    deck.pos++; store.set("deck", deck); shown = false; renderRecall();
+  }
+  else if (a === "back") { deck = null; store.set("deck", null); flushResults(); renderRecall(); }
+  else if (a === "speak") { ev.stopPropagation(); speak(byKey().get(deck.keys[deck.pos]).es); }
 });
 const norm = (s) => s.replace(/[.,¿?¡!]/g, "").trim().toLowerCase();
 function ctxHtml(sentence, chunk) {
-  const i = sentence.toLowerCase().indexOf(chunk.toLowerCase());
+  const i = sentence.toLowerCase().indexOf(chunk.toLowerCase().replace(/[.,¿?¡!]+$/, ""));
   if (i < 0) return esc(sentence);
-  return esc(sentence.slice(0, i)) + `<b>${esc(sentence.slice(i, i + chunk.length))}</b>` + esc(sentence.slice(i + chunk.length));
+  const n = chunk.replace(/[.,¿?¡!]+$/, "").length;
+  return esc(sentence.slice(0, i)) + `<b>${esc(sentence.slice(i, i + n))}</b>` + esc(sentence.slice(i + n));
 }
 function speak(text) {
   if (!("speechSynthesis" in window)) return;
@@ -789,6 +906,26 @@ function speak(text) {
   const u = new SpeechSynthesisUtterance(text); u.lang = v?.lang || "es-AR"; if (v) u.voice = v; u.rate = 0.95;
   speechSynthesis.cancel(); speechSynthesis.speak(u);
 }
+
+/* ---------- Quick notes waiting for their episode ---------- */
+function renderPendingNotes() {
+  const p = DATA.pending_notes || {};
+  const asked = store.get("notesAsked", "") === todayISO();
+  $("pendingNotes").innerHTML = p.notes ? `<div class="card notes-card"><div class="t">
+      <strong>${p.notes} ${p.notes === 1 ? "nota suelta" : "notas sueltas"} · ${p.chunks} chunks</strong>
+      <div class="small muted">${asked ? "Pedido enviado: el episodio sale en unos minutos." : "Se juntan en un episodio a los 20 chunks o a la noche."}</div></div>
+      ${asked ? "" : `<button class="btn secondary" id="buildNotes">Armar ahora</button>`}</div>` : "";
+}
+$("pendingNotes").addEventListener("click", async (ev) => {
+  if (!ev.target.closest("#buildNotes")) return;
+  ev.target.disabled = true;
+  try {
+    if (!DEMO) await gh(`contents/requests/notes-${Date.now()}.json`, { method: "PUT",
+      body: JSON.stringify({ message: "Build Notas sueltas", content: btoa("{}") }) });
+    store.set("notesAsked", todayISO());
+  } catch (e) { console.warn("notes", e); ev.target.disabled = false; }
+  renderPendingNotes();
+});
 
 /* ---------- Sessions ---------- */
 function paceChart(sessions) {
@@ -810,7 +947,7 @@ function renderSessions() {
   $("sessions").innerHTML = paceChart(DATA.sessions) + ss.map((s) => {
     const errs = s.sentences.reduce((n, x) => n + x.corrections.length, 0);
     return `<div class="card session"><button data-a="toggle">
-      <div><div style="font-weight:650">${esc(s.title)}${s.rounds.length ? `<span class="tag">4/3/2</span>` : ""}</div>
+      <div><div style="font-weight:650">${esc(s.title)}${s.rounds.length ? `<span class="tag">4/3/2</span>` : ""}${s.pending ? `<span class="tag">en espera</span>` : ""}</div>
         <div class="small muted">${fmtDate(s.date)} · ${s.sentences.length} frases · ${errs} correcciones</div>
         ${s.rounds.length ? `<div class="pace">${s.rounds.map((r) => `${r.wpm}`).join(" → ")} palabras/min</div>` : ""}</div>
       <span class="chev">›</span></button>
@@ -841,7 +978,7 @@ document.querySelector("nav").addEventListener("click", (ev) => {
 function renderAll() {
   $("setupNotice").innerHTML = connected() ? "" :
     `<div class="notice">Falta conectar el repositorio. Tocá ⚙︎ arriba a la derecha.</div>`;
-  setListenTab(listenTab); renderRecall(); renderSessions(); renderUploads();
+  setListenTab(listenTab); renderRecall(); renderSessions(); renderUploads(); renderPendingNotes();
 }
 
 function openSettings() {
@@ -855,7 +992,7 @@ $("sSave").onclick = async (ev) => {
   store.set("repo", $("sRepo").value.replace(/\s+/g, "").replace(/^https?:\/\/github\.com\//, "").replace(/\/$/, ""));
   store.set("token", $("sToken").value.replace(/\s+/g, ""));
   $("sStatus").textContent = "Probando…";
-  try { await gh(""); $("sStatus").textContent = "✓ Conectado"; setTimeout(() => $("settings").close(), 600); loadData(); flushQueue(); }
+  try { await gh(""); $("sStatus").textContent = "✓ Conectado"; setTimeout(() => $("settings").close(), 600); loadData(); loadCards(); flushQueue(); }
   catch (e) {
     const hint = { "GitHub 401": "el token no es válido (copialo de nuevo)",
       "GitHub 403": "el token espera aprobación de la organización",
@@ -867,10 +1004,10 @@ $("sSave").onclick = async (ev) => {
 const startTab = store.get("tab", "record");
 document.querySelector(`nav button[data-view="${startTab}"]`)?.click();
 renderAll();
-loadData();
-flushQueue();
-document.addEventListener("visibilitychange", () => { if (!document.hidden && !rec) { loadData(); flushQueue(); } });
-window.addEventListener("online", flushQueue);
+loadData(); loadCards();
+flushQueue(); flushResults();
+document.addEventListener("visibilitychange", () => { if (!document.hidden && !rec) { loadData(); loadCards(); flushQueue(); flushResults(); } });
+window.addEventListener("online", () => { flushQueue(); flushResults(); });
 </script>
 </body>
 </html>
