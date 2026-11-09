@@ -283,7 +283,7 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 <dialog id="settings">
   <form method="dialog">
     <strong style="font-size:19px">Conexión</strong>
-    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v7</p>
+    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v8</p>
     <label for="sRepo">Repositorio (dueño/nombre)</label>
     <input id="sRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dueño/repositorio">
     <label for="sToken">Token de GitHub</label>
@@ -686,6 +686,10 @@ audio.addEventListener("ended", () => current && markPlayed(current.guid));
 function markPlayed(guid) {
   const p = store.get("played", {}); if (p[guid]) return;
   p[guid] = 1; store.set("played", p); renderEpisodes();
+  // A Repaso heard to the end counts as reviewing its chunks; tell the Mac.
+  if (guid.startsWith("review-")) {
+    const r = store.get("results", []); r.push({ played: guid, d: todayISO() }); store.set("results", r); flushResults();
+  }
 }
 let seeking = false;
 $("pSeek").addEventListener("input", () => { seeking = true; });
@@ -765,6 +769,7 @@ function gradedToday() {
 function grade(card, ok) {
   const g = { d: todayISO(), k: gradedToday() }; g.k[card.k] = ok ? 1 : 0; store.set("graded", g);
   const r = store.get("results", []); r.push({ k: card.k, ok, d: todayISO(), t: new Date().toISOString() }); store.set("results", r);
+  const seen = store.get("seen", {}); seen[card.k] = todayISO(); store.set("seen", seen);
   if (r.length >= 10) flushResults();
 }
 let flushingResults = false;
@@ -784,15 +789,40 @@ async function flushResults() {
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushResults(); });
 
 const isDue = (c, today = todayISO()) => c.due && c.due <= today;
-function deckCards(name) {
-  const today = todayISO(), graded = gradedToday();
-  if (name === "hoy") return CARDS.filter((c) => isDue(c, today) && !(c.k in graded))
-    .sort((a, b) => (b.lapses || 0) - (a.lapses || 0) || (a.step > 0) - (b.step > 0) || a.due.localeCompare(b.due));
-  if (name === "weak") return CARDS.filter((c) => c.lapses > 0).sort((a, b) => b.lapses - a.lapses).slice(0, 150);
-  const pool = name === "todo" ? CARDS : CARDS.filter((c) => c.cat === name.slice(4));
-  // Missed ones first, then a stable shuffle for the day.
-  const missed = pool.filter((c) => c.lapses > 0).sort((a, b) => b.lapses - a.lapses);
-  return missed.concat(shuffle(pool.filter((c) => !(c.lapses > 0)), `${name}-${today}`));
+// When a card was last graded on a flashcard: this phone's record, or the Mac's (other devices).
+let SEEN = store.get("seen", {});
+const lastSeen = (c) => { const a = SEEN[c.k] || "", b = c.graded || ""; return a > b ? a : b; };
+const ROUND = 40;
+
+// Category, "Todo" and "Lo que más fallo" decks are worked through in rounds of ROUND cards.
+// Each round takes, in order: cards you've missed and haven't seen today, then cards you've
+// never had (in sheet order for a category, so a story's chunks stay together; shuffled for
+// "Todo"), then the ones you saw longest ago. Progress is per deck, so leaving and coming
+// back picks up where you were, and finished cards don't come back until it's their turn.
+function deckPool(name) {
+  if (name === "weak") return CARDS.filter((c) => c.lapses > 0);
+  if (name === "todo") return CARDS;
+  return CARDS.filter((c) => c.cat === name.slice(4));
+}
+function nextRound(name) {
+  const today = todayISO();
+  if (name === "hoy") {
+    const graded = gradedToday();
+    return CARDS.filter((c) => isDue(c, today) && !(c.k in graded))
+      .sort((a, b) => (b.lapses || 0) - (a.lapses || 0) || (a.step > 0) - (b.step > 0) || a.due.localeCompare(b.due));
+  }
+  const pool = deckPool(name);
+  const missed = pool.filter((c) => c.lapses > 0 && lastSeen(c) < today)
+    .sort((a, b) => b.lapses - a.lapses || lastSeen(a).localeCompare(lastSeen(b)));
+  const fresh = pool.filter((c) => !lastSeen(c) && !(c.lapses > 0));
+  const old = pool.filter((c) => lastSeen(c) && lastSeen(c) < today && !(c.lapses > 0))
+    .sort((a, b) => lastSeen(a).localeCompare(lastSeen(b)));
+  const order = name === "weak" ? missed : missed.concat(name === "todo" ? shuffle(fresh, `todo-${today}`) : fresh, old);
+  return order.slice(0, ROUND);
+}
+function deckProgress(name) {
+  const pool = deckPool(name);
+  return { seen: pool.filter((c) => lastSeen(c)).length, total: pool.length };
 }
 function shuffle(arr, seed) {
   let h = 0; for (const c of seed) h = (h * 31 + c.charCodeAt(0)) >>> 0;
@@ -800,16 +830,27 @@ function shuffle(arr, seed) {
   for (let i = a.length - 1; i > 0; i--) { h = (h * 1103515245 + 12345) >>> 0; const j = h % (i + 1); [a[i], a[j]] = [a[j], a[i]]; }
   return a;
 }
-const DECK_NAMES = { hoy: "Hoy", weak: "Lo que más fallo", todo: "Todo" };
+const DECK_NAMES = { hoy: "Hoy", weak: "Lo que más fallo", todo: "Todo mezclado" };
 const deckName = (d) => DECK_NAMES[d] || d.slice(4);
 
-// The deck in progress: its card keys and position survive closing the app.
+// The round in progress for each deck (keys, position, requeued misses), kept on the phone.
 let deck = null, shown = false;
 const byKey = () => { const m = new Map(); for (const c of CARDS) m.set(c.k, c); return m; };
-function startDeck(name) {
-  const keys = deckCards(name).map((c) => c.k);
-  deck = { name, keys, pos: 0, requeued: [] };
-  store.set("deck", deck); shown = false; renderRecall(); window.scrollTo(0, 0);
+const savedDecks = () => store.get("decks", {});
+function saveDeck() {
+  const all = savedDecks();
+  if (deck) all[deck.name] = deck;
+  store.set("decks", all); store.set("deck", deck ? deck.name : null);
+}
+function openDeck(name, fresh = false) {
+  const saved = savedDecks()[name];
+  // Resume an unfinished round from today (Hoy) or any day (other decks), skipping cards graded meanwhile.
+  if (!fresh && saved && saved.pos < saved.keys.length && (name !== "hoy" || saved.day === todayISO())) {
+    deck = saved;
+  } else {
+    deck = { name, day: todayISO(), keys: nextRound(name).map((c) => c.k), pos: 0, requeued: [], done: 0 };
+  }
+  saveDeck(); shown = false; renderRecall(); window.scrollTo(0, 0);
 }
 function sessionInfo(c) {
   // What you said and the corrections, for chunks from your recordings.
@@ -818,17 +859,21 @@ function sessionInfo(c) {
 }
 function renderRecall() {
   const el = $("recall");
-  if (!deck) deck = store.get("deck", null);
+  SEEN = store.get("seen", {});
+  if (!deck && store.get("deck")) deck = savedDecks()[store.get("deck")] || null;
   if (deck && deck.pos >= deck.keys.length) {
-    el.innerHTML = `<div class="card flash"><div class="big-num">✓</div><div class="en" style="margin-top:10px">Listo</div>
-      <div class="muted small">${esc(deckName(deck.name))} · ${deck.keys.length} chunks</div></div>
-      <button class="btn secondary" data-a="back">Volver</button>`;
+    const p = deckProgress(deck.name), more = deck.name !== "hoy" && nextRound(deck.name).length > 0;
+    el.innerHTML = `<div class="card flash"><div class="big-num">✓</div><div class="en" style="margin-top:10px">Ronda lista</div>
+      <div class="muted small">${esc(deckName(deck.name))} · ${deck.keys.length} chunks</div>
+      ${deck.name !== "hoy" ? `<div class="muted small" style="margin-top:6px">Ya viste ${p.seen} de ${p.total}</div>` : ""}</div>
+      ${more ? `<button class="btn" data-a="more">Seguir: ${ROUND} más</button>` : ""}
+      <button class="btn ${more ? "ghost" : "secondary"}" data-a="back">Volver</button>`;
     flushResults();
     return;
   }
   if (deck) {
     const map = byKey(), c = map.get(deck.keys[deck.pos]);
-    if (!c) { deck.pos++; store.set("deck", deck); return renderRecall(); }
+    if (!c) { deck.pos++; saveDeck(); return renderRecall(); }
     const info = c.src === "session" ? sessionInfo(c) : null;
     el.innerHTML = `<div class="small muted">${esc(deckName(deck.name))} · ${deck.pos + 1} / ${deck.keys.length}</div>
       <div class="progress"><div style="width:${(deck.pos / deck.keys.length) * 100}%"></div></div>
@@ -847,33 +892,40 @@ function renderRecall() {
       <button class="btn ghost" data-a="back" style="margin-top:6px">Salir</button>`;
     return;
   }
-  // Home: today's count and the decks.
+  // Home: today's count and the decks, each with how much of it you've seen.
   if (!CARDS.length) {
     el.innerHTML = emptyState("Tus chunks aparecen acá después de tu primera grabación.");
     return;
   }
-  const hoy = deckCards("hoy"), weak = CARDS.filter((c) => c.lapses > 0).length;
+  const hoy = nextRound("hoy"), weak = CARDS.filter((c) => c.lapses > 0).length;
   const fresh = hoy.filter((c) => !c.step && !c.lapses).length;
+  const decks = savedDecks();
   const cats = {};
-  for (const c of CARDS) { const x = (cats[c.cat] ||= { n: 0, due: 0 }); x.n++; if (isDue(c)) x.due++; }
-  const row = (d, label, n, due, cls = "") => `<button class="deck-row ${cls}" data-a="deck" data-d="${esc(d)}">
-      <span class="t">${esc(label)}</span>${due ? `<span class="badge">${due}</span>` : ""}<span class="n">${n}</span><span class="chev">›</span></button>`;
+  for (const c of CARDS) { const x = (cats[c.cat] ||= { n: 0, seen: 0 }); x.n++; if (lastSeen(c)) x.seen++; }
+  const row = (d, label, seen, n, cls = "") => {
+    const s = decks[d], resume = s && s.pos > 0 && s.pos < s.keys.length;
+    return `<button class="deck-row ${cls}" data-a="deck" data-d="${esc(d)}">
+      <span class="t">${esc(label)}${resume ? ` <span class="small muted">· seguís en ${s.pos + 1}/${s.keys.length}</span>` : ""}</span>
+      <span class="n">${seen != null ? `${seen} / ` : ""}${n}</span><span class="chev">›</span></button>`;
+  };
+  const todo = deckProgress("todo");
   el.innerHTML = (hoy.length
       ? `<div class="card due"><div class="big-num">${hoy.length}</div><div class="muted">chunks para hoy</div>
            <div class="small muted" style="margin-top:4px">${fresh} nuevos · ${hoy.length - fresh} para repasar</div></div>
-         <button class="btn" data-a="deck" data-d="hoy">Empezar</button>`
+         <button class="btn" data-a="deck" data-d="hoy">${decks.hoy?.day === todayISO() && decks.hoy.pos > 0 && decks.hoy.pos < decks.hoy.keys.length ? "Seguir" : "Empezar"}</button>`
       : `<div class="card due"><div class="big-num">✓</div><strong>Nada pendiente hoy</strong>
            <div class="muted small">Mañana llegan chunks nuevos de tu planilla.</div></div>`)
-    + `<h2>Mazos</h2><div class="card list">`
-    + (weak ? row("weak", "Lo que más fallo", Math.min(weak, 150), 0, "weak") : "")
+    + `<h2>Mazos <span style="text-transform:none;letter-spacing:0;font-weight:500">· vistos / total</span></h2><div class="card list">`
+    + (weak ? row("weak", "Lo que más fallo", null, weak, "weak") : "")
     + Object.entries(cats).sort((a, b) => (a[0] === "Mis grabaciones" ? -1 : b[0] === "Mis grabaciones" ? 1 : a[0].localeCompare(b[0], "es")))
-        .map(([name, x]) => row(`cat:${name}`, name, x.n, x.due)).join("")
-    + row("todo", "Todo mezclado", CARDS.length, 0) + `</div>`;
+        .map(([name, x]) => row(`cat:${name}`, name, x.seen, x.n)).join("")
+    + row("todo", "Todo mezclado", todo.seen, todo.total) + `</div>`;
 }
 $("recall").addEventListener("click", (ev) => {
   const t = ev.target.closest("[data-a]"); if (!t) return;
   const a = t.dataset.a;
-  if (a === "deck") startDeck(t.dataset.d);
+  if (a === "deck") openDeck(t.dataset.d);
+  else if (a === "more") openDeck(deck.name, true);
   else if (a === "flip") { if (!shown) { shown = true; renderRecall(); } }
   else if (a === "ok" || a === "miss") {
     const c = byKey().get(deck.keys[deck.pos]);
@@ -882,7 +934,7 @@ $("recall").addEventListener("click", (ev) => {
     if (a === "miss" && !deck.requeued.includes(c.k)) {
       deck.keys.splice(Math.min(deck.pos + 5, deck.keys.length), 0, c.k); deck.requeued.push(c.k);
     }
-    deck.pos++; store.set("deck", deck); shown = false; renderRecall();
+    deck.pos++; saveDeck(); shown = false; renderRecall();
   }
   else if (a === "back") { deck = null; store.set("deck", null); flushResults(); renderRecall(); }
   else if (a === "speak") { ev.stopPropagation(); speak(byKey().get(deck.keys[deck.pos]).es); }
