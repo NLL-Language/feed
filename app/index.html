@@ -63,13 +63,12 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: 
 .notice { padding: 13px 16px; border-radius: 16px; background: var(--sun-soft); color: var(--ink); font-size: 15px; margin-bottom: 12px; }
 
 /* Record: idle */
-.seg { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 14px; background: var(--line); position: relative; margin: 6px 0 18px; }
+.seg { display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; padding: 4px; border-radius: 14px; background: var(--line); position: relative; margin: 6px 0 18px; }
 .seg button { position: relative; z-index: 1; padding: 9px; border-radius: 10px; font-size: 15px; font-weight: 650; color: var(--muted); transition: color 0.2s; }
 .seg button[aria-pressed="true"] { color: var(--ink); }
-.seg .thumb { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 10px; background: var(--card);
+.seg .thumb { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / var(--n, 2)); border-radius: 10px; background: var(--card);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); transition: transform 0.28s cubic-bezier(0.3, 0.7, 0.2, 1); }
-.seg[data-mode="432"] .thumb, .seg[data-mode="listen"] .thumb { transform: translateX(100%); }
-.seg-hint { margin: -8px 2px 14px; font-size: 14px; color: var(--muted); }
+.seg .thumb { transform: translateX(calc(var(--i, 0) * 100%)); }
 .hero { text-align: center; padding: 30px 18px 26px; }
 .hero p { margin: 0 auto 20px; max-width: 300px; color: var(--muted); font-size: 15px; }
 .mic { width: 132px; height: 132px; border-radius: 66px; display: grid; place-items: center; margin: 4px auto 14px; color: #fff;
@@ -214,10 +213,11 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 
   <section class="view on" id="v-record">
     <div id="recIdle">
-      <div class="seg" id="seg" data-mode="libre" role="group" aria-label="Tipo de grabación">
+      <div class="seg" id="seg" data-mode="libre" role="group" aria-label="Tipo de grabación" style="--n:3">
         <div class="thumb"></div>
         <button data-mode="libre" aria-pressed="true">Libre</button>
         <button data-mode="432" aria-pressed="false">4/3/2</button>
+        <button data-mode="en" aria-pressed="false">Inglés</button>
       </div>
       <div class="card hero">
         <p id="modeHint"></p>
@@ -251,12 +251,6 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
   </section>
 
   <section class="view" id="v-listen">
-    <div class="seg" id="listenSeg" data-mode="recall" role="group" aria-label="Tipo de episodio">
-      <div class="thumb"></div>
-      <button data-mode="recall" aria-pressed="true">Recordar</button>
-      <button data-mode="listen" aria-pressed="false">Solo escuchar</button>
-    </div>
-    <p class="seg-hint" id="listenHint"></p>
     <div id="episodes"></div>
   </section>
   <section class="view" id="v-recall"><div id="recall"></div></section>
@@ -286,7 +280,7 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 <dialog id="settings">
   <form method="dialog">
     <strong style="font-size:19px">Conexión</strong>
-    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v5</p>
+    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v6</p>
     <label for="sRepo">Repositorio (dueño/nombre)</label>
     <input id="sRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dueño/repositorio">
     <label for="sToken">Token de GitHub</label>
@@ -417,8 +411,8 @@ async function flushQueue() {
 function uploadLabel(name) {
   const m = name.match(/^432-.*-(\d)\.\w+$/);
   if (m) return `4/3/2 · Ronda ${m[1]}`;
-  const t = name.match(/^libre-\d{8}-(\d\d)(\d\d)/);
-  return t ? `Libre · ${t[1]}:${t[2]}` : name;
+  const t = name.match(/^(libre|en)-\d{8}-(\d\d)(\d\d)/);
+  return t ? `${t[1] === "en" ? "Inglés" : "Libre"} · ${t[2]}:${t[3]}` : name;
 }
 function renderUploads() {
   const names = Object.keys(uploadState);
@@ -435,11 +429,14 @@ $("uploads").addEventListener("click", () => flushQueue());
 const MODES = {
   libre: { hint: "Hablá de lo que quieras, el tiempo que quieras. Cuando terminás, se sube sola.", label: "Empezar monólogo" },
   "432": { hint: "Contá la misma historia tres veces: 4, 3 y 2 minutos. Cada ronda se sube sola.", label: "Empezar 4/3/2" },
+  en: { hint: "Hablá en inglés de lo que querés poder decir. Lo pasamos a castellano porteño: tarjetas y audio.", label: "Empezar en inglés" },
 };
+const isFree = (m) => m !== "432"; // Libre and Inglés: one open-ended recording
 let mode = store.get("recMode", "libre");
 function setMode(m) {
   mode = MODES[m] ? m : "libre"; store.set("recMode", mode);
   $("seg").dataset.mode = mode;
+  $("seg").style.setProperty("--i", Object.keys(MODES).indexOf(mode));
   $("seg").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
   $("modeHint").textContent = MODES[mode].hint;
   $("startLabel").textContent = MODES[mode].label;
@@ -514,7 +511,7 @@ async function startSession() {
   rec = { mode, stream, ctx, wake, id: stamp(), round: 0, ...pickMime() };
   $("recIdle").hidden = true; $("recLive").hidden = false;
   $("topicLive").textContent = $("topic").value.trim();
-  const free = mode === "libre";
+  const free = isFree(mode);
   $("endRound").hidden = free; $("stopFree").hidden = $("stopHint").hidden = !free;
   $("dots").hidden = free;
   startMeter(rec);
@@ -522,7 +519,7 @@ async function startSession() {
 }
 
 function startRound() {
-  const r = rec, free = r.mode === "libre", secs = free ? 0 : ROUNDS[r.round];
+  const r = rec, free = isFree(r.mode), secs = free ? 0 : ROUNDS[r.round];
   const chunks = [];
   r.recorder = new MediaRecorder(r.stream, r.mime ? { mimeType: r.mime, audioBitsPerSecond: 64000 } : undefined);
   r.recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
@@ -530,7 +527,7 @@ function startRound() {
   rec_.onstop = async () => {
     if (rec_.discard) return;
     const blob = new Blob(chunks, { type: rec_.mimeType || r.mime || "audio/mp4" });
-    const name = free ? `libre-${r.id}.${r.ext}` : `432-${r.id}-${round}.${r.ext}`;
+    const name = free ? `${r.mode === "en" ? "en" : "libre"}-${r.id}.${r.ext}` : `432-${r.id}-${round}.${r.ext}`;
     const item = { name, blob };
     await q("readwrite", (s) => s.put(item));
     uploadOne(item);
@@ -539,7 +536,7 @@ function startRound() {
   $("endRound").textContent = "Terminar ronda";
   $("liveTop").classList.remove("pause");
   $("roundLabel").textContent = free ? "Grabando" : `Ronda ${round} de 3`;
-  $("clockSub").textContent = free ? "monólogo libre" : `de ${mmss(secs)}`;
+  $("clockSub").textContent = free ? (r.mode === "en" ? "en inglés" : "monólogo libre") : `de ${mmss(secs)}`;
   if (!free) $("dots").innerHTML = ROUNDS.map((_, i) => `<span class="${i < r.round ? "done" : i === r.round ? "now" : ""}"></span>`).join("");
   const started = Date.now();
   r.started = started;
@@ -564,7 +561,7 @@ function endRound() {
   const r = rec; if (!r) return;
   clearInterval(r.timer);
   if (r.paused) { r.paused = false; return startRound(); } // "Empezar ya" during the breather
-  if (r.mode === "libre") {
+  if (isFree(r.mode)) {
     if ((Date.now() - r.started) / 1000 < MIN_FREE_SECS) r.recorder.discard = true;
     if (r.recorder.state !== "inactive") r.recorder.stop();
     beep(r.ctx, 1);
@@ -611,41 +608,27 @@ $("startRec").onclick = startSession;
 $("endRound").onclick = endRound;
 $("stopFree").onclick = endRound;
 $("cancelRec").onclick = () => {
-  if (rec?.mode === "libre") { if (confirm("¿Descartar esta grabación? No se va a subir.")) finishSession(false, true); }
+  if (rec && isFree(rec.mode)) { if (confirm("¿Descartar esta grabación? No se va a subir.")) finishSession(false, true); }
   else if (confirm("¿Terminar la sesión? Las rondas grabadas se suben igual.")) finishSession(false);
 };
 
 /* ---------- Listen ---------- */
 const audio = $("audio");
 let current = null;
-const KIND = { review: "Repaso", drill: "Drill", immersion: "Escuchar", category: "Isla", weak: "Fallos" };
-
-// Escuchar has two tabs: active recall (drill + daily review, in chunks) and Spanish-only listening.
-const LISTEN_TABS = {
-  recall: { kinds: ["drill", "review", "weak", "category"], hint: "Escuchás el inglés, lo decís en castellano, y después Tomás lo confirma. Todo en chunks.", empty: "Todavía no hay episodios para recordar." },
-  listen: { kinds: ["immersion"], hint: "Tus frases corregidas, solo en castellano, una atrás de la otra.", empty: "Todavía no hay episodios para escuchar." },
-};
-let listenTab = LISTEN_TABS[store.get("listenTab")] ? store.get("listenTab") : "recall";
-function setListenTab(m) {
-  listenTab = LISTEN_TABS[m] ? m : "recall"; store.set("listenTab", listenTab);
-  $("listenSeg").dataset.mode = listenTab;
-  $("listenSeg").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === listenTab)));
-  $("listenHint").textContent = LISTEN_TABS[listenTab].hint;
-  renderEpisodes();
-}
-$("listenSeg").addEventListener("click", (ev) => { const b = ev.target.closest("button[data-mode]"); if (b) setListenTab(b.dataset.mode); });
+const KIND = { review: "Repaso", immersion: "Sesión", category: "Isla", weak: "Fallos" };
 
 function epParts(e) {
-  // "Nov 8 · Title · Drill · 24 chunks" → title "Title", extra "24 chunks"
+  // "Nov 8 · Title · 24 frases" → title "Title", extra "24 frases"
   const parts = e.title.split(" · ").slice(1);
+  if (e.kind === "category") return { title: parts[0].replace(/^Isla: /, ""), extra: parts.slice(1).join(" · ") };
   const extra = parts.filter((t) => /^\d+ (chunks|frases)$/.test(t));
   const title = parts.filter((t) => !["Drill", "Escuchar", "Repaso"].includes(t) && !extra.includes(t)).join(" · ").replace(/^Isla: /, "");
   return { title: title || (e.kind === "review" ? "Repaso del día" : e.title), extra: extra[0] || "" };
 }
+// Everything here is Spanish only: today's Repaso, your sessions, and the weekly islands.
 function renderEpisodes() {
-  const tab = LISTEN_TABS[listenTab];
-  const eps = (DATA.episodes || []).map((e, i) => ({ e, i, kind: KIND[e.kind] ? e.kind : "drill" })).filter((x) => tab.kinds.includes(x.kind));
-  if (!eps.length) { $("episodes").innerHTML = emptyState(tab.empty); return; }
+  const eps = (DATA.episodes || []).map((e, i) => ({ e, i, kind: e.kind })).filter((x) => KIND[x.kind]);
+  if (!eps.length) { $("episodes").innerHTML = emptyState("Todavía no hay episodios."); return; }
   const played = store.get("played", {});
   const row = ({ e, i, kind }) => {
     const { title, extra } = epParts(e);
@@ -655,11 +638,11 @@ function renderEpisodes() {
         <div class="small muted"><span class="kind">${KIND[kind]}</span> · ${esc(e.title.split(" · ")[0])}${extra ? ` · ${esc(extra)}` : ""} · ${mmss(e.duration)}</div></div>
     </button>`;
   };
-  // Weekly "Lo que más fallo" and category episodes get their own section under the daily ones.
-  const daily = eps.filter((x) => x.kind !== "category" && x.kind !== "weak");
-  const weekly = eps.filter((x) => x.kind === "weak").concat(eps.filter((x) => x.kind === "category"));
-  $("episodes").innerHTML = (daily.length ? `<div class="card list">${daily.map(row).join("")}</div>` : "")
-    + (weekly.length ? `<h2>Islas de la semana</h2><div class="card list">${weekly.map(row).join("")}</div>` : "");
+  const section = (title, list) => list.length ? `<h2>${title}</h2><div class="card list">${list.map(row).join("")}</div>` : "";
+  $("episodes").innerHTML =
+      section("Repaso del día", eps.filter((x) => x.kind === "review").slice(0, 3))
+    + section("Mis grabaciones", eps.filter((x) => x.kind === "immersion"))
+    + section("Islas de la semana", eps.filter((x) => x.kind === "weak").concat(eps.filter((x) => x.kind === "category")));
 }
 $("episodes").addEventListener("click", (ev) => {
   const b = ev.target.closest(".ep"); if (!b) return;
@@ -844,7 +827,7 @@ function renderRecall() {
           ${norm(c.ctx) !== norm(c.es) ? `<div class="ctx">${ctxHtml(c.ctx, c.es)}</div>` : ""}
           ${info?.corrections.length ? `<div class="fix"><div class="heard">Dijiste: “${esc(info.heard)}”</div>
             ${info.corrections.map((x) => `<div class="corr"><b>${esc(x.wrong)}</b> → <i>${esc(x.right)}</i> <span class="muted">· ${esc(x.why)}</span></div>`).join("")}</div>` : ""}
-          <div class="src">${c.src === "library" ? `${esc(c.cat)} · ${esc(c.tab)}` : "De tus grabaciones"}${c.lapses ? ` · fallada ${c.lapses}×` : ""}</div>`
+          <div class="src">${c.src === "library" ? `${esc(c.cat)} · ${esc(c.tab)}` : info && !info.corrections.length && DATA.sessions.find((x) => x.id === c.sid)?.source === "english" ? `Lo dijiste en inglés: “${esc(info.heard)}”` : "De tus grabaciones"}${c.lapses ? ` · fallada ${c.lapses}×` : ""}</div>`
           : `<div class="muted small" style="margin-top:24px">Decilo en voz alta · tocá para ver</div>`}
       </div>
       ${shown ? `<div class="grade"><button class="btn miss" data-a="miss">No me salió</button><button class="btn" data-a="ok">La sabía</button></div>`
@@ -947,7 +930,7 @@ function renderSessions() {
   $("sessions").innerHTML = paceChart(DATA.sessions) + ss.map((s) => {
     const errs = s.sentences.reduce((n, x) => n + x.corrections.length, 0);
     return `<div class="card session"><button data-a="toggle">
-      <div><div style="font-weight:650">${esc(s.title)}${s.rounds.length ? `<span class="tag">4/3/2</span>` : ""}${s.pending ? `<span class="tag">en espera</span>` : ""}</div>
+      <div><div style="font-weight:650">${esc(s.title)}${s.rounds.length ? `<span class="tag">4/3/2</span>` : ""}${s.source === "english" ? `<span class="tag">inglés</span>` : ""}${s.pending ? `<span class="tag">en espera</span>` : ""}</div>
         <div class="small muted">${fmtDate(s.date)} · ${s.sentences.length} frases · ${errs} correcciones</div>
         ${s.rounds.length ? `<div class="pace">${s.rounds.map((r) => `${r.wpm}`).join(" → ")} palabras/min</div>` : ""}</div>
       <span class="chev">›</span></button>
@@ -978,7 +961,7 @@ document.querySelector("nav").addEventListener("click", (ev) => {
 function renderAll() {
   $("setupNotice").innerHTML = connected() ? "" :
     `<div class="notice">Falta conectar el repositorio. Tocá ⚙︎ arriba a la derecha.</div>`;
-  setListenTab(listenTab); renderRecall(); renderSessions(); renderUploads(); renderPendingNotes();
+  renderEpisodes(); renderRecall(); renderSessions(); renderUploads(); renderPendingNotes();
 }
 
 function openSettings() {
