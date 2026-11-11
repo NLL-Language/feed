@@ -6,7 +6,15 @@
     <description>Private practice feed.</description>
     <language>es-ar</language>
     <itunes:block>yes</itunes:block>
-    <lastBuildDate>Wed, 11 Nov 2026 03:06:15 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 11 Nov 2026 22:41:01 +0000</lastBuildDate>
+    <item>
+      <title>Nov 11 · IA · La noche que la IA me inventó testimonios</title>
+      <guid isPermaLink="false">topic-ia-003</guid>
+      <pubDate>Wed, 11 Nov 2026 19:40:50 -0300</pubDate>
+      <enclosure url="https://nll-language.github.io/feed/episodes/topic-ia-003.mp3" length="1451372" type="audio/mpeg"/>
+      <itunes:duration>181</itunes:duration>
+      <description><![CDATA[<p>Pedirle cosas a la IA: prompts · story</p><ol><li>La semana pasada casi mando un mail con testimonios que había inventado la IA.</li><li>Te cuento, porque todavía me da un poco de vergüenza.</li><li>Era domingo a la noche y teníamos que lanzar el programa grupal el lunes.</li><li>Yo tenía armada una plantilla de prompts para los mails de venta, re prolija.</li><li>La idea era encadenar prompts: primero la estructura, después el texto, después el asunto.</li><li>Pero justo esa noche ChatGPT estaba caído, o por lo menos eso parecía.</li><li>Le daba enter y me tiraba error, una y otra vez.</li><li>Cuando por fin volvió, se colgó a la mitad de la primera respuesta.</li><li>Encima estaba usando la versión gratuita, porque había cancelado la suscripción hacía un mes.</li><li>Así que a los veinte minutos llegué al límite de mensajes, obvio.</li><li>Puteé un rato, me cebé un mate y me pasé al plan pago otra vez.</li><li>Le pegué el borrador de mi socio y le escribí: "Pasámelo en limpio y hacelo más persuasivo".</li><li>Me devolvió un mail divino, con tres testimonios de clientes re emotivos.</li><li>El tema es que ninguno de esos clientes existía, boludo.</li><li>Les había puesto nombre, edad y hasta cuántos kilos habían bajado.</li><li>Si no lo leía dos veces, lo mandaba a toda la lista sin darme cuenta.</li><li>Así que regeneré la respuesta, pero esta vez le aclaré: "No inventes nada".</li><li>Y ahí caí en que me había salteado lo más básico de la ingeniería de prompts.</li><li>No es magia: si no le das contexto ni límites, rellena los huecos como puede.</li><li>Al otro día me puse a reescribir las instrucciones del sistema con más cuidado.</li><li>Ahora le pido que use solo los datos que yo le paso y que pregunte si le falta algo.</li><li>También le agregué algo que me recomendó un amigo: "Hacé de abogado del diablo".</li><li>Antes de darme el mail final, tiene que criticarlo como si fuera un cliente escéptico.</li><li>Y de paso aproveché para probar una herramienta nueva: la extensión del navegador.</li><li>Me deja usarlo directamente en Gmail, sin andar copiando y pegando.</li><li>Igual lo que más me sorprendió fue hablarle por voz mientras caminaba para sumar pasos.</li><li>Le dicto ideas sueltas y después le pido que me las ordene.</li><li>¿Que si vale la pena pagarlo? Para el laburo que hago, sinceramente, sí.</li><li>Pero que nadie me lo venda como un genio: es un pasante rapidísimo que a veces miente con total seguridad.</li><li>Sigo estando suscripto, pero cualquier cosa que mande, la leo dos veces yo.</li></ol>]]></description>
+    </item>
     <item>
       <title>Nov 11 · Repaso · 120 frases</title>
       <guid isPermaLink="false">review-2026-11-11</guid>
