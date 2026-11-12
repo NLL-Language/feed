@@ -199,6 +199,7 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: 
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .chips span { font-size: 14px; font-weight: 600; padding: 3px 10px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); }
 .flash .ctx { margin-top: 14px; font-size: 15px; color: var(--muted); }
+.flash .why { margin-top: 8px; font-size: 14px; line-height: 1.35; color: var(--ink); background: var(--accent-soft, rgba(120,170,220,.15)); border-radius: 10px; padding: 8px 10px; text-align: left; }
 .flash .ctx b { color: var(--ink); font-weight: 650; }
 svg.chart { width: 100%; height: 120px; display: block; margin-top: 8px; }
 
@@ -300,7 +301,7 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 <dialog id="settings">
   <form method="dialog">
     <strong style="font-size:19px">Conexión</strong>
-    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v10</p>
+    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v11</p>
     <label for="sRepo">Repositorio (dueño/nombre)</label>
     <input id="sRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dueño/repositorio">
     <label for="sToken">Token de GitHub</label>
@@ -675,13 +676,22 @@ function topicsSection(list, row) {
   const asked = store.get("topicAsked", {});
   const chips = ts.map((t) => {
     const pct = t.items ? Math.round((100 * t.covered) / t.items) : 0;
-    const waiting = asked[t.slug] && Date.parse(asked[t.slug]) > Date.parse(t.lastPack || 0) && Date.now() - Date.parse(asked[t.slug]) < 3 * 3600e3;
-    return `<button class="topic-chip" data-topic="${esc(t.slug)}" ${waiting ? "disabled" : ""}>
-      <div class="name"><span>${esc(t.name)}</span><span class="plus">${waiting ? "…" : "+"}</span></div>
-      <div class="bar"><div style="width:${pct}%"></div></div>
-      <div class="small muted">${waiting ? "Escribiendo un pack nuevo…" : `${pct}% del vocabulario · ${t.packs} ${t.packs === 1 ? "pack" : "packs"}`}</div></button>`;
+    const st = t.status || "active";
+    const waiting = st === "active" && asked[t.slug] && Date.parse(asked[t.slug]) > Date.parse(t.lastPack || 0) && Date.now() - Date.parse(asked[t.slug]) < 3 * 3600e3;
+    const mark = st === "done" ? "✓" : st === "queued" ? "" : waiting ? "…" : "+";
+    const sub = st === "done" ? `Completo · ${t.packs} ${t.packs === 1 ? "texto" : "textos"}`
+      : st === "queued" ? "En espera: empieza cuando se complete otro"
+      : waiting ? "Escribiendo un texto nuevo…" : `${pct}% del vocabulario · ${t.packs} ${t.packs === 1 ? "texto" : "textos"}`;
+    return `<button class="topic-chip" data-topic="${esc(t.slug)}" ${waiting || st !== "active" ? "disabled" : ""}>
+      <div class="name"><span>${esc(t.name)}</span><span class="plus">${mark}</span></div>
+      <div class="bar"><div style="width:${st === "queued" ? 0 : pct}%"></div></div>
+      <div class="small muted">${sub}</div></button>`;
   }).join("");
-  return `<h2>Temas</h2><div class="topics">${chips}</div>` + (list.length ? `<div class="card list" style="margin-top:10px">${list.map(row).join("")}</div>` : "");
+  const w = DATA.topics_waiting, buf = DATA.topics_buffer || 40;
+  const note = w == null ? "" : `<p class="small muted" style="margin:-4px 0 10px">${w >= buf
+    ? `${w} tarjetas de temas esperando para Hoy. El próximo texto se escribe cuando queden menos de ${buf}.`
+    : `Quedan ${w} tarjetas de temas para Hoy: se viene un texto nuevo.`}</p>`;
+  return `<h2>Temas</h2>${note}<div class="topics">${chips}</div>` + (list.length ? `<div class="card list" style="margin-top:10px">${list.map(row).join("")}</div>` : "");
 }
 $("episodes").addEventListener("click", async (ev) => {
   const chip = ev.target.closest("[data-topic]");
@@ -845,6 +855,18 @@ const ROUND = 40;
 // never had (in sheet order for a category, so a story's chunks stay together; shuffled for
 // "Todo"), then the ones you saw longest ago. Progress is per deck, so leaving and coming
 // back picks up where you were, and finished cards don't come back until it's their turn.
+// Chunks from the same sentence (siblings) are spread apart: first one chunk from every
+// sentence, then the second ones, and so on. Otherwise the sentence shown on one card's back
+// gives away the next card.
+function spread(list) {
+  const layer = new Map(), count = {};
+  for (const c of list) {
+    const s = norm(c.ctx || c.es), n = (count[s] = (count[s] || 0) + 1) - 1;
+    if (!layer.has(n)) layer.set(n, []);
+    layer.get(n).push(c);
+  }
+  return [...layer.keys()].sort((a, b) => a - b).flatMap((n) => layer.get(n));
+}
 function deckPool(name) {
   if (name === "weak") return CARDS.filter((c) => c.lapses > 0);
   if (name === "todo") return CARDS;
@@ -855,8 +877,8 @@ function nextRound(name) {
   const today = todayISO();
   if (name === "hoy") {
     const graded = gradedToday();
-    return CARDS.filter((c) => isDue(c, today) && !(c.k in graded))
-      .sort((a, b) => (b.lapses || 0) - (a.lapses || 0) || (a.step > 0) - (b.step > 0) || a.due.localeCompare(b.due));
+    return spread(CARDS.filter((c) => isDue(c, today) && !(c.k in graded))
+      .sort((a, b) => (b.lapses || 0) - (a.lapses || 0) || (a.step > 0) - (b.step > 0) || a.due.localeCompare(b.due)));
   }
   const pool = deckPool(name);
   const missed = pool.filter((c) => c.lapses > 0 && lastSeen(c) < today)
@@ -864,7 +886,8 @@ function nextRound(name) {
   const fresh = pool.filter((c) => !lastSeen(c) && !(c.lapses > 0));
   const old = pool.filter((c) => lastSeen(c) && lastSeen(c) < today && !(c.lapses > 0))
     .sort((a, b) => lastSeen(a).localeCompare(lastSeen(b)));
-  const order = name === "weak" ? missed : missed.concat(name === "todo" ? shuffle(fresh, `todo-${today}`) : fresh, old);
+  const order = name === "weak" ? spread(missed)
+    : spread(missed).concat(spread(name === "todo" ? shuffle(fresh, `todo-${today}`) : fresh), spread(old));
   return order.slice(0, ROUND);
 }
 function deckProgress(name) {
@@ -927,6 +950,7 @@ function renderRecall() {
       <div class="card flash" data-a="flip">
         <div class="en">${esc(c.en)}</div>
         ${shown ? `<div class="es">${esc(c.es)}</div>
+          ${c.why ? `<div class="why">${esc(c.why)}</div>` : ""}
           <div><button class="speak" data-a="speak">▶︎ Escuchar</button></div>
           ${norm(c.ctx) !== norm(c.es) ? `<div class="ctx">${ctxHtml(c.ctx, c.es)}</div>` : ""}
           ${info?.corrections.length ? `<div class="fix"><div class="heard">Dijiste: “${esc(info.heard)}”</div>
