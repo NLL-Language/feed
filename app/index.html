@@ -124,6 +124,14 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: 
 .list { padding: 6px; overflow: hidden; }
 .ep { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 10px 10px; border-radius: 14px; }
 .ep.now { background: var(--accent-soft); }
+.ep-wrap { display: flex; align-items: center; border-radius: 14px; }
+.ep-wrap.now { background: var(--accent-soft); }
+.ep-wrap .ep { flex: 1; min-width: 0; }
+.ep-wrap .ep.now { background: none; }
+.qbtn { flex: none; min-width: 40px; height: 40px; margin-right: 4px; border-radius: 20px; color: var(--accent); display: grid; place-items: center; font-size: 13px; font-weight: 700; }
+.qbtn svg { width: 20px; height: 20px; }
+.qbtn.in { background: var(--accent); color: var(--accent-ink); }
+.player .next { font-size: 12px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ep .t { flex: 1; min-width: 0; }
 .ep .t div:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
 .ep.played .t div:first-child { color: var(--muted); font-weight: 500; }
@@ -161,7 +169,7 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: 
   max-width: 620px; margin: 0 auto; }
 .player.on { display: block; animation: rise 0.25s ease both; }
 .player .top { display: flex; align-items: center; gap: 8px; }
-.player .top .title { flex: 1; min-width: 0; }
+.player .top .tt { flex: 1; min-width: 0; }
 .player .close { flex: none; width: 30px; height: 30px; margin: -4px -6px -4px 0; border-radius: 15px; font-size: 22px; line-height: 1; color: var(--muted); background: var(--line); display: grid; place-items: center; }
 .player .title { font-size: 15px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .player input[type=range] { width: 100%; accent-color: var(--accent); margin: 8px 0 0; height: 4px; }
@@ -279,7 +287,7 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 </div>
 
 <div class="player" id="player">
-  <div class="top"><div class="title" id="pTitle"></div><button class="close" id="pClose" aria-label="Cerrar reproductor">×</button></div>
+  <div class="top"><div class="tt"><div class="title" id="pTitle"></div><div class="next muted" id="pNext"></div></div><button class="close" id="pClose" aria-label="Cerrar reproductor">×</button></div>
   <input type="range" id="pSeek" min="0" max="1000" value="0" aria-label="Posición">
   <div class="times"><span id="pCur">0:00</span><span id="pDur">0:00</span></div>
   <div class="controls">
@@ -301,7 +309,7 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 <dialog id="settings">
   <form method="dialog">
     <strong style="font-size:19px">Conexión</strong>
-    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v11</p>
+    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v12</p>
     <label for="sRepo">Repositorio (dueño/nombre)</label>
     <input id="sRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dueño/repositorio">
     <label for="sToken">Token de GitHub</label>
@@ -328,6 +336,7 @@ const MIN_FREE_SECS = 3; // shorter free recordings are accidental taps; drop th
 const RING_C = 2 * Math.PI * 108;
 const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>';
 const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4.5" width="4" height="15" rx="1"/><rect x="14" y="4.5" width="4" height="15" rx="1"/></svg>';
+const ICON_QUEUE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h11M4 12h11M4 18h7M17 15v6M14 18h6"/></svg>';
 const ICON_EP = {
   drill: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11M4 12h7M4 17h11"/><path d="M17 10l3 2-3 2"/></svg>',
   immersion: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="3" y="14" width="4" height="7" rx="1.5"/><rect x="17" y="14" width="4" height="7" rx="1.5"/></svg>',
@@ -656,18 +665,32 @@ function renderEpisodes() {
   const played = store.get("played", {});
   const row = ({ e, i, kind }) => {
     const { title, extra } = epParts(e);
-    return `<button class="ep ${played[e.guid] ? "played" : ""} ${current?.guid === e.guid ? "now" : ""}" data-i="${i}">
+    const q = queue().indexOf(e.guid), now = current?.guid === e.guid;
+    return `<div class="ep-wrap ${now ? "now" : ""}"><button class="ep ${played[e.guid] ? "played" : ""} ${now ? "now" : ""}" data-i="${i}">
       <span class="ep-ic ${kind}">${ICON_EP[kind]}</span>
       <div class="t"><div>${esc(title)}</div>
         <div class="small muted"><span class="kind">${KIND[kind]}</span> · ${esc(e.title.split(" · ")[0])}${extra ? ` · ${esc(extra)}` : ""} · ${mmss(e.duration)}</div></div>
-    </button>`;
+    </button>${now ? "" : `<button class="qbtn ${q >= 0 ? "in" : ""}" data-q="${esc(e.guid)}" aria-label="${q >= 0 ? "Sacar de la cola" : "Agregar a la cola"}">${q >= 0 ? q + 1 : ICON_QUEUE}</button>`}</div>`;
   };
   const section = (title, list) => list.length ? `<h2>${title}</h2><div class="card list">${list.map(row).join("")}</div>` : "";
+  const groups = [
+    eps.filter((x) => x.kind === "review").slice(0, 3),
+    eps.filter((x) => x.kind === "immersion"),
+    eps.filter((x) => x.kind === "topic").sort((a, b) => b.e.pub_date.localeCompare(a.e.pub_date)),
+    eps.filter((x) => x.kind === "weak").concat(eps.filter((x) => x.kind === "category")),
+  ];
+  // Remember each section's order: when an episode ends and the queue is empty, the next
+  // unplayed one below it in the same section plays.
+  SECTION_OF = new Map(); for (const g of groups) for (const x of g) SECTION_OF.set(x.e.guid, g.map((y) => y.e.guid));
+  const byGuid = new Map(eps.map((x) => [x.e.guid, x]));
+  const queued = queue().map((g) => byGuid.get(g)).filter(Boolean);
   $("episodes").innerHTML =
-      section("Repaso del día", eps.filter((x) => x.kind === "review").slice(0, 3))
-    + section("Mis grabaciones", eps.filter((x) => x.kind === "immersion"))
-    + topicsSection(eps.filter((x) => x.kind === "topic").sort((a, b) => b.e.pub_date.localeCompare(a.e.pub_date)), row)
-    + section("Islas de la semana", eps.filter((x) => x.kind === "weak").concat(eps.filter((x) => x.kind === "category")));
+      (queued.length ? `<h2>En cola</h2><div class="card list">${queued.map(row).join("")}</div>` : "")
+    + section("Repaso del día", groups[0])
+    + section("Mis grabaciones", groups[1])
+    + topicsSection(groups[2], row)
+    + section("Islas de la semana", groups[3]);
+  showNext();
 }
 // Topics: vocabulary coverage per area and a "+" that asks the Mac for another pack.
 function topicsSection(list, row) {
@@ -705,6 +728,13 @@ $("episodes").addEventListener("click", async (ev) => {
     renderEpisodes();
     return;
   }
+  const qb = ev.target.closest("[data-q]");
+  if (qb) {
+    const q = queue(), g = qb.dataset.q, at = q.indexOf(g);
+    if (at >= 0) q.splice(at, 1); else q.push(g);
+    store.set("queue", q); renderEpisodes();
+    return;
+  }
   const b = ev.target.closest(".ep"); if (!b) return;
   playEpisode(DATA.episodes[+b.dataset.i]);
 });
@@ -712,6 +742,7 @@ $("episodes").addEventListener("click", async (ev) => {
 function playEpisode(e) {
   if (current?.guid !== e.guid) {
     current = e;
+    store.set("queue", queue().filter((g) => g !== e.guid));
     audio.src = e.url;
     audio.playbackRate = store.get("rate", 1);
     const pos = store.get("pos", {})[e.guid];
@@ -738,7 +769,33 @@ audio.addEventListener("timeupdate", () => {
     if (d && audio.currentTime / d > 0.95) markPlayed(current.guid);
   }
 });
-audio.addEventListener("ended", () => current && markPlayed(current.guid));
+// Up next: the queue first; if it's empty, the next unplayed episode below in the same section.
+let SECTION_OF = new Map();
+const queue = () => store.get("queue", []).filter((g) => (DATA.episodes || []).some((e) => e.guid === g));
+function upNext() {
+  const eps = DATA.episodes || [], find = (g) => eps.find((e) => e.guid === g);
+  const q = queue().filter((g) => g !== current?.guid);
+  if (q.length) return find(q[0]);
+  if (!current) return null;
+  const list = SECTION_OF.get(current.guid) || [], played = store.get("played", {});
+  const g = list.slice(list.indexOf(current.guid) + 1).find((g) => !played[g]);
+  return g ? find(g) : null;
+}
+function showNext() {
+  const n = current && upNext();
+  $("pNext").textContent = n ? `Sigue: ${epParts(n).title}` : "";
+}
+function playNext() {
+  const n = upNext();
+  if (n) playEpisode(n);
+}
+audio.addEventListener("ended", () => {
+  if (current) markPlayed(current.guid);
+  playNext();
+});
+if ("mediaSession" in navigator) {
+  try { navigator.mediaSession.setActionHandler("nexttrack", playNext); } catch {}
+}
 function markPlayed(guid) {
   const p = store.get("played", {}); if (p[guid]) return;
   p[guid] = 1; store.set("played", p); renderEpisodes();
