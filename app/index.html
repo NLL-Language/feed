@@ -71,7 +71,7 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: 
 
 /* Record: idle */
 .seg { display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; padding: 4px; border-radius: 14px; background: var(--line); position: relative; margin: 6px 0 18px; }
-.seg button { position: relative; z-index: 1; padding: 9px; border-radius: 10px; font-size: 15px; font-weight: 650; color: var(--muted); transition: color 0.2s; }
+.seg button { position: relative; z-index: 1; padding: 9px 2px; border-radius: 10px; font-size: 14px; font-weight: 650; color: var(--muted); transition: color 0.2s; }
 .seg button[aria-pressed="true"] { color: var(--ink); }
 .seg .thumb { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / var(--n, 2)); border-radius: 10px; background: var(--card);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); transition: transform 0.28s cubic-bezier(0.3, 0.7, 0.2, 1); }
@@ -226,6 +226,24 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: 
 .flash .ctx b { color: var(--ink); font-weight: 650; }
 svg.chart { width: 100%; height: 120px; display: block; margin-top: 8px; }
 
+/* Leer */
+.read-search { width: 100%; padding: 12px 14px; border-radius: 14px; border: 0; background: var(--card); box-shadow: var(--shadow); outline: none; margin-bottom: 10px; }
+.read-filters { display: flex; gap: 6px; overflow-x: auto; margin: 0 -16px 12px; padding: 0 16px; scrollbar-width: none; }
+.read-filters::-webkit-scrollbar { display: none; }
+.read-filters button { flex: none; font-size: 14px; font-weight: 650; padding: 6px 12px; border-radius: 999px; background: var(--card); color: var(--muted); box-shadow: var(--shadow); }
+.read-filters button.on { background: var(--accent); color: var(--accent-ink); }
+.read-text > button { display: flex; justify-content: space-between; align-items: center; width: 100%; text-align: left; gap: 10px; }
+.read-text .pairs { display: none; margin-top: 10px; }
+.read-text.open .pairs { display: block; }
+.read-text .chev { color: var(--muted); transition: transform 0.2s; font-size: 22px; }
+.read-text.open .chev { transform: rotate(90deg); }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 15px; line-height: 1.35; }
+.pair .en { color: var(--muted); }
+.pair .es { font-weight: 600; cursor: pointer; }
+.pair .src { grid-column: 1 / -1; font-size: 12px; color: var(--muted); margin-bottom: -4px; }
+.role { font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .03em; margin-bottom: 2px; }
+.pair .role { grid-column: 1 / -1; margin-bottom: -6px; }
+
 /* Tabs */
 nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; display: flex; background: var(--glass);
   -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
@@ -256,11 +274,12 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 
   <section class="view on" id="v-record">
     <div id="recIdle">
-      <div class="seg" id="seg" data-mode="libre" role="group" aria-label="Tipo de grabación" style="--n:3">
+      <div class="seg" id="seg" data-mode="libre" role="group" aria-label="Tipo de grabación" style="--n:4">
         <div class="thumb"></div>
         <button data-mode="libre" aria-pressed="true">Libre</button>
         <button data-mode="432" aria-pressed="false">4/3/2</button>
         <button data-mode="en" aria-pressed="false">Inglés</button>
+        <button data-mode="sit" aria-pressed="false">Situación</button>
       </div>
       <div class="card hero">
         <p id="modeHint"></p>
@@ -298,6 +317,11 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
   </section>
   <section class="view" id="v-recall"><div id="recall"></div></section>
   <section class="view" id="v-arsenal"><div id="arsenal"></div></section>
+  <section class="view" id="v-read">
+    <input class="read-search" id="readSearch" type="search" placeholder="Buscar en inglés o en castellano" autocomplete="off">
+    <div class="read-filters" id="readFilters"></div>
+    <div id="read"></div>
+  </section>
   <section class="view" id="v-sessions"><div id="sessions"></div></section>
 </main>
 </div>
@@ -320,13 +344,14 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
   <button data-view="listen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="3" y="14" width="4" height="7" rx="1.5"/><rect x="17" y="14" width="4" height="7" rx="1.5"/></svg>Escuchar</button>
   <button data-view="recall"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="6" width="14" height="14" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v12"/></svg>Repaso</button>
   <button data-view="arsenal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z"/><path d="M8.5 10.5h7M8.5 13.5h4"/></svg>Arsenal</button>
+  <button data-view="read"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 5 7 4.5 3 5v13c4-.5 7 0 9 1.5 2-1.5 5-2 9-1.5V5c-4-.5-7 0-9 1.5z"/><path d="M12 6.5v13"/></svg>Leer</button>
   <button data-view="sessions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19V5M4 19h16M8 15l4-4 3 3 5-6"/></svg>Sesiones</button>
 </nav>
 
 <dialog id="settings">
   <form method="dialog">
     <strong style="font-size:19px">Conexión</strong>
-    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v13</p>
+    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v14</p>
     <label for="sRepo">Repositorio (dueño/nombre)</label>
     <input id="sRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dueño/repositorio">
     <label for="sToken">Token de GitHub</label>
@@ -459,8 +484,8 @@ async function flushQueue() {
 function uploadLabel(name) {
   const m = name.match(/^432-.*-(\d)\.\w+$/);
   if (m) return `4/3/2 · Ronda ${m[1]}`;
-  const t = name.match(/^(libre|en)-\d{8}-(\d\d)(\d\d)/);
-  return t ? `${t[1] === "en" ? "Inglés" : "Libre"} · ${t[2]}:${t[3]}` : name;
+  const t = name.match(/^(libre|en|sit)-\d{8}-(\d\d)(\d\d)/);
+  return t ? `${{ en: "Inglés", sit: "Situación" }[t[1]] || "Libre"} · ${t[2]}:${t[3]}` : name;
 }
 function renderUploads() {
   const names = Object.keys(uploadState);
@@ -478,8 +503,10 @@ const MODES = {
   libre: { hint: "Hablá de lo que quieras, el tiempo que quieras. Cuando terminás, se sube sola.", label: "Empezar monólogo" },
   "432": { hint: "Contá la misma historia tres veces: 4, 3 y 2 minutos. Cada ronda se sube sola.", label: "Empezar 4/3/2" },
   en: { hint: "Hablá en inglés de lo que querés poder decir. Lo pasamos a castellano porteño: tarjetas y audio.", label: "Empezar en inglés" },
+  sit: { hint: "Contá una situación que viviste (una charla, un trámite, algo que pasó), en inglés o en castellano. Te armamos unas 30 frases para esa situación: tarjetas y audio.", label: "Contar una situación" },
 };
-const isFree = (m) => m !== "432"; // Libre and Inglés: one open-ended recording
+const isFree = (m) => m !== "432"; // Libre, Inglés and Situación: one open-ended recording
+const FREE_PREFIX = { en: "en", sit: "sit" };
 let mode = store.get("recMode", "libre");
 function setMode(m) {
   mode = MODES[m] ? m : "libre"; store.set("recMode", mode);
@@ -489,7 +516,7 @@ function setMode(m) {
   $("seg").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
   $("modeHint").textContent = MODES[mode].hint;
   $("startLabel").textContent = MODES[mode].label;
-  $("topic").placeholder = mode === "432" ? "Tema (opcional): el video que viste hoy…" : "Tema (opcional)";
+  $("topic").placeholder = mode === "432" ? "Tema (opcional): el video que viste hoy…" : mode === "sit" ? "¿Qué situación? (opcional)" : "Tema (opcional)";
 }
 $("seg").addEventListener("click", (ev) => { const b = ev.target.closest("button[data-mode]"); if (b) setMode(b.dataset.mode); });
 setMode(mode);
@@ -576,7 +603,7 @@ function startRound() {
   rec_.onstop = async () => {
     if (rec_.discard) return;
     const blob = new Blob(chunks, { type: rec_.mimeType || r.mime || "audio/mp4" });
-    const name = free ? `${r.mode === "en" ? "en" : "libre"}-${r.id}.${r.ext}` : `432-${r.id}-${round}.${r.ext}`;
+    const name = free ? `${FREE_PREFIX[r.mode] || "libre"}-${r.id}.${r.ext}` : `432-${r.id}-${round}.${r.ext}`;
     const item = { name, blob };
     await q("readwrite", (s) => s.put(item));
     uploadOne(item);
@@ -585,7 +612,7 @@ function startRound() {
   $("endRound").textContent = "Terminar ronda";
   $("liveTop").classList.remove("pause");
   $("roundLabel").textContent = free ? "Grabando" : `Ronda ${round} de 3`;
-  $("clockSub").textContent = free ? (r.mode === "en" ? "en inglés" : "monólogo libre") : `de ${mmss(secs)}`;
+  $("clockSub").textContent = free ? ({ en: "en inglés", sit: "situación" }[r.mode] || "monólogo libre") : `de ${mmss(secs)}`;
   if (!free) $("dots").innerHTML = ROUNDS.map((_, i) => `<span class="${i < r.round ? "done" : i === r.round ? "now" : ""}"></span>`).join("");
   const started = Date.now();
   r.started = started;
@@ -871,7 +898,7 @@ const kv = (() => {
 async function loadCards() {
   try {
     const cached = await kv.get("cards");
-    if (cached && !CARDS.length) { CARDS = cached.cards || []; renderRecall(); }
+    if (cached && !CARDS.length) { CARDS = cached.cards || []; renderRecall(); renderRead(); }
     if (!connected()) return;
     let data;
     if (DEMO) data = await (await fetch("demo-cards.json", { cache: "no-store" })).json();
@@ -888,7 +915,7 @@ async function loadCards() {
     }
     CARDS = data.cards || [];
     await kv.set("cards", data);
-    renderRecall();
+    renderRecall(); renderRead();
   } catch (e) { console.warn("cards", e); }
 }
 
@@ -1172,6 +1199,7 @@ function paceChart(sessions) {
     <svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${line(1, 0.3)}${line(2, 0.6)}${line(3, 1)}
     <text x="${W - P}" y="${y(last.wpm) - 6}" text-anchor="end" font-size="12" font-weight="700" fill="var(--ink)">${last.wpm}</text></svg></div>`;
 }
+const ROLE = { vos: "Vos", otro: "Te dicen", contar: "Contándolo después" };
 function renderSessions() {
   const ss = (DATA.sessions || []).slice().reverse();
   const tipsFor = (s, x) => (s.tips || []).filter((t) => t.sentence === x.spanish);
@@ -1179,11 +1207,11 @@ function renderSessions() {
   $("sessions").innerHTML = paceChart(DATA.sessions) + ss.map((s) => {
     const errs = s.sentences.reduce((n, x) => n + x.corrections.length, 0);
     return `<div class="card session"><button data-a="toggle">
-      <div><div style="font-weight:650">${esc(s.title)}${s.rounds.length ? `<span class="tag">4/3/2</span>` : ""}${s.source === "english" ? `<span class="tag">inglés</span>` : ""}${s.pending ? `<span class="tag">en espera</span>` : ""}</div>
+      <div><div style="font-weight:650">${esc(s.title)}${s.rounds.length ? `<span class="tag">4/3/2</span>` : ""}${s.source === "english" ? `<span class="tag">inglés</span>` : ""}${s.source === "situation" ? `<span class="tag">situación</span>` : ""}${s.pending ? `<span class="tag">en espera</span>` : ""}</div>
         <div class="small muted">${fmtDate(s.date)} · ${s.sentences.length} frases · ${errs} correcciones${s.tips?.length ? ` · ${s.tips.length} del arsenal` : ""}</div>
         ${s.rounds.length ? `<div class="pace">${s.rounds.map((r) => `${r.wpm}`).join(" → ")} palabras/min</div>` : ""}</div>
       <span class="chev">›</span></button>
-      <div class="detail">${s.sentences.map((x) => `<div class="sent"><div class="es">${esc(x.spanish)}</div>
+      <div class="detail">${s.sentences.map((x, i, a) => `<div class="sent">${x.role && x.role !== a[i - 1]?.role ? `<div class="role">${ROLE[x.role]}</div>` : ""}<div class="es">${esc(x.spanish)}</div>
         <div class="small muted">${esc(x.english)}</div>
         ${x.chunks?.length ? `<div class="chips">${x.chunks.map((c) => `<span>${esc(c.spanish)}</span>`).join("")}</div>` : ""}
         ${x.corrections.length ? `<div class="heard">Dijiste: “${esc(x.heard)}”</div>` + x.corrections.map((c) =>
@@ -1196,9 +1224,83 @@ $("sessions").addEventListener("click", (ev) => {
   const b = ev.target.closest("[data-a=toggle]"); if (b) b.parentElement.classList.toggle("open");
 });
 
+/* ---------- Leer: every sentence, English beside Spanish ---------- */
+// Texts: each recording/situation, each sheet tab, each topic pack, each Arsenal group.
+const READ_SECS = ["Mis grabaciones", "Situaciones", "Hoja", "Temas", "Arsenal"];
+let readIndex = null, readFilter = store.get("readFilter", "Todo");
+function buildReadIndex() {
+  const texts = [];
+  for (const s of (DATA.sessions || []).slice().reverse())
+    texts.push({ sec: s.source === "situation" ? "Situaciones" : "Mis grabaciones", title: s.title, sub: fmtDate(s.date),
+                 pairs: s.sentences.map((x) => ({ en: x.english, es: x.spanish, role: x.role })) });
+  const groups = new Map();
+  const topicName = (slug) => (DATA.topics || []).find((t) => t.slug === slug)?.name || slug;
+  const arsName = (slug) => (DATA.arsenal || []).find((g) => g.slug === slug)?.name || slug;
+  for (const c of CARDS) {
+    let id, make;
+    if (c.src === "library") { id = `l|${c.cat}|${c.tab}`; make = () => ({ sec: "Hoja", title: c.tab, sub: c.cat }); }
+    else if (c.src === "topic") { id = `t|${c.topic}|${c.tab}`; make = () => ({ sec: "Temas", title: c.tab, sub: topicName(c.topic) }); }
+    else if (c.src === "arsenal") { id = `a|${c.grp}`; make = () => ({ sec: "Arsenal", title: arsName(c.grp), sub: "" }); }
+    else continue;
+    let g = groups.get(id);
+    if (!g) { g = { ...make(), pairs: [], seen: new Set() }; groups.set(id, g); texts.push(g); }
+    const pair = c.src === "arsenal" ? { en: c.en, es: (c.opts || []).map((o) => o.es).join(" · ") || c.es } : { en: c.ctxEn, es: c.ctx };
+    if (!g.seen.has(pair.es)) { g.seen.add(pair.es); g.pairs.push(pair); }
+  }
+  return texts;
+}
+const fold = (t) => (t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const pairHtml = (p, src, prev) => `<div class="pair">${src ? `<div class="src">${esc(src)}</div>` : ""}${p.role && p.role !== prev?.role ? `<div class="role">${ROLE[p.role]}</div>` : ""}<div class="en">${esc(p.en)}</div><div class="es" data-say="${esc(p.es)}">${esc(p.es)}</div></div>`;
+function renderRead() {
+  if (!$("read")) return;
+  readIndex = buildReadIndex();
+  const counts = { Todo: readIndex.length };
+  for (const t of readIndex) counts[t.sec] = (counts[t.sec] || 0) + 1;
+  if (!(readFilter in counts)) readFilter = "Todo";
+  $("readFilters").innerHTML = ["Todo", ...READ_SECS].filter((f) => counts[f])
+    .map((f) => `<button class="${f === readFilter ? "on" : ""}" data-f="${esc(f)}">${esc(f)}</button>`).join("");
+  drawRead();
+}
+function drawRead() {
+  const texts = readIndex.filter((t) => readFilter === "Todo" || t.sec === readFilter)
+    .sort((a, b) => READ_SECS.indexOf(a.sec) - READ_SECS.indexOf(b.sec));
+  const qry = fold($("readSearch").value.trim());
+  if (!readIndex.length) { $("read").innerHTML = emptyState("Todavía no hay frases."); return; }
+  if (qry.length >= 2) {
+    const hits = [];
+    for (const t of texts) for (const p of t.pairs)
+      if (hits.length < 200 && (fold(p.es).includes(qry) || fold(p.en).includes(qry))) hits.push(pairHtml(p, `${t.sec} · ${t.title}`));
+    $("read").innerHTML = `<div class="small muted" style="margin:0 4px 8px">${hits.length >= 200 ? "Las primeras 200" : hits.length} frases</div>`
+      + (hits.length ? `<div class="card">${hits.join("")}</div>` : "");
+    return;
+  }
+  let html = "", last = "";
+  texts.forEach((t) => {
+    if (t.sec !== last) { html += `<h2>${esc(t.sec)}</h2>`; last = t.sec; }
+    html += `<div class="card read-text" data-i="${readIndex.indexOf(t)}"><button data-a="open">
+      <div><div style="font-weight:650">${esc(t.title)}</div><div class="small muted">${t.sub ? esc(t.sub) + " · " : ""}${t.pairs.length} frases</div></div>
+      <span class="chev">›</span></button><div class="pairs"></div></div>`;
+  });
+  $("read").innerHTML = html;
+}
+$("readFilters").addEventListener("click", (ev) => {
+  const b = ev.target.closest("button[data-f]"); if (!b) return;
+  readFilter = b.dataset.f; store.set("readFilter", readFilter);
+  $("readFilters").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+  drawRead();
+});
+$("readSearch").addEventListener("input", () => drawRead());
+$("read").addEventListener("click", (ev) => {
+  const say = ev.target.closest("[data-say]"); if (say) { speak(say.dataset.say); return; }
+  const b = ev.target.closest("[data-a=open]"); if (!b) return;
+  const card = b.parentElement, box = card.querySelector(".pairs");
+  if (!box.innerHTML) box.innerHTML = readIndex[card.dataset.i].pairs.map((p, i, a) => pairHtml(p, "", a[i - 1])).join("");
+  card.classList.toggle("open");
+});
+
 /* ---------- Shell ---------- */
 const emptyState = (msg) => `<div class="card muted">${esc(msg)}</div>`;
-const TITLES = { record: "Grabar", listen: "Escuchar", recall: "Repaso", arsenal: "Arsenal", sessions: "Sesiones" };
+const TITLES = { record: "Grabar", listen: "Escuchar", recall: "Repaso", arsenal: "Arsenal", read: "Leer", sessions: "Sesiones" };
 document.querySelector("nav").addEventListener("click", (ev) => {
   const b = ev.target.closest("button"); if (!b) return;
   document.querySelectorAll("nav button").forEach((x) => x.classList.toggle("on", x === b));
@@ -1211,7 +1313,7 @@ document.querySelector("nav").addEventListener("click", (ev) => {
 function renderAll() {
   $("setupNotice").innerHTML = connected() ? "" :
     `<div class="notice">Falta conectar el repositorio. Tocá ⚙︎ arriba a la derecha.</div>`;
-  renderEpisodes(); renderRecall(); renderSessions(); renderUploads(); renderPendingNotes();
+  renderEpisodes(); renderRecall(); renderSessions(); renderRead(); renderUploads(); renderPendingNotes();
 }
 
 function openSettings() {
