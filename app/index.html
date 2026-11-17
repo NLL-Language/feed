@@ -294,6 +294,8 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 #hora button.mg-b { height: 54px; border-radius: 12px; font: inherit; font-size: 17px; font-weight: 600; border: 1.5px solid #16181D; background: #fff; color: #16181D; }
 #hora button.mg-b.pri { border-color: #0A60D0; background: #0A60D0; color: #fff; }
 #hora button.mg-b.wide { grid-column: 1 / -1; }
+#hora .mg-btns.three { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+#hora .mg-btns.three button.mg-b { font-size: 15px; padding: 0 2px; }
 #hora button.mg-link { font: inherit; font-size: 15px; color: #16181D; background: none; border: 0; text-decoration: underline; min-height: 44px; padding: 0 4px; }
 #hora .mg-rule { font-size: 15px; color: #3A3F4A; margin-top: 12px; }
 #instant .ix-done { margin-top: 18px; width: 100%; height: 52px; border: 0; border-radius: 12px; background: #0A60D0; color: #fff; font: inherit; font-size: 17px; font-weight: 600; }
@@ -395,7 +397,7 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 <dialog id="settings">
   <form method="dialog">
     <strong style="font-size:19px">Conexión</strong>
-    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v15</p>
+    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v16</p>
     <label for="sRepo">Repositorio (dueño/nombre)</label>
     <input id="sRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dueño/repositorio">
     <label for="sToken">Token de GitHub</label>
@@ -1132,9 +1134,9 @@ function gradedToday() {
   const g = store.get("graded", {});
   return g.d === todayISO() ? g.k : {};
 }
-function grade(card, ok) {
+function grade(card, ok, how) {
   const g = { d: todayISO(), k: gradedToday() }; g.k[card.k] = ok ? 1 : 0; store.set("graded", g);
-  const r = store.get("results", []); r.push({ k: card.k, ok, d: todayISO(), t: new Date().toISOString() }); store.set("results", r);
+  const r = store.get("results", []); r.push({ k: card.k, ok, d: todayISO(), t: new Date().toISOString(), ...(how ? { g: how } : {}) }); store.set("results", r);
   const seen = store.get("seen", {}); seen[card.k] = todayISO(); store.set("seen", seen);
   if (r.length >= 10) flushResults();
 }
@@ -1425,7 +1427,7 @@ function hStartBlock(st, block) {
   st.block = block; hShown = false;
   if (block === "ancho") { st.queue = hBuildQueue(); st.pos = 0; st.misses = []; st.ok = 0; st.n = 0; st.left = H_BLOCKS.ancho.mins * 60; }
   if (block === "fijar") {
-    st.fq = (st.misses || []).slice(0, H_FIJAR_MAX); st.tries = {}; st.fixed = 0; st.left = H_BLOCKS.fijar.mins * 60;
+    st.fq = [...(st.misses || []), ...(st.casi || [])].slice(0, H_FIJAR_MAX); st.fn = st.fq.length; st.tries = {}; st.fixed = 0; st.left = H_BLOCKS.fijar.mins * 60;
     if (!st.fq.length) return hStartBlock(st, "usar");
   }
   if (block === "usar") { st.usarEnds = Date.now() + H_BLOCKS.usar.mins * 60000; st.answers = st.answers || 0; }
@@ -1437,12 +1439,13 @@ function hCurrent(st) {
   if (st.block === "fijar") { while (st.fq.length && !map.has(st.fq[0])) st.fq.shift(); return map.get(st.fq[0]) || null; }
   return null;
 }
-function hGrade(ok) {
+function hGrade(kind) { // "ok" | "casi" | "miss"
   const st = hState(), s = hCurrent(st); if (!s) return;
-  for (const c of s.cards) grade(c, ok);
+  const ok = kind === "ok";
+  for (const c of s.cards) grade(c, kind !== "miss", kind === "casi" ? "casi" : undefined);
   hShown = false;
   if (st.block === "ancho") {
-    st.n++; if (ok) st.ok++; else st.misses.push(s.key);
+    st.n++; if (ok) st.ok++; else if (kind === "casi") { st.nc = (st.nc || 0) + 1; (st.casi = st.casi || []).push(s.key); } else st.misses.push(s.key);
     st.pos++;
     if (st.left <= 0 || st.pos >= st.queue.length) { hStartBlock(st, "fijar"); return horaRender(); }
   } else if (st.block === "fijar") {
@@ -1475,7 +1478,7 @@ function horaRender() {
       <div class="mg-sub">${n} frases para hoy. Frases enteras, no pedacitos.</div>
       <div class="mg-page">
         <div class="mg-main"><div class="mg-row">Ancho</div><div class="mg-why">Muchas frases, un intento cada una, sin volver atrás.</div></div><div class="mg-note">25 min</div>
-        <div class="mg-main"><div class="mg-row">Fijar</div><div class="mg-why">Solo las que no salieron hoy. Como mucho ${H_FIJAR_MAX}, dos intentos más.</div></div><div class="mg-note">15 min</div>
+        <div class="mg-main"><div class="mg-row">Fijar</div><div class="mg-why">Las que no salieron hoy y después las "casi". Como mucho ${H_FIJAR_MAX}, dos intentos más.</div></div><div class="mg-note">15 min</div>
         <div class="mg-main"><div class="mg-row">Usar</div><div class="mg-why">Respuestas cortas en voz alta con las frases de hoy, corregidas al instante.</div></div><div class="mg-note">20 min</div>
       </div>
       <div class="mg-btns"><button class="mg-b pri wide" data-h="start">${n ? "Empezar" : "Ir a Usar"}</button></div>
@@ -1495,10 +1498,10 @@ function horaRender() {
         <div class="mg-note"><span>${count}</span>${hShown ? s.cards.map((c) => `<span>${esc(c.es)}</span>`).join("") + (s.where ? `<span style="color:#3A3F4A">${esc(s.where)}</span>` : "") : ""}</div>
       </div>
       ${hShown
-        ? `<div class="mg-btns"><button class="mg-b" data-h="miss">No me salió</button><button class="mg-b pri" data-h="ok">La sabía</button></div>
+        ? `<div class="mg-btns three"><button class="mg-b" data-h="miss">No me salió</button><button class="mg-b" data-h="casi">Casi</button><button class="mg-b pri" data-h="ok">La sabía</button></div>
            <button class="mg-link" data-h="say">Escuchar</button>`
         : `<div class="mg-btns"><button class="mg-b pri wide" data-h="show">Mostrar</button></div>`}
-      <div class="mg-rule">${hShown ? "Vale si el sentido está y suena natural. No hace falta que sea palabra por palabra." : st.block === "ancho" ? "Decila entera en voz alta. Un intento. Sin volver atrás." : "Otra vez, entera y en voz alta."}</div>`;
+      <div class="mg-rule">${hShown ? "La sabía: salió entera y natural, aunque no sea palabra por palabra. Casi: salió con dudas o con un error chico. No me salió: no la pude armar." : st.block === "ancho" ? "Decila entera en voz alta. Un intento. Sin volver atrás." : "Otra vez, entera y en voz alta."}</div>`;
     return;
   }
   if (st.block === "usar") {
@@ -1513,8 +1516,8 @@ function horaRender() {
   const pct = st.n ? Math.round(100 * st.ok / st.n) : 0;
   el.innerHTML = `<div class="mg-top"><span>Repaso</span><span>hecho</span></div><h2>Listo por hoy</h2>
     <div class="mg-page">
-      <div class="mg-main"><div class="mg-row">Ancho</div><div class="mg-why">${st.n || 0} frases, ${st.ok || 0} salieron de una.</div></div><div class="mg-note">${st.n ? pct + " %" : ""}</div>
-      <div class="mg-main"><div class="mg-row">Fijar</div><div class="mg-why">${st.fixed || 0} de ${(st.misses || []).slice(0, H_FIJAR_MAX).length} recuperadas.</div></div><div class="mg-note"></div>
+      <div class="mg-main"><div class="mg-row">Ancho</div><div class="mg-why">${st.n || 0} frases: ${st.ok || 0} de una, ${st.nc || 0} casi, ${(st.misses || []).length} no salieron.</div></div><div class="mg-note">${st.n ? pct + " %" : ""}</div>
+      <div class="mg-main"><div class="mg-row">Fijar</div><div class="mg-why">${st.fixed || 0} de ${st.fn || 0} recuperadas.</div></div><div class="mg-note"></div>
       <div class="mg-main"><div class="mg-row">Usar</div><div class="mg-why">${st.answers || 0} respuestas grabadas.</div></div><div class="mg-note"></div>
     </div>
     <button class="mg-link" data-h="old">Ver los mazos de antes</button>`;
@@ -1527,7 +1530,7 @@ $("hora").addEventListener("click", (ev) => {
   if (a === "reload") { loadCards(); return; }
   if (a === "start") { hStartBlock(st, hBuildQueue().length ? "ancho" : "usar"); }
   else if (a === "show") { hShown = true; }
-  else if (a === "ok" || a === "miss") return hGrade(a === "ok");
+  else if (a === "ok" || a === "miss" || a === "casi") return hGrade(a);
   else if (a === "say") { const s = hCurrent(st); if (s) speak(s.es); return; }
   else if (a === "old") { hOld = true; }
   else if (a === "end") { st.block = "fin"; hSave(st); }
