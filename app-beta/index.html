@@ -277,6 +277,25 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 #instant .ix-err { font-size: 16px; line-height: 1.45; color: #16181D; border: 1.5px solid #16181D; border-radius: 12px; padding: 14px; margin-top: 14px; }
 #instant details { margin-top: 16px; font-size: 15px; color: #3A3F4A; }
 #instant details p { font-family: Newsreader, Georgia, serif; font-size: 17px; line-height: 1.45; color: #16181D; }
+#hora { background: #fff; color: #16181D; border-radius: 14px; padding: 18px 18px 22px; }
+#hora .mg-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: #3A3F4A; }
+#hora h2 { font-family: Newsreader, Georgia, serif; font-weight: 600; font-size: 30px; line-height: 1.15; margin: 8px 0 2px; color: #16181D; }
+#hora .mg-sub { font-size: 16px; color: #3A3F4A; }
+#hora .mg-page { display: grid; grid-template-columns: minmax(0, 1fr) 88px; margin-top: 14px; border-top: 1px solid #16181D; }
+#hora .mg-main { padding: 16px 12px 16px 0; border-right: 1px solid #0A60D0; border-bottom: 1px solid #D9DCE2; display: flex; flex-direction: column; gap: 8px; min-height: 64px; }
+#hora .mg-note { padding: 16px 0 16px 10px; border-bottom: 1px solid #D9DCE2; font-family: Newsreader, Georgia, serif; font-style: italic; font-size: 16px; line-height: 1.3; color: #0A60D0; display: flex; flex-direction: column; gap: 8px; overflow-wrap: anywhere; }
+#hora .mg-lab { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: #3A3F4A; }
+#hora .mg-en { font-size: 19px; line-height: 1.4; color: #16181D; }
+#hora .mg-es { font-family: Newsreader, Georgia, serif; font-size: 28px; line-height: 1.22; color: #16181D; }
+#hora .mg-es u { text-decoration-color: #0A60D0; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+#hora .mg-why { font-size: 15px; line-height: 1.4; color: #3A3F4A; }
+#hora .mg-row { font-family: Newsreader, Georgia, serif; font-size: 21px; color: #16181D; }
+#hora .mg-btns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+#hora button.mg-b { height: 54px; border-radius: 12px; font: inherit; font-size: 17px; font-weight: 600; border: 1.5px solid #16181D; background: #fff; color: #16181D; }
+#hora button.mg-b.pri { border-color: #0A60D0; background: #0A60D0; color: #fff; }
+#hora button.mg-b.wide { grid-column: 1 / -1; }
+#hora button.mg-link { font: inherit; font-size: 15px; color: #16181D; background: none; border: 0; text-decoration: underline; min-height: 44px; padding: 0 4px; }
+#hora .mg-rule { font-size: 15px; color: #3A3F4A; margin-top: 12px; }
 #instant .ix-done { margin-top: 18px; width: 100%; height: 52px; border: 0; border-radius: 12px; background: #0A60D0; color: #fff; font: inherit; font-size: 17px; font-weight: 600; }
 </style>
 </head>
@@ -338,7 +357,9 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
   <section class="view" id="v-listen">
     <div id="episodes"></div>
   </section>
-  <section class="view" id="v-recall"><div id="recall"></div></section>
+  <section class="view" id="v-recall"><div id="hora"></div>
+    <button id="horaBack" hidden style="font:inherit;font-size:15px;color:#0A60D0;background:none;border:0;padding:12px 0;min-height:44px;text-decoration:underline">← Volver a la hora de repaso</button>
+    <div id="recall" hidden></div></section>
   <section class="view" id="v-arsenal"><div id="arsenal"></div></section>
   <section class="view" id="v-read">
     <input class="read-search" id="readSearch" type="search" placeholder="Buscar en inglés o en castellano" autocomplete="off">
@@ -374,7 +395,7 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 <dialog id="settings">
   <form method="dialog">
     <strong style="font-size:19px">Conexión</strong>
-    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v14 · beta 3</p>
+    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v14 · beta 4</p>
     <label for="sRepo">Repositorio (dueño/nombre)</label>
     <input id="sRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dueño/repositorio">
     <label for="sToken">Token de GitHub</label>
@@ -541,7 +562,7 @@ function setMode(m) {
   const order = [...$("seg").querySelectorAll("button[data-mode]")].map((b) => b.dataset.mode);
   $("seg").style.setProperty("--i", order.indexOf(mode));
   $("seg").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
-  $("modeHint").textContent = MODES[mode].hint + " · Beta 3: " + (mode === "libre" || mode === "432"
+  $("modeHint").textContent = MODES[mode].hint + " · Beta 4: " + (mode === "libre" || mode === "432"
     ? (store.get("kClaude", "") && store.get("kOpenAI", "") ? "correcciones al instante activas." : "faltan claves en ⚙︎ para las correcciones al instante.")
     : "este modo no tiene correcciones al instante.");
   $("startLabel").textContent = MODES[mode].label;
@@ -831,6 +852,7 @@ async function instantCorrect(takes) {
   dbg("abriendo correcciones");
   const box = $("instant"), t0 = Date.now(), since = () => Math.round((Date.now() - t0) / 1000);
   $("recIdle").hidden = true; box.hidden = false;
+  try { box.scrollIntoView({ block: "start" }); } catch {}
   box.innerHTML = `<div class="ix-label">Correcciones</div><h2 id="ixTitle">Tu monólogo</h2>
     <div class="ix-status" id="ixStatus">Transcribiendo…</div><div class="ix-time" id="ixTime"></div>
     <div class="ix-page" id="ixPage"></div><div id="ixExtra"></div>
@@ -1240,6 +1262,7 @@ $("arsenal").addEventListener("click", (ev) => {
   if (d) { document.querySelector('nav button[data-view="recall"]').click(); openDeck(d.dataset.arsDeck); }
 });
 function renderRecall() {
+  try { horaRender(); } catch (e) { dbg("hora: " + e.message); }
   try { renderArsenal(); } catch (e) { console.warn("arsenal", e); }
   const el = $("recall");
   SEEN = store.get("seen", {});
@@ -1350,6 +1373,177 @@ function speak(text) {
   const u = new SpeechSynthesisUtterance(text); u.lang = v?.lang || "es-AR"; if (v) u.voice = v; u.rate = 0.95;
   speechSynthesis.cancel(); speechSynthesis.speak(u);
 }
+
+/* ---------- La hora de repaso (beta): full sentences, three fenced blocks ---------- */
+const H_BLOCKS = { ancho: { name: "Ancho", mins: 25 }, fijar: { name: "Fijar", mins: 15 }, usar: { name: "Usar", mins: 20 } };
+const H_NEW_PER_DAY = 15, H_FIJAR_MAX = 10, H_FIJAR_TRIES = 2;
+let hShown = false, hOld = false;
+const hState = () => { const st = store.get("hora", null); return st && st.d === todayISO() ? st : { d: todayISO(), block: "intro" }; };
+const hSave = (st) => store.set("hora", st);
+
+/* One card per full sentence: every chunk that came from the same sentence is graded together. */
+function hSentences() {
+  const m = new Map();
+  for (const c of CARDS) {
+    if (c.src === "arsenal" || !c.ctx || !c.ctxEn) continue;
+    let s = m.get(c.ctx);
+    if (!s) m.set(c.ctx, s = { key: c.ctx, es: c.ctx, en: c.ctxEn, cards: [], src: c.src, where: c.src === "session" ? "tu grabación" : (c.tab || c.cat || "") });
+    s.cards.push(c);
+  }
+  return m;
+}
+function hBuildQueue() {
+  const today = todayISO(), done = gradedToday(), out = [];
+  for (const s of hSentences().values()) {
+    if (s.cards.some((c) => c.k in done)) continue;
+    if (!s.cards.some((c) => isDue(c, today))) continue;
+    const lapses = Math.max(...s.cards.map((c) => +c.lapses || 0));
+    const isNew = s.cards.every((c) => !(+c.step) && !c.graded && !(+c.lapses));
+    const due = s.cards.map((c) => c.due || "9").sort()[0];
+    out.push({ key: s.key, lapses, isNew, due, mine: s.src === "session" });
+  }
+  // Your own recordings first, then what you have missed, then the most overdue; new ones are capped.
+  const old = out.filter((x) => !x.isNew).sort((a, b) => (b.mine - a.mine) || (b.lapses - a.lapses) || (a.due < b.due ? -1 : 1));
+  const fresh = out.filter((x) => x.isNew).sort((a, b) => (b.mine - a.mine)).slice(0, H_NEW_PER_DAY);
+  const q = []; let f = 0;
+  old.forEach((x, i) => { q.push(x.key); if (i % 3 === 2 && f < fresh.length) q.push(fresh[f++].key); });
+  while (f < fresh.length) q.push(fresh[f++].key);
+  return q;
+}
+function hMark(sentence, chunks) {
+  const low = sentence.toLowerCase(), ranges = [];
+  for (const ch of chunks) {
+    const t = ch.replace(/[.,¿?¡!]+$/, ""), i = low.indexOf(t.toLowerCase());
+    if (i >= 0 && !ranges.some(([a, b]) => i < b && i + t.length > a)) ranges.push([i, i + t.length]);
+  }
+  ranges.sort((a, b) => a[0] - b[0]);
+  let html = "", at = 0;
+  for (const [a, b] of ranges) { html += esc(sentence.slice(at, a)) + "<u>" + esc(sentence.slice(a, b)) + "</u>"; at = b; }
+  return html + esc(sentence.slice(at));
+}
+function hStartBlock(st, block) {
+  st.block = block; hShown = false;
+  if (block === "ancho") { st.queue = hBuildQueue(); st.pos = 0; st.misses = []; st.ok = 0; st.n = 0; st.left = H_BLOCKS.ancho.mins * 60; }
+  if (block === "fijar") {
+    st.fq = (st.misses || []).slice(0, H_FIJAR_MAX); st.tries = {}; st.fixed = 0; st.left = H_BLOCKS.fijar.mins * 60;
+    if (!st.fq.length) return hStartBlock(st, "usar");
+  }
+  if (block === "usar") { st.usarEnds = Date.now() + H_BLOCKS.usar.mins * 60000; st.answers = st.answers || 0; }
+  hSave(st);
+}
+function hCurrent(st) {
+  const map = hSentences();
+  if (st.block === "ancho") { while (st.pos < st.queue.length && !map.has(st.queue[st.pos])) st.pos++; return map.get(st.queue[st.pos]) || null; }
+  if (st.block === "fijar") { while (st.fq.length && !map.has(st.fq[0])) st.fq.shift(); return map.get(st.fq[0]) || null; }
+  return null;
+}
+function hGrade(ok) {
+  const st = hState(), s = hCurrent(st); if (!s) return;
+  for (const c of s.cards) grade(c, ok);
+  hShown = false;
+  if (st.block === "ancho") {
+    st.n++; if (ok) st.ok++; else st.misses.push(s.key);
+    st.pos++;
+    if (st.left <= 0 || st.pos >= st.queue.length) { hStartBlock(st, "fijar"); return horaRender(); }
+  } else if (st.block === "fijar") {
+    st.fq.shift();
+    if (ok) st.fixed++;
+    else { st.tries[s.key] = (st.tries[s.key] || 0) + 1; if (st.tries[s.key] < H_FIJAR_TRIES) st.fq.push(s.key); }
+    if (st.left <= 0 || !st.fq.length) { hStartBlock(st, "usar"); return horaRender(); }
+  }
+  hSave(st); horaRender();
+}
+function hUsarPhrases(st) {
+  const map = hSentences(), keys = [...(st.misses || []), ...((st.queue || []).slice(0, st.pos || 0))], out = [];
+  for (const k of keys) { const s = map.get(k); if (!s) continue; const es = s.cards[0].es; if (!out.includes(es)) out.push(es); if (out.length >= 5) break; }
+  return out;
+}
+function horaRender() {
+  const el = $("hora"); if (!el) return;
+  el.hidden = hOld; $("recall").hidden = !hOld; $("horaBack").hidden = !hOld;
+  if (hOld) return;
+  const st = hState(), B = H_BLOCKS[st.block];
+  if (!CARDS.length) { el.innerHTML = `<div class="mg-top"><span>Repaso</span></div><h2>Todavía no hay frases</h2><div class="mg-sub">Aparecen cuando el teléfono baja tus tarjetas.</div>`; return; }
+  if (st.block === "intro") {
+    const n = hBuildQueue().length;
+    el.innerHTML = `<div class="mg-top"><span>Repaso</span><span>60 min</span></div><h2>La hora de repaso</h2>
+      <div class="mg-sub">${n} frases para hoy. Frases enteras, no pedacitos.</div>
+      <div class="mg-page">
+        <div class="mg-main"><div class="mg-row">Ancho</div><div class="mg-why">Muchas frases, un intento cada una, sin volver atrás.</div></div><div class="mg-note">25 min</div>
+        <div class="mg-main"><div class="mg-row">Fijar</div><div class="mg-why">Solo las que no salieron hoy. Como mucho ${H_FIJAR_MAX}, dos intentos más.</div></div><div class="mg-note">15 min</div>
+        <div class="mg-main"><div class="mg-row">Usar</div><div class="mg-why">Respuestas cortas en voz alta con las frases de hoy, corregidas al instante.</div></div><div class="mg-note">20 min</div>
+      </div>
+      <div class="mg-btns"><button class="mg-b pri wide" data-h="start">${n ? "Empezar" : "Ir a Usar"}</button></div>
+      <button class="mg-link" data-h="old">Ver los mazos de antes</button>`;
+    return;
+  }
+  if (st.block === "ancho" || st.block === "fijar") {
+    const s = hCurrent(st);
+    if (!s) { hStartBlock(st, st.block === "ancho" ? "fijar" : "usar"); return horaRender(); }
+    const count = st.block === "ancho" ? `tarjeta ${st.n + 1}` : `quedan ${st.fq.length}`;
+    el.innerHTML = `<div class="mg-top"><span>${B.name}</span><span id="hClock">quedan ${mmss(Math.max(0, st.left))}</span></div>
+      <div class="mg-page">
+        <div class="mg-main"><div class="mg-lab">En inglés</div><div class="mg-en">${esc(s.en)}</div>
+          ${hShown ? `<div class="mg-lab" style="margin-top:8px">En porteño</div><div class="mg-es">${hMark(s.es, s.cards.map((c) => c.es))}</div>
+            ${s.cards.filter((c) => c.why).slice(0, 2).map((c) => `<div class="mg-why">${esc(c.why)}</div>`).join("")}` : ""}
+        </div>
+        <div class="mg-note"><span>${count}</span>${hShown ? s.cards.map((c) => `<span>${esc(c.es)}</span>`).join("") + (s.where ? `<span style="color:#3A3F4A">${esc(s.where)}</span>` : "") : ""}</div>
+      </div>
+      ${hShown
+        ? `<div class="mg-btns"><button class="mg-b" data-h="miss">No me salió</button><button class="mg-b pri" data-h="ok">La sabía</button></div>
+           <button class="mg-link" data-h="say">Escuchar</button>`
+        : `<div class="mg-btns"><button class="mg-b pri wide" data-h="show">Mostrar</button></div>`}
+      <div class="mg-rule">${hShown ? "Vale si el sentido está y suena natural. No hace falta que sea palabra por palabra." : st.block === "ancho" ? "Decila entera en voz alta. Un intento. Sin volver atrás." : "Otra vez, entera y en voz alta."}</div>`;
+    return;
+  }
+  if (st.block === "usar") {
+    const left = Math.max(0, Math.round((st.usarEnds - Date.now()) / 1000)), ph = hUsarPhrases(st);
+    el.innerHTML = `<div class="mg-top"><span>Usar</span><span>quedan ${mmss(left)}</span></div><h2>Ahora usalas</h2>
+      <div class="mg-sub">Hablá uno o dos minutos de lo que quieras y metele estas frases. Sin leer.</div>
+      <div class="mg-page">${ph.map((p, i) => `<div class="mg-main"><div class="mg-row">${esc(p)}</div></div><div class="mg-note">${i + 1}</div>`).join("")}</div>
+      <div class="mg-btns"><button class="mg-b pri wide" data-h="rec">Grabar una respuesta</button><button class="mg-b wide" data-h="end">Terminar la hora</button></div>
+      <div class="mg-rule">Respuestas grabadas hoy: ${st.answers || 0}. Las correcciones aparecen apenas terminás.</div>`;
+    return;
+  }
+  const pct = st.n ? Math.round(100 * st.ok / st.n) : 0;
+  el.innerHTML = `<div class="mg-top"><span>Repaso</span><span>hecho</span></div><h2>Listo por hoy</h2>
+    <div class="mg-page">
+      <div class="mg-main"><div class="mg-row">Ancho</div><div class="mg-why">${st.n || 0} frases, ${st.ok || 0} salieron de una.</div></div><div class="mg-note">${st.n ? pct + " %" : ""}</div>
+      <div class="mg-main"><div class="mg-row">Fijar</div><div class="mg-why">${st.fixed || 0} de ${(st.misses || []).slice(0, H_FIJAR_MAX).length} recuperadas.</div></div><div class="mg-note"></div>
+      <div class="mg-main"><div class="mg-row">Usar</div><div class="mg-why">${st.answers || 0} respuestas grabadas.</div></div><div class="mg-note"></div>
+    </div>
+    <button class="mg-link" data-h="old">Ver los mazos de antes</button>`;
+  flushResults();
+}
+$("hora").addEventListener("click", (ev) => {
+  const b = ev.target.closest("[data-h]"); if (!b) return;
+  const a = b.dataset.h, st = hState();
+  if (a === "start") { hStartBlock(st, hBuildQueue().length ? "ancho" : "usar"); }
+  else if (a === "show") { hShown = true; }
+  else if (a === "ok" || a === "miss") return hGrade(a === "ok");
+  else if (a === "say") { const s = hCurrent(st); if (s) speak(s.es); return; }
+  else if (a === "old") { hOld = true; }
+  else if (a === "end") { st.block = "fin"; hSave(st); }
+  else if (a === "rec") {
+    st.answers = (st.answers || 0) + 1; hSave(st);
+    document.querySelector('nav button[data-view="record"]').click();
+    setMode("libre"); $("topic").value = "Usar: " + hUsarPhrases(st).slice(0, 3).join(" · ");
+    return startSession();
+  }
+  horaRender();
+});
+$("horaBack").onclick = () => { hOld = false; horaRender(); };
+setInterval(() => {
+  if (document.hidden || hOld || !$("v-recall").classList.contains("on")) return;
+  const st = hState();
+  if (st.block === "ancho" || st.block === "fijar") {
+    st.left = (st.left || 0) - 1; hSave(st);
+    const c = $("hClock"); if (c) c.textContent = st.left > 0 ? `quedan ${mmss(st.left)}` : "tiempo: última tarjeta";
+  } else if (st.block === "usar") {
+    if (Date.now() > st.usarEnds) { st.block = "fin"; hSave(st); }
+    horaRender();
+  }
+}, 1000);
 
 /* ---------- Quick notes waiting for their episode ---------- */
 function renderPendingNotes() {
