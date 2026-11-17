@@ -373,7 +373,7 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 <dialog id="settings">
   <form method="dialog">
     <strong style="font-size:19px">Conexión</strong>
-    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v14 · beta 1</p>
+    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v14 · beta 2</p>
     <label for="sRepo">Repositorio (dueño/nombre)</label>
     <input id="sRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dueño/repositorio">
     <label for="sToken">Token de GitHub</label>
@@ -540,7 +540,9 @@ function setMode(m) {
   const order = [...$("seg").querySelectorAll("button[data-mode]")].map((b) => b.dataset.mode);
   $("seg").style.setProperty("--i", order.indexOf(mode));
   $("seg").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
-  $("modeHint").textContent = MODES[mode].hint;
+  $("modeHint").textContent = MODES[mode].hint + " · Beta 2: " + (mode === "libre" || mode === "432"
+    ? (store.get("kClaude", "") && store.get("kOpenAI", "") ? "correcciones al instante activas." : "faltan claves en ⚙︎ para las correcciones al instante.")
+    : "este modo no tiene correcciones al instante.");
   $("startLabel").textContent = MODES[mode].label;
   $("topic").placeholder = mode === "432" ? "Tema (opcional): el video que viste hoy…" : mode === "sit" ? "¿Qué situación? (opcional)" : "Tema (opcional)";
 }
@@ -634,7 +636,11 @@ function startRound() {
     const secs = (Date.now() - started) / 1000;
     await q("readwrite", (s) => s.put(item));
     if (connected()) uploadOne(item);
-    if (r.mode === "libre" && aiReady()) instantCorrect(blob, name, secs);
+    if (r.mode === "libre") instantCorrect([{ blob, name, secs }]);
+    else if (r.mode === "432") {
+      (r.takes = r.takes || []).push({ blob, name, secs });
+      if (round === ROUNDS.length || r.finished) instantCorrect(r.takes);
+    }
   };
   rec_.start(1000);
   $("endRound").textContent = "Terminar ronda";
@@ -703,6 +709,7 @@ function finishSession(done, discard = false) {
   }
   setTimeout(() => { r.stream.getTracks().forEach((t) => t.stop()); try { r.ctx.close(); } catch {} }, 300);
   try { r.wake?.release(); } catch {}
+  r.finished = true;
   rec = null;
   $("recLive").hidden = true; $("recIdle").hidden = false;
   if (done) $("topic").value = "";
@@ -728,6 +735,7 @@ Line 1: {"titulo": "<3-6 word title in Spanish>"}
 Then one line for each sentence a porteño would say differently, in the order spoken, at most 12 (keep the most useful):
 {"dijiste": "<the learner's own words for the part that changes, as transcribed, 12 words max>", "porteno": "<the whole sentence the way a porteño would naturally say it in conversation>", "por_que": "<one short sentence in English>", "tipo": "fraseo" or "gramática"}
 Use "fraseo" when the original is understandable but unnatural (phrasing, word choice, regional usage). Use "gramática" for real errors (agreement, tense, mood, prepositions, pronouns).
+If the transcript is split into "Ronda 1", "Ronda 2", "Ronda 3", it is the same story told three times: give each correction once, taken from wherever the problem shows.
 Skip sentences that are already natural. Ignore fillers, false starts and obvious transcription glitches. Keep his meaning; do not embellish.
 Last line: {"fin": true}`;
 const AI_ERRORS = {
@@ -804,7 +812,7 @@ async function correctStream(text, onItem) {
   flush(true);
 }
 
-async function instantCorrect(blob, name, secs) {
+async function instantCorrect(takes) {
   const box = $("instant"), t0 = Date.now(), since = () => Math.round((Date.now() - t0) / 1000);
   $("recIdle").hidden = true; box.hidden = false;
   box.innerHTML = `<div class="ix-label">Correcciones</div><h2 id="ixTitle">Tu monólogo</h2>
@@ -816,14 +824,24 @@ async function instantCorrect(blob, name, secs) {
     $("ixStatus").textContent = "No salió.";
     $("ixExtra").innerHTML = `<div class="ix-err">${esc(AI_ERRORS[e.message] || `Algo falló (${e.message}). Decile a Claude este código.`)}</div>`;
   };
-  let text, tStt, tFirst = null, n = { fraseo: 0, "gramática": 0 };
-  try { text = await transcribeNow(blob, name); if (!text) throw new Error("EMPTY"); } catch (e) { return fail(e); }
+  if (!aiReady()) {
+    const k = aiKeys();
+    $("ixStatus").textContent = "Faltan claves.";
+    $("ixExtra").innerHTML = `<div class="ix-err">${!k.claude && !k.openai ? "Faltan las dos claves" : !k.claude ? "Falta la clave de Claude" : "Falta la clave de transcripción (OpenAI)"}. Tocá ⚙︎ arriba a la derecha, pegala y tocá Guardar.</div>`;
+    return;
+  }
+  let texts, tStt, tFirst = null, n = { fraseo: 0, "gramática": 0 };
+  try {
+    texts = await Promise.all(takes.map((t) => transcribeNow(t.blob, t.name)));
+    if (!texts.join("").trim()) throw new Error("EMPTY");
+  } catch (e) { return fail(e); }
   tStt = since();
-  const words = text.split(/\s+/).filter(Boolean).length;
-  const pace = secs > 5 ? ` · Ritmo: ${Math.round(words / (secs / 60))} palabras por minuto` : "";
+  const wpm = takes.map((t, i) => t.secs > 5 ? Math.round(texts[i].split(/\s+/).filter(Boolean).length / (t.secs / 60)) : null).filter((v) => v !== null);
+  const pace = wpm.length ? ` · Ritmo: ${wpm.join(" → ")} palabras por minuto` : "";
+  const text = takes.length > 1 ? texts.map((t, i) => `Ronda ${i + 1}:\n${t}`).join("\n\n") : texts[0];
   $("ixStatus").textContent = "Corrigiendo…";
   $("ixTime").textContent = `Transcripción: ${tStt} s`;
-  $("ixExtra").innerHTML = `<details><summary>Lo que entendí</summary><p>${esc(text)}</p></details>`;
+  $("ixExtra").innerHTML = `<details><summary>Lo que entendí</summary><p style="white-space:pre-line">${esc(text)}</p></details>`;
   try {
     await correctStream(text, (it) => {
       if (it.titulo) { $("ixTitle").textContent = it.titulo; return; }
