@@ -395,7 +395,7 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 <dialog id="settings">
   <form method="dialog">
     <strong style="font-size:19px">Conexión</strong>
-    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v14 · beta 4</p>
+    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v14 · beta 5</p>
     <label for="sRepo">Repositorio (dueño/nombre)</label>
     <input id="sRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dueño/repositorio">
     <label for="sToken">Token de GitHub</label>
@@ -562,7 +562,7 @@ function setMode(m) {
   const order = [...$("seg").querySelectorAll("button[data-mode]")].map((b) => b.dataset.mode);
   $("seg").style.setProperty("--i", order.indexOf(mode));
   $("seg").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
-  $("modeHint").textContent = MODES[mode].hint + " · Beta 4: " + (mode === "libre" || mode === "432"
+  $("modeHint").textContent = MODES[mode].hint + " · Beta 5: " + (mode === "libre" || mode === "432"
     ? (store.get("kClaude", "") && store.get("kOpenAI", "") ? "correcciones al instante activas." : "faltan claves en ⚙︎ para las correcciones al instante.")
     : "este modo no tiene correcciones al instante.");
   $("startLabel").textContent = MODES[mode].label;
@@ -1463,7 +1463,12 @@ function horaRender() {
   el.hidden = hOld; $("recall").hidden = !hOld; $("horaBack").hidden = !hOld;
   if (hOld) return;
   const st = hState(), B = H_BLOCKS[st.block];
-  if (!CARDS.length) { el.innerHTML = `<div class="mg-top"><span>Repaso</span></div><h2>Todavía no hay frases</h2><div class="mg-sub">Aparecen cuando el teléfono baja tus tarjetas.</div>`; return; }
+  if (!CARDS.length) {
+    el.innerHTML = connected()
+      ? `<div class="mg-top"><span>Repaso</span></div><h2>Bajando tus frases…</h2><div class="mg-sub">La primera vez tarda unos segundos. Si en un minuto sigue así, tocá Reintentar.</div><div class="mg-btns"><button class="mg-b pri wide" data-h="reload">Reintentar</button></div>`
+      : `<div class="mg-top"><span>Repaso</span></div><h2>Falta conectar tus tarjetas</h2><div class="mg-sub">En este navegador la app todavía no tiene el repositorio ni el token de GitHub, así que no puede bajar tus frases.</div><div class="mg-btns"><button class="mg-b pri wide" data-h="settings">Abrir ajustes</button></div>`;
+    return;
+  }
   if (st.block === "intro") {
     const n = hBuildQueue().length;
     el.innerHTML = `<div class="mg-top"><span>Repaso</span><span>60 min</span></div><h2>La hora de repaso</h2>
@@ -1518,6 +1523,8 @@ function horaRender() {
 $("hora").addEventListener("click", (ev) => {
   const b = ev.target.closest("[data-h]"); if (!b) return;
   const a = b.dataset.h, st = hState();
+  if (a === "settings") return openSettings();
+  if (a === "reload") { loadCards(); return; }
   if (a === "start") { hStartBlock(st, hBuildQueue().length ? "ancho" : "usar"); }
   else if (a === "show") { hShown = true; }
   else if (a === "ok" || a === "miss") return hGrade(a === "ok");
