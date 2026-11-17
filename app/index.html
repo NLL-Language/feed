@@ -277,27 +277,30 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 #instant .ix-err { font-size: 16px; line-height: 1.45; color: #16181D; border: 1.5px solid #16181D; border-radius: 12px; padding: 14px; margin-top: 14px; }
 #instant details { margin-top: 16px; font-size: 15px; color: #3A3F4A; }
 #instant details p { font-family: Newsreader, Georgia, serif; font-size: 17px; line-height: 1.45; color: #16181D; }
-#hora { background: #fff; color: #16181D; border-radius: 14px; padding: 18px 18px 22px; }
-#hora .mg-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: #3A3F4A; }
-#hora h2 { font-family: Newsreader, Georgia, serif; font-weight: 600; font-size: 30px; line-height: 1.15; margin: 8px 0 2px; color: #16181D; }
-#hora .mg-sub { font-size: 16px; color: #3A3F4A; }
-#hora .mg-page { display: grid; grid-template-columns: minmax(0, 1fr) 88px; margin-top: 14px; border-top: 1px solid #16181D; }
-#hora .mg-main { padding: 16px 12px 16px 0; border-right: 1px solid #0A60D0; border-bottom: 1px solid #D9DCE2; display: flex; flex-direction: column; gap: 8px; min-height: 64px; }
-#hora .mg-note { padding: 16px 0 16px 10px; border-bottom: 1px solid #D9DCE2; font-family: Newsreader, Georgia, serif; font-style: italic; font-size: 16px; line-height: 1.3; color: #0A60D0; display: flex; flex-direction: column; gap: 8px; overflow-wrap: anywhere; }
-#hora .mg-lab { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: #3A3F4A; }
-#hora .mg-en { font-size: 19px; line-height: 1.4; color: #16181D; }
-#hora .mg-es { font-family: Newsreader, Georgia, serif; font-size: 28px; line-height: 1.22; color: #16181D; }
-#hora .mg-es u { text-decoration-color: #0A60D0; text-decoration-thickness: 2px; text-underline-offset: 4px; }
-#hora .mg-why { font-size: 15px; line-height: 1.4; color: #3A3F4A; }
-#hora .mg-row { font-family: Newsreader, Georgia, serif; font-size: 21px; color: #16181D; }
-#hora .mg-btns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
-#hora button.mg-b { height: 54px; border-radius: 12px; font: inherit; font-size: 17px; font-weight: 600; border: 1.5px solid #16181D; background: #fff; color: #16181D; }
-#hora button.mg-b.pri { border-color: #0A60D0; background: #0A60D0; color: #fff; }
-#hora button.mg-b.wide { grid-column: 1 / -1; }
-#hora .mg-btns.three { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-#hora .mg-btns.three button.mg-b { font-size: 15px; padding: 0 2px; }
-#hora button.mg-link { font: inherit; font-size: 15px; color: #16181D; background: none; border: 0; text-decoration: underline; min-height: 44px; padding: 0 4px; }
-#hora .mg-rule { font-size: 15px; color: #3A3F4A; margin-top: 12px; }
+:is(#hora, #hoy) { background: #fff; color: #16181D; border-radius: 14px; padding: 18px 18px 22px; }
+:is(#hora, #hoy) .mg-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: #3A3F4A; }
+:is(#hora, #hoy) h2 { font-family: Newsreader, Georgia, serif; font-weight: 600; font-size: 30px; line-height: 1.15; margin: 8px 0 2px; color: #16181D; }
+:is(#hora, #hoy) .mg-sub { font-size: 16px; color: #3A3F4A; }
+:is(#hora, #hoy) .mg-page { display: grid; grid-template-columns: minmax(0, 1fr) 88px; margin-top: 14px; border-top: 1px solid #16181D; }
+:is(#hora, #hoy) .mg-main { padding: 16px 12px 16px 0; border-right: 1px solid #0A60D0; border-bottom: 1px solid #D9DCE2; display: flex; flex-direction: column; gap: 8px; min-height: 64px; }
+:is(#hora, #hoy) .mg-note { padding: 16px 0 16px 10px; border-bottom: 1px solid #D9DCE2; font-family: Newsreader, Georgia, serif; font-style: italic; font-size: 16px; line-height: 1.3; color: #0A60D0; display: flex; flex-direction: column; gap: 8px; overflow-wrap: anywhere; }
+:is(#hora, #hoy) .mg-lab { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: #3A3F4A; }
+:is(#hora, #hoy) .mg-en { font-size: 19px; line-height: 1.4; color: #16181D; }
+:is(#hora, #hoy) .mg-es { font-family: Newsreader, Georgia, serif; font-size: 28px; line-height: 1.22; color: #16181D; }
+:is(#hora, #hoy) .mg-es u { text-decoration-color: #0A60D0; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+:is(#hora, #hoy) .mg-why { font-size: 15px; line-height: 1.4; color: #3A3F4A; }
+:is(#hora, #hoy) .mg-row { font-family: Newsreader, Georgia, serif; font-size: 21px; color: #16181D; }
+:is(#hora, #hoy) .mg-btns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+:is(#hora, #hoy) button.mg-b { height: 54px; border-radius: 12px; font: inherit; font-size: 17px; font-weight: 600; border: 1.5px solid #16181D; background: #fff; color: #16181D; }
+:is(#hora, #hoy) button.mg-b.pri { border-color: #0A60D0; background: #0A60D0; color: #fff; }
+:is(#hora, #hoy) button.mg-b.wide { grid-column: 1 / -1; }
+:is(#hora, #hoy) .mg-btns.three { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+:is(#hora, #hoy) .mg-btns.three button.mg-b { font-size: 15px; padding: 0 2px; }
+:is(#hora, #hoy) button.mg-link { font: inherit; font-size: 15px; color: #16181D; background: none; border: 0; text-decoration: underline; min-height: 44px; padding: 0 4px; }
+:is(#hora, #hoy) .mg-rule { font-size: 15px; color: #3A3F4A; margin-top: 12px; }
+:is(#hora, #hoy) .mg-bar { height: 10px; background: #16181D; border-radius: 2px; min-width: 2px; }
+:is(#hora, #hoy) .mg-num { font-variant-numeric: tabular-nums; }
+:is(#hora, #hoy) a.mg-link { font-size: 15px; color: #16181D; text-decoration: underline; min-height: 44px; display: inline-flex; align-items: center; padding: 0 4px; }
 #instant .ix-done { margin-top: 18px; width: 100%; height: 52px; border: 0; border-radius: 12px; background: #0A60D0; color: #fff; font: inherit; font-size: 17px; font-weight: 600; }
 </style>
 </head>
@@ -313,6 +316,7 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 <main>
   <div id="setupNotice"></div>
 
+  <section class="view" id="v-hoy"><div id="hoy"></div></section>
   <section class="view on" id="v-record">
     <div id="recIdle">
       <div class="seg" id="seg" data-mode="libre" role="group" aria-label="Tipo de grabación" style="--n:4">
@@ -386,10 +390,10 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 <audio id="audio" preload="none"></audio>
 
 <nav>
+  <button data-view="hoy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></svg>Hoy</button>
   <button class="on" data-view="record"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Grabar</button>
   <button data-view="listen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="3" y="14" width="4" height="7" rx="1.5"/><rect x="17" y="14" width="4" height="7" rx="1.5"/></svg>Escuchar</button>
   <button data-view="recall"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="6" width="14" height="14" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v12"/></svg>Repaso</button>
-  <button data-view="arsenal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z"/><path d="M8.5 10.5h7M8.5 13.5h4"/></svg>Arsenal</button>
   <button data-view="read"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 5 7 4.5 3 5v13c4-.5 7 0 9 1.5 2-1.5 5-2 9-1.5V5c-4-.5-7 0-9 1.5z"/><path d="M12 6.5v13"/></svg>Leer</button>
   <button data-view="sessions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19V5M4 19h16M8 15l4-4 3 3 5-6"/></svg>Sesiones</button>
 </nav>
@@ -397,7 +401,7 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 <dialog id="settings">
   <form method="dialog">
     <strong style="font-size:19px">Conexión</strong>
-    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v17</p>
+    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v18</p>
     <label for="sRepo">Repositorio (dueño/nombre)</label>
     <input id="sRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dueño/repositorio">
     <label for="sToken">Token de GitHub</label>
@@ -668,6 +672,7 @@ function startRound() {
     const name = free ? `${FREE_PREFIX[r.mode] || "libre"}-${r.id}.${r.ext}` : `432-${r.id}-${round}.${r.ext}`;
     const item = { name, blob };
     const secs = (Date.now() - started) / 1000;
+    if (r.mode === "libre") logAdd("h", secs); else if (r.mode === "432") logAdd("f", secs);
     dbg(`grabación lista: ${Math.round(secs)} s, ${Math.round(blob.size / 1024)} KB, modo ${r.mode}, ${blob.type || "sin tipo"}`);
     try {
       if (r.mode === "libre") instantCorrect([{ blob, name, secs }]);
@@ -1287,6 +1292,7 @@ $("arsenal").addEventListener("click", (ev) => {
 });
 function renderRecall() {
   try { horaRender(); } catch (e) { dbg("hora: " + e.message); }
+  try { renderHoy(); } catch {}
   try { renderArsenal(); } catch (e) { console.warn("arsenal", e); }
   const el = $("recall");
   SEEN = store.get("seen", {});
@@ -1516,7 +1522,7 @@ function hGrade(kind) { // "ok" | "casi" | "miss"
   if (st.block === "ancho") {
     st.n++; if (ok) st.ok++; else if (kind === "casi") { st.nc = (st.nc || 0) + 1; (st.casi = st.casi || []).push(s.key); } else st.misses.push(s.key);
     st.pos++;
-    if (st.left <= 0 || st.pos >= st.queue.length) { hStartBlock(st, "fijar"); return horaRender(); }
+    if (st.left <= 0 || st.pos >= st.queue.length) { hStartBlock(st, st.short ? "fin" : "fijar"); return horaRender(); }
   } else if (st.block === "fijar") {
     st.fq.shift();
     if (ok) st.fixed++;
@@ -1600,7 +1606,7 @@ $("hora").addEventListener("click", (ev) => {
   const a = b.dataset.h, st = hState();
   if (a === "settings") return openSettings();
   if (a === "reload") { loadCards(); return; }
-  if (a === "start" || a === "again") { hStartBlock(st, hBuildQueue().length ? "ancho" : "usar"); }
+  if (a === "start" || a === "again") { st.short = false; hStartBlock(st, hBuildQueue().length ? "ancho" : "usar"); }
   else if (a === "show") { hShown = true; }
   else if (a === "ok" || a === "miss" || a === "casi") return hGrade(a);
   else if (a === "say") { const s = hCurrent(st); if (s) speak(s.es); return; }
@@ -1619,13 +1625,143 @@ setInterval(() => {
   if (document.hidden || hOld || !$("v-recall").classList.contains("on")) return;
   const st = hState();
   if (st.block === "ancho" || st.block === "fijar") {
-    st.left = (st.left || 0) - 1; hSave(st);
+    st.left = (st.left || 0) - 1; hSave(st); logAdd("r", 1);
     const c = $("hClock"); if (c) c.textContent = st.left > 0 ? `quedan ${mmss(st.left)}` : "tiempo: última tarjeta";
   } else if (st.block === "usar") {
     if (Date.now() > st.usarEnds) { st.block = "fin"; hSave(st); }
     horaRender();
   }
 }, 1000);
+
+/* ---------- Hoy: the day, already decided ---------- */
+const GOALS = { r: 60, e: 60, h: 30 };   // minutes: Repaso, Escucha, Monólogo
+const DAY_MIN_SECS = 600;                // a day counts toward the streak from 10 minutes
+const tlog = () => store.get("tlog", {});
+function logAdd(strand, secs) {
+  const all = tlog(), d = todayISO(), day = all[d] || (all[d] = {});
+  day[strand] = (day[strand] || 0) + secs;
+  const keys = Object.keys(all).sort(); while (keys.length > 150) delete all[keys.shift()];
+  store.set("tlog", all);
+}
+const daySecs = (d, k) => ((tlog()[d] || {})[k] || 0);
+const dayMin = (d, k) => Math.floor(daySecs(d, k) / 60);
+const dayTotal = (d) => ["r", "e", "h", "f"].reduce((n, k) => n + daySecs(d, k), 0);
+function streak() { // consecutive days with 10+ minutes; one missed day in a row is forgiven, two break it
+  let n = 0, miss = 0, d = todayISO();
+  if (dayTotal(d) < DAY_MIN_SECS) d = addDays(d, -1);
+  for (let i = 0; i < 400; i++) {
+    if (dayTotal(d) >= DAY_MIN_SECS) { n++; miss = 0; } else if (++miss > 1) break;
+    d = addDays(d, -1);
+  }
+  return n;
+}
+function goView(name) {
+  const b = document.querySelector(`nav button[data-view="${name}"]`); if (b) return b.click();
+  document.querySelectorAll("nav button").forEach((x) => x.classList.remove("on"));
+  document.querySelectorAll(".view").forEach((v) => v.classList.toggle("on", v.id === `v-${name}`));
+  $("heading").textContent = TITLES[name] || ""; $("scroller").scrollTo(0, 0);
+}
+let hoyScreen = "main", escAsk = null;
+function hoyNext() {
+  const d = todayISO(), st = hState();
+  if (st.block !== "fin" && dayMin(d, "r") < GOALS.r) return "r";
+  if (dayMin(d, "e") < GOALS.e) return "e";
+  if (dayMin(d, "h") + dayMin(d, "f") < GOALS.h) return "h";
+  return null;
+}
+function progSessions() {
+  const PHR = ["more_natural", "word_choice", "regionalism"];
+  return (DATA.sessions || []).filter((x) => x.source === "spanish" && (x.sentences || []).length).map((x) => {
+    const heard = x.sentences.map((y) => y.heard || "").join(" . "), low = heard.toLowerCase();
+    const words = heard.split(/\s+/).filter((w) => w && w !== ".").length;
+    const phr = x.sentences.reduce((n, y) => n + (y.corrections || []).filter((c) => PHR.includes(c.category)).length, 0);
+    let frames = 0; for (const f of NUCLEO) { if (!f.rx) continue; try { if (new RegExp(f.rx, "i").test(low)) frames++; } catch {} }
+    return { date: x.date, words, per100: words ? Math.round(1000 * phr / words) / 10 : 0, frames };
+  }).filter((x) => x.words >= 30).slice(-8);
+}
+const fmtDay = (iso) => { const [y, m, d] = iso.split("-").map(Number); return new Date(y, m - 1, d).toLocaleDateString("es-AR", { day: "numeric", month: "short" }); };
+const comma = (n) => String(n).replace(".", ",");
+function renderHoy() {
+  const el = $("hoy"); if (!el) return;
+  const d = todayISO(), st = hState(), n = streak();
+  const racha = `Racha: ${n} ${n === 1 ? "día" : "días"}`;
+  if (hoyScreen === "escucha") {
+    const run = store.get("esc", null);
+    if (escAsk !== null) {
+      el.innerHTML = `<div class="mg-top"><span>Escucha</span><span>${escAsk} min</span></div><h2>¿Cuánto entendiste?</h2>
+        <div class="mg-btns">${[["<60", "Menos del 60 %"], ["60-80", "60 a 80 %"], ["80-95", "80 a 95 %"], ["95+", "Casi todo"]].map(([v, t]) => `<button class="mg-b wide" data-y="comp" data-v="${v}">${t}</button>`).join("")}</div>
+        <div class="mg-rule">Lo ideal es entre 80 y 95 %: se entiende, pero todavía te exige.</div>`;
+    } else if (run) {
+      el.innerHTML = `<div class="mg-top"><span>Escucha</span><span>contando</span></div><h2 class="mg-num" id="escClock">${mmss((Date.now() - run.start) / 1000)}</h2>
+        <div class="mg-sub">Mirá tu video en español. El tiempo sigue contando aunque salgas de la app.</div>
+        <div class="mg-btns"><button class="mg-b pri wide" data-y="escStop">Terminé</button><button class="mg-b wide" data-y="escCancel">Cancelar sin anotar</button></div>`;
+    } else {
+      el.innerHTML = `<div class="mg-top"><span>Escucha</span><span>${dayMin(d, "e")} de ${GOALS.e} min</span></div><h2>Video en español</h2>
+        <div class="mg-sub">Poné un video de tu lista, hecho por nativos y que entiendas en su mayoría. Tocá Empezar a contar y después abrí YouTube.</div>
+        <div class="mg-btns"><button class="mg-b pri wide" data-y="escStart">Empezar a contar</button></div>
+        <a class="mg-link" href="https://www.youtube.com/" target="_blank" rel="noopener">Abrir YouTube</a>
+        <button class="mg-link" data-y="escAdd">Sumar 15 min sin cronómetro</button>
+        <button class="mg-link" data-y="back">Volver</button>`;
+    }
+    return;
+  }
+  if (hoyScreen === "progreso") {
+    const ss = progSessions(), max = Math.max(1, ...ss.map((x) => x.per100));
+    const mon = (() => { const t = new Date(); const k = (t.getDay() + 6) % 7; return addDays(d, -k); })();
+    const week = { e: 0, h: 0, r: 0, f: 0 }; for (let i = 0; i < 7; i++) for (const k in week) week[k] += daySecs(addDays(mon, i), k);
+    const wm = { e: Math.round(week.e / 60), h: Math.round(week.h / 60), r: Math.round(week.r / 60), f: Math.round(week.f / 60) };
+    const tot = wm.e + wm.h + wm.r + wm.f, wmax = Math.max(1, wm.e, wm.h, wm.r, wm.f);
+    el.innerHTML = `<div class="mg-top"><span>Progreso</span><span>${racha}</span></div>
+      <h2 style="font-size:24px">Correcciones de fraseo cada 100 palabras</h2><div class="mg-sub">Por monólogo. Menos es mejor.</div>
+      <div class="mg-page">${ss.length ? ss.map((x) => `<div class="mg-main" style="padding:10px 12px 10px 0;min-height:0;justify-content:center"><div class="mg-bar" style="width:${Math.round(100 * x.per100 / max)}%"></div></div><div class="mg-note mg-num" style="padding:10px 0 10px 10px;font-size:15px">${comma(x.per100)} · ${fmtDay(x.date)}</div>`).join("") : `<div class="mg-main"><div class="mg-why">Todavía no hay monólogos corregidos.</div></div><div class="mg-note"></div>`}</div>
+      <h2 style="font-size:24px;margin-top:22px">Marcos de Núcleo que usaste sin ayuda</h2><div class="mg-sub">Cuántos marcos distintos aparecen en lo que dijiste. Más es mejor. Es un conteo aproximado.</div>
+      <div class="mg-page">${ss.length ? ss.map((x) => `<div class="mg-main" style="padding:10px 12px 10px 0;min-height:0;justify-content:center"><div class="mg-bar" style="width:${Math.round(100 * x.frames / Math.max(1, ...ss.map((y) => y.frames)))}%"></div></div><div class="mg-note mg-num" style="padding:10px 0 10px 10px;font-size:15px">${x.frames} · ${fmtDay(x.date)}</div>`).join("") : `<div class="mg-main"><div class="mg-why">Sin datos todavía.</div></div><div class="mg-note"></div>`}</div>
+      <h2 style="font-size:24px;margin-top:22px">Esta semana</h2><div class="mg-sub">Minutos por tipo de práctica. Reparto parejo: ${Math.round(tot / 4)} min cada uno.</div>
+      <div class="mg-page">${[["Escucha", wm.e], ["Hablar", wm.h], ["Repaso", wm.r], ["Fluidez (4/3/2)", wm.f]].map(([t, v]) => `<div class="mg-main" style="padding:10px 12px 10px 0;min-height:0"><div class="mg-why" style="color:#16181D">${t}</div><div class="mg-bar" style="width:${Math.round(100 * v / wmax)}%"></div></div><div class="mg-note mg-num" style="padding:10px 0 10px 10px;font-size:15px">${v} min</div>`).join("")}</div>
+      <button class="mg-link" data-y="back">Volver</button>`;
+    return;
+  }
+  const r = dayMin(d, "r"), e = dayMin(d, "e"), h = dayMin(d, "h") + dayMin(d, "f");
+  const next = hoyNext(), any = dayTotal(d) > 0;
+  const bl = { intro: "sin empezar", ancho: "en Ancho", fijar: "en Fijar", usar: "en Usar", fin: "terminado" }[st.block] || "";
+  const fecha = new Date().toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" });
+  const label = !next ? "Hecho por hoy" : (any ? "Seguir: " : "Empezar: ") + { r: "Repaso", e: "Escucha", h: "Monólogo" }[next];
+  const row = (name, done, goal, sub, y) => `<div class="mg-main"><button class="mg-link" data-y="${y}" style="text-align:left;padding:0;text-decoration:none"><span class="mg-row">${name}</span></button><div class="mg-why">${done} de ${goal} min${sub ? " · " + sub : ""}</div></div><div class="mg-note">${done >= goal ? "hecho" : goal + " min"}</div>`;
+  el.innerHTML = `<div class="mg-top"><span>${racha}</span><span></span></div><h2>${esc(fecha.charAt(0).toUpperCase() + fecha.slice(1))}</h2>
+    <div class="mg-page">${row("Repaso", r, GOALS.r, bl, "goR")}${row("Escucha", e, GOALS.e, "", "goE")}${row("Monólogo", h, GOALS.h, "", "goH")}</div>
+    <div class="mg-btns"><button class="mg-b pri wide" data-y="go" ${next ? "" : "disabled"}>${label}</button>
+      <button class="mg-b wide" data-y="short">Día corto: 10 minutos</button></div>
+    <button class="mg-link" data-y="prog">Progreso</button><button class="mg-link" data-y="ars">Arsenal</button>
+    <div class="mg-rule">El día cuenta para la racha desde los 10 minutos. Un día salteado no la corta; dos seguidos, sí.</div>`;
+}
+$("hoy").addEventListener("click", (ev) => {
+  const b = ev.target.closest("[data-y]"); if (!b) return;
+  let a = b.dataset.y; const st = hState();
+  if (a === "go") a = { r: "goR", e: "goE", h: "goH" }[hoyNext()] || "";
+  if (a === "goR") { if (st.block === "intro" || st.block === "fin") { st.short = false; hStartBlock(st, hBuildQueue().length ? "ancho" : "usar"); } hOld = false; goView("recall"); horaRender(); return; }
+  if (a === "goE") hoyScreen = "escucha";
+  else if (a === "goH") { goView("record"); setMode("libre"); return; }
+  else if (a === "short") { hStartBlock(st, "ancho"); const s2 = hState(); s2.left = 600; s2.short = true; hSave(s2); hOld = false; goView("recall"); horaRender(); return; }
+  else if (a === "prog") hoyScreen = "progreso";
+  else if (a === "ars") { goView("arsenal"); return; }
+  else if (a === "back") { hoyScreen = "main"; escAsk = null; }
+  else if (a === "escStart") store.set("esc", { start: Date.now() });
+  else if (a === "escCancel") store.set("esc", null);
+  else if (a === "escStop") { const run = store.get("esc", null); escAsk = run ? Math.min(180, Math.max(1, Math.round((Date.now() - run.start) / 60000))) : 0; store.set("esc", null); }
+  else if (a === "escAdd") escAsk = 15;
+  else if (a === "comp") {
+    logAdd("e", escAsk * 60);
+    const l = store.get("elog", []); l.push({ d: todayISO(), min: escAsk, comp: b.dataset.v }); store.set("elog", l.slice(-400));
+    escAsk = null; hoyScreen = "main";
+  }
+  renderHoy();
+});
+document.querySelector("nav").addEventListener("click", () => setTimeout(() => { try { renderHoy(); } catch (e) { dbg("hoy: " + e.message); } }, 0));
+setInterval(() => {
+  if (document.hidden || !$("v-hoy").classList.contains("on") || hoyScreen !== "escucha") return;
+  const run = store.get("esc", null), c = $("escClock"); if (run && c) c.textContent = mmss((Date.now() - run.start) / 1000);
+}, 1000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) { try { renderHoy(); } catch {} } });
 
 /* ---------- Quick notes waiting for their episode ---------- */
 function renderPendingNotes() {
@@ -1762,7 +1898,7 @@ $("read").addEventListener("click", (ev) => {
 
 /* ---------- Shell ---------- */
 const emptyState = (msg) => `<div class="card muted">${esc(msg)}</div>`;
-const TITLES = { record: "Grabar", listen: "Escuchar", recall: "Repaso", arsenal: "Arsenal", read: "Leer", sessions: "Sesiones" };
+const TITLES = { hoy: "Hoy", record: "Grabar", listen: "Escuchar", recall: "Repaso", arsenal: "Arsenal", read: "Leer", sessions: "Sesiones" };
 document.querySelector("nav").addEventListener("click", (ev) => {
   const b = ev.target.closest("button"); if (!b) return;
   document.querySelectorAll("nav button").forEach((x) => x.classList.toggle("on", x === b));
@@ -1808,7 +1944,7 @@ $("sSave").onclick = async (ev) => {
   }
 };
 
-const startTab = store.get("tab", "record");
+const startTab = "hoy";
 document.querySelector(`nav button[data-view="${startTab}"]`)?.click();
 renderAll();
 loadData(); loadCards();
