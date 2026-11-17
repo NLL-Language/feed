@@ -1,0 +1,1508 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Español">
+<meta name="theme-color" content="#f2f4f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b0e13" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Español</title>
+<style>
+:root {
+  --bg: #f2f4f8; --card: #ffffff; --ink: #0f1720; --muted: #6b7482; --line: rgba(15, 23, 32, 0.08);
+  --accent: #2577c8; --accent-2: #74acdf; --accent-ink: #ffffff; --accent-soft: #e5effa;
+  --sun: #e9a400; --sun-soft: #fbf1d9;
+  --rec: #e5484d; --rec-soft: #fde9e9;
+  --warn: #c4452f; --ok: #1f8a5b;
+  --glass: rgba(242, 244, 248, 0.78);
+  --shadow: 0 1px 2px rgba(15, 23, 32, 0.04), 0 10px 30px rgba(15, 23, 32, 0.07);
+  --round: ui-rounded, "SF Pro Rounded", -apple-system, system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0e13; --card: #151a22; --ink: #eef2f7; --muted: #8d97a5; --line: rgba(255, 255, 255, 0.08);
+    --accent: #6fb1ec; --accent-2: #9cc8f0; --accent-ink: #08131e; --accent-soft: rgba(111, 177, 236, 0.14);
+    --sun: #f5c04a; --sun-soft: rgba(245, 192, 74, 0.14);
+    --rec: #ff6369; --rec-soft: rgba(255, 99, 105, 0.14);
+    --warn: #ff8a73; --ok: #5fd39a;
+    --glass: rgba(11, 14, 19, 0.74);
+    --shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+  }
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
+html, body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 17px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+button:active { transform: scale(0.98); }
+input { font: inherit; color: var(--ink); }
+svg { display: block; }
+/* The page itself never scrolls or bounces: only #scroller does. On iPhone (home-screen app)
+   a scrolling page drags position:fixed bars along with it; a locked body keeps the tab bar
+   and the player pinned to the bottom. */
+html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+body { position: fixed; inset: 0; }
+#scroller { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
+
+header { position: sticky; top: 0; z-index: 5; display: flex; align-items: flex-end; justify-content: space-between;
+  padding: calc(env(safe-area-inset-top) + 14px) 20px 10px; background: var(--glass);
+  -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); }
+header h1 { margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.1; }
+.icon-btn { width: 38px; height: 38px; border-radius: 19px; display: grid; place-items: center; color: var(--muted); background: var(--card); box-shadow: var(--shadow); }
+.icon-btn svg { width: 20px; height: 20px; }
+main { padding: 8px 16px calc(env(safe-area-inset-bottom) + 190px); max-width: 640px; margin: 0 auto; }
+.view { display: none; } .view.on { display: block; animation: rise 0.28s ease both; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } }
+.card { background: var(--card); border-radius: 20px; padding: 18px; margin-bottom: 12px; box-shadow: var(--shadow); }
+.muted { color: var(--muted); } .small { font-size: 14px; }
+h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 24px 6px 8px; font-weight: 700; }
+.btn { display: block; width: 100%; padding: 16px; border-radius: 16px; background: var(--accent); color: var(--accent-ink);
+  font-weight: 650; text-align: center; transition: transform 0.12s, opacity 0.2s; }
+.btn.secondary { background: var(--accent-soft); color: var(--accent); }
+.btn.ghost { background: transparent; color: var(--muted); font-weight: 600; }
+.btn.danger { background: var(--rec); color: #fff; }
+.row { display: flex; gap: 10px; } .row > * { flex: 1; }
+.notice { padding: 13px 16px; border-radius: 16px; background: var(--sun-soft); color: var(--ink); font-size: 15px; margin-bottom: 12px; }
+
+/* Record: idle */
+.seg { display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; padding: 4px; border-radius: 14px; background: var(--line); position: relative; margin: 6px 0 18px; }
+.seg button { position: relative; z-index: 1; padding: 9px 2px; border-radius: 10px; font-size: 14px; font-weight: 650; color: var(--muted); transition: color 0.2s; }
+.seg button[aria-pressed="true"] { color: var(--ink); }
+.seg .thumb { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / var(--n, 2)); border-radius: 10px; background: var(--card);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); transition: transform 0.28s cubic-bezier(0.3, 0.7, 0.2, 1); }
+.seg .thumb { transform: translateX(calc(var(--i, 0) * 100%)); }
+.hero { text-align: center; padding: 30px 18px 26px; }
+.hero p { margin: 0 auto 20px; max-width: 300px; color: var(--muted); font-size: 15px; }
+.mic { width: 132px; height: 132px; border-radius: 66px; display: grid; place-items: center; margin: 4px auto 14px; color: #fff;
+  background: radial-gradient(circle at 30% 25%, var(--accent-2), var(--accent) 70%);
+  box-shadow: 0 14px 34px -8px color-mix(in srgb, var(--accent) 70%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  position: relative; transition: transform 0.15s; }
+.mic::after { content: ""; position: absolute; inset: -10px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0.18; }
+.mic svg { width: 48px; height: 48px; }
+.mic-label { font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+.topic { width: 100%; padding: 14px 16px; border-radius: 14px; border: 0; background: var(--bg); margin-top: 18px; outline: none; }
+.topic:focus { box-shadow: 0 0 0 2px var(--accent-soft), 0 0 0 1px var(--accent) inset; }
+
+/* Record: live */
+.live { text-align: center; padding: 22px 18px 14px; }
+.live-top { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 20px; background: var(--rec-soft); color: var(--rec);
+  font-size: 14px; font-weight: 700; }
+.live-top.pause { background: var(--accent-soft); color: var(--accent); }
+.rec-dot { width: 8px; height: 8px; border-radius: 4px; background: currentColor; animation: pulse 1.2s infinite; }
+.live-top.pause .rec-dot { animation: none; }
+@keyframes pulse { 50% { opacity: 0.2; } }
+#topicLive { margin-top: 8px; min-height: 1.2em; }
+.ring-wrap { position: relative; width: 236px; height: 236px; margin: 12px auto 6px; }
+.ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 10; stroke-linecap: round; }
+.ring .track { stroke: var(--line); }
+.ring .prog { stroke: var(--accent); transition: stroke-dashoffset 0.3s linear, stroke 0.3s; }
+.ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.clock { font-family: var(--round); font-size: 64px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; line-height: 1; }
+#clockSub { margin-top: 6px; }
+.meter { display: flex; align-items: center; justify-content: center; gap: 3px; height: 44px; margin: 4px 0 8px; }
+.meter i { width: 4px; border-radius: 2px; background: var(--accent); opacity: 0.85; height: 4px; transition: height 0.08s; }
+.dots { display: flex; justify-content: center; gap: 8px; margin: 2px 0 16px; min-height: 8px; }
+.dots span { width: 28px; height: 6px; border-radius: 3px; background: var(--line); }
+.dots span.done { background: var(--accent); } .dots span.now { background: var(--rec); }
+.stop { width: 76px; height: 76px; border-radius: 38px; margin: 6px auto 4px; display: grid; place-items: center; background: var(--rec);
+  box-shadow: 0 10px 26px -8px var(--rec); }
+.stop span { width: 26px; height: 26px; border-radius: 7px; background: #fff; }
+.uploads { list-style: none; padding: 0; margin: 0; font-size: 15px; }
+.uploads li { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+.uploads li:first-child { border-top: 0; padding-top: 0; } .uploads li:last-child { padding-bottom: 0; }
+.pill { font-size: 13px; font-weight: 650; padding: 3px 10px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); }
+.pill.ok { background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--ok); }
+.pill.err { background: var(--rec-soft); color: var(--rec); }
+
+/* Listen */
+.list { padding: 6px; overflow: hidden; }
+.ep { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 10px 10px; border-radius: 14px; }
+.ep.now { background: var(--accent-soft); }
+.ep-wrap { display: flex; align-items: center; border-radius: 14px; }
+.ep-wrap.now { background: var(--accent-soft); }
+.ep-wrap .ep { flex: 1; min-width: 0; }
+.ep-wrap .ep.now { background: none; }
+.qbtn { flex: none; min-width: 40px; height: 40px; margin-right: 4px; border-radius: 20px; color: var(--accent); display: grid; place-items: center; font-size: 13px; font-weight: 700; }
+.qbtn svg { width: 20px; height: 20px; }
+.qbtn.in { background: var(--accent); color: var(--accent-ink); }
+.player .next { font-size: 12px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ep .t { flex: 1; min-width: 0; }
+.ep .t div:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+.ep.played .t div:first-child { color: var(--muted); font-weight: 500; }
+.ep-ic { width: 44px; height: 44px; border-radius: 13px; display: grid; place-items: center; flex: none; background: var(--accent-soft); color: var(--accent); }
+.ep-ic svg { width: 20px; height: 20px; }
+.ep-ic.immersion { background: color-mix(in srgb, var(--accent-2) 22%, transparent); color: var(--accent); }
+.ep-ic.review { background: var(--sun-soft); color: var(--sun); }
+.ep-ic.weak { background: color-mix(in srgb, var(--warn) 16%, transparent); color: var(--warn); }
+.ep-ic.category { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok); }
+.deck-row { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 10px; border-radius: 14px; }
+.deck-row .t { flex: 1; min-width: 0; font-weight: 600; }
+.deck-row .n { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 15px; }
+.deck-row .badge { font-size: 13px; font-weight: 700; padding: 1px 8px; border-radius: 9px; background: var(--accent-soft); color: var(--accent); margin-right: 4px; }
+.deck-row .chev { color: var(--muted); font-size: 20px; }
+.deck-row.weak .t { color: var(--warn); }
+.ep-ic.topic { background: color-mix(in srgb, var(--accent-2) 30%, transparent); color: var(--accent); }
+.topics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.topic-chip { text-align: left; padding: 12px; border-radius: 14px; background: var(--card); box-shadow: var(--shadow, 0 1px 3px rgba(0,0,0,.08)); }
+.topic-chip .name { font-weight: 650; font-size: 15px; display: flex; justify-content: space-between; gap: 6px; }
+.topic-chip .plus { color: var(--accent); font-weight: 700; }
+.topic-chip .bar { height: 4px; border-radius: 2px; background: var(--line); margin: 8px 0 4px; overflow: hidden; }
+.topic-chip .bar div { height: 100%; background: var(--accent); }
+.topic-chip .small { font-size: 12px; }
+.grade { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grade .btn { margin: 0; }
+.btn.miss { background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--warn); }
+.flash .src { margin-top: 10px; font-size: 13px; color: var(--muted); }
+.notes-card { display: flex; gap: 12px; align-items: center; }
+.notes-card .t { flex: 1; font-size: 15px; }
+.notes-card .btn { width: auto; margin: 0; padding: 10px 14px; font-size: 15px; }
+.kind { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+.player { position: fixed; left: 10px; right: 10px; bottom: calc(env(safe-area-inset-bottom) + 72px); z-index: 6;
+  background: var(--glass); -webkit-backdrop-filter: saturate(180%) blur(24px); backdrop-filter: saturate(180%) blur(24px);
+  border-radius: 20px; padding: 12px 16px 10px; display: none; box-shadow: 0 12px 34px rgba(0, 0, 0, 0.18), 0 0 0 1px var(--line);
+  max-width: 620px; margin: 0 auto; }
+.player.on { display: block; animation: rise 0.25s ease both; }
+.player .top { display: flex; align-items: center; gap: 8px; }
+.player .top .tt { flex: 1; min-width: 0; }
+.player .close { flex: none; width: 30px; height: 30px; margin: -4px -6px -4px 0; border-radius: 15px; font-size: 22px; line-height: 1; color: var(--muted); background: var(--line); display: grid; place-items: center; }
+.player .title { font-size: 15px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.player input[type=range] { width: 100%; accent-color: var(--accent); margin: 8px 0 0; height: 4px; }
+.controls { display: flex; align-items: center; justify-content: space-between; }
+.controls button { min-width: 48px; height: 44px; border-radius: 22px; font-weight: 700; color: var(--accent); font-family: var(--round); }
+.controls .play { width: 50px; height: 50px; border-radius: 25px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; }
+.controls .play svg { width: 22px; height: 22px; }
+.times { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* Recall */
+.big-num { font-family: var(--round); font-size: 56px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+.due { text-align: center; padding: 30px 18px; }
+.flash { min-height: 320px; display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 30px 22px; }
+.flash .en { font-size: 23px; font-weight: 600; letter-spacing: -0.01em; }
+.flash .es { font-size: 23px; font-weight: 750; color: var(--accent); margin-top: 18px; animation: rise 0.25s ease both; }
+.flash .fix { text-align: left; margin-top: 20px; font-size: 15px; padding-top: 14px; border-top: 1px solid var(--line); }
+.progress { height: 6px; border-radius: 3px; background: var(--line); margin: 6px 0 14px; overflow: hidden; }
+.progress div { height: 100%; background: linear-gradient(90deg, var(--accent-2), var(--accent)); border-radius: 3px; transition: width 0.3s; }
+.speak { margin-top: 12px; color: var(--accent); font-weight: 650; font-size: 15px; padding: 6px 14px; border-radius: 16px; background: var(--accent-soft); }
+
+/* Sessions */
+.session > button { width: 100%; text-align: left; display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+.session .chev { color: var(--muted); transition: transform 0.2s; font-size: 22px; }
+.session.open .chev { transform: rotate(90deg); }
+.session .detail { display: none; margin-top: 12px; }
+.session.open .detail { display: block; animation: rise 0.2s ease both; }
+.sent { padding: 12px 0; border-top: 1px solid var(--line); }
+.sent .es { font-weight: 650; }
+.heard { color: var(--muted); font-size: 15px; margin-top: 4px; }
+.corr { font-size: 14px; margin-top: 6px; }
+.corr b { color: var(--warn); font-weight: 650; text-decoration: line-through; text-decoration-thickness: 1px; }
+.corr i { color: var(--ok); font-style: normal; font-weight: 650; }
+.pace { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: 2px; }
+.tag { display: inline-block; font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); margin-left: 6px; vertical-align: 1px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chips span { font-size: 14px; font-weight: 600; padding: 3px 10px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); }
+.flash .ctx { margin-top: 14px; font-size: 15px; color: var(--muted); }
+.flash .sit { margin-top: 6px; font-size: 13px; color: var(--muted); font-style: italic; }
+.flash .opts { margin-top: 12px; text-align: left; display: grid; gap: 8px; }
+.flash .opt .o { font-size: 19px; font-weight: 650; color: var(--ink); }
+.flash .opt .reg { font-size: 11px; font-weight: 650; text-transform: uppercase; letter-spacing: .04em; margin-left: 6px; padding: 2px 6px; border-radius: 6px; background: var(--line); color: var(--muted); vertical-align: middle; }
+.flash .opt .reg.porteño { background: var(--accent-soft); color: var(--accent); }
+.flash .opt .note { font-size: 13px; color: var(--muted); margin-top: 1px; }
+.ars-group { padding: 12px 12px 10px; }
+.ars-group + .ars-group { border-top: 1px solid var(--line); }
+.ars-group .head { display: flex; justify-content: space-between; gap: 8px; font-weight: 650; }
+.ars-group .bar { height: 4px; border-radius: 2px; background: var(--line); margin: 8px 0; overflow: hidden; }
+.ars-group .bar div { height: 100%; background: var(--accent); }
+.ars-group .acts { display: flex; gap: 8px; }
+.ars-group .acts button { flex: 1; padding: 8px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); font-weight: 650; font-size: 14px; }
+.tip { margin-top: 6px; font-size: 14px; }
+.tip-l { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--accent); background: var(--accent-soft); padding: 2px 6px; border-radius: 6px; }
+.flash .why { margin-top: 8px; font-size: 14px; line-height: 1.35; color: var(--ink); background: var(--accent-soft, rgba(120,170,220,.15)); border-radius: 10px; padding: 8px 10px; text-align: left; }
+.flash .ctx b { color: var(--ink); font-weight: 650; }
+svg.chart { width: 100%; height: 120px; display: block; margin-top: 8px; }
+
+/* Leer */
+.read-search { width: 100%; padding: 12px 14px; border-radius: 14px; border: 0; background: var(--card); box-shadow: var(--shadow); outline: none; margin-bottom: 10px; }
+.read-filters { display: flex; gap: 6px; overflow-x: auto; margin: 0 -16px 12px; padding: 0 16px; scrollbar-width: none; }
+.read-filters::-webkit-scrollbar { display: none; }
+.read-filters button { flex: none; font-size: 14px; font-weight: 650; padding: 6px 12px; border-radius: 999px; background: var(--card); color: var(--muted); box-shadow: var(--shadow); }
+.read-filters button.on { background: var(--accent); color: var(--accent-ink); }
+.read-text > button { display: flex; justify-content: space-between; align-items: center; width: 100%; text-align: left; gap: 10px; }
+.read-text .pairs { display: none; margin-top: 10px; }
+.read-text.open .pairs { display: block; }
+.read-text .chev { color: var(--muted); transition: transform 0.2s; font-size: 22px; }
+.read-text.open .chev { transform: rotate(90deg); }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 15px; line-height: 1.35; }
+.pair .en { color: var(--muted); }
+.pair .es { font-weight: 600; cursor: pointer; }
+.pair .src { grid-column: 1 / -1; font-size: 12px; color: var(--muted); margin-bottom: -4px; }
+.role { font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .03em; margin-bottom: 2px; }
+.pair .role { grid-column: 1 / -1; margin-bottom: -6px; }
+
+/* Tabs */
+nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; display: flex; background: var(--glass);
+  -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+  border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom); }
+nav button { flex: 1; height: 62px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  font-size: 11px; font-weight: 650; color: var(--muted); }
+nav button svg { width: 24px; height: 24px; }
+nav button.on { color: var(--accent); }
+
+/* Settings */
+dialog { border: 0; border-radius: 22px; padding: 22px; width: min(92vw, 420px); background: var(--card); color: var(--ink); }
+dialog::backdrop { background: rgba(0, 0, 0, 0.45); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+dialog label { display: block; font-size: 14px; color: var(--muted); margin: 14px 0 6px; }
+dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; background: var(--bg); outline: none; }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+/* Instant corrections (beta), in the "Cuaderno · Margen" design */
+#instant { background: #fff; color: #16181D; border-radius: 14px; padding: 20px 18px 22px; margin-top: 8px; }
+#instant .ix-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #3A3F4A; font-weight: 600; }
+#instant h2 { font-family: Newsreader, Georgia, serif; font-weight: 600; font-size: 28px; line-height: 1.15; margin: 6px 0 4px; color: #16181D; }
+#instant .ix-status { font-size: 15px; color: #3A3F4A; min-height: 1.4em; }
+#instant .ix-time { font-size: 13px; color: #3A3F4A; margin-top: 2px; }
+#instant .ix-page { display: grid; grid-template-columns: minmax(0, 1fr) 84px; margin-top: 16px; border-top: 1px solid #16181D; }
+#instant .ix-main { padding: 16px 12px 16px 0; border-right: 1px solid #0A60D0; border-bottom: 1px solid #D9DCE2; display: flex; flex-direction: column; gap: 6px; }
+#instant .ix-note { padding: 16px 0 16px 10px; border-bottom: 1px solid #D9DCE2; font-family: Newsreader, Georgia, serif; font-style: italic; font-size: 16px; color: #0A60D0; }
+#instant .ix-said { font-size: 16px; color: #3A3F4A; text-decoration: line-through; text-decoration-color: #0A60D0; text-decoration-thickness: 1.5px; }
+#instant .ix-es { font-family: Newsreader, Georgia, serif; font-size: 22px; line-height: 1.25; color: #16181D; }
+#instant .ix-why { font-size: 15px; line-height: 1.4; color: #3A3F4A; }
+#instant .ix-err { font-size: 16px; line-height: 1.45; color: #16181D; border: 1.5px solid #16181D; border-radius: 12px; padding: 14px; margin-top: 14px; }
+#instant details { margin-top: 16px; font-size: 15px; color: #3A3F4A; }
+#instant details p { font-family: Newsreader, Georgia, serif; font-size: 17px; line-height: 1.45; color: #16181D; }
+#instant .ix-done { margin-top: 18px; width: 100%; height: 52px; border: 0; border-radius: 12px; background: #0A60D0; color: #fff; font: inherit; font-size: 17px; font-weight: 600; }
+</style>
+</head>
+<body>
+<div id="scroller">
+<header>
+  <h1 id="heading">Grabar</h1>
+  <button class="icon-btn" id="openSettings" aria-label="Ajustes">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+  </button>
+</header>
+
+<main>
+  <div id="setupNotice"></div>
+
+  <section class="view on" id="v-record">
+    <div id="recIdle">
+      <div class="seg" id="seg" data-mode="libre" role="group" aria-label="Tipo de grabación" style="--n:4">
+        <div class="thumb"></div>
+        <button data-mode="libre" aria-pressed="true">Libre</button>
+        <button data-mode="432" aria-pressed="false">4/3/2</button>
+        <button data-mode="en" aria-pressed="false">Inglés</button>
+        <button data-mode="sit" aria-pressed="false">Situación</button>
+      </div>
+      <div class="card hero">
+        <p id="modeHint"></p>
+        <button class="mic" id="startRec" aria-label="Empezar a grabar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+        </button>
+        <div class="mic-label" id="startLabel"></div>
+        <input class="topic" id="topic" placeholder="Tema (opcional)" autocomplete="off">
+      </div>
+    </div>
+
+    <div id="recLive" class="card live" hidden>
+      <div class="live-top" id="liveTop"><span class="rec-dot"></span><span id="roundLabel"></span></div>
+      <div class="muted small" id="topicLive"></div>
+      <div class="ring-wrap">
+        <svg class="ring" viewBox="0 0 240 240"><circle class="track" cx="120" cy="120" r="108"/><circle class="prog" id="ringProg" cx="120" cy="120" r="108"/></svg>
+        <div class="ring-center"><div class="clock" id="clock">0:00</div><div class="small muted" id="clockSub"></div></div>
+      </div>
+      <div class="meter" id="meter"></div>
+      <div class="dots" id="dots"></div>
+      <button class="stop" id="stopFree" aria-label="Terminar y subir" hidden><span></span></button>
+      <div class="small muted" id="stopHint" hidden>Tocá para terminar</div>
+      <button class="btn secondary" id="endRound">Terminar ronda</button>
+      <button class="btn ghost" id="cancelRec" style="margin-top:4px">Cancelar</button>
+    </div>
+
+    <div id="instant" hidden></div>
+
+    <div id="pendingNotes"></div>
+
+    <h2 id="uploadsHead" hidden>Subidas</h2>
+    <div class="card" id="uploadsCard" hidden><ul class="uploads" id="uploads"></ul></div>
+  </section>
+
+  <section class="view" id="v-listen">
+    <div id="episodes"></div>
+  </section>
+  <section class="view" id="v-recall"><div id="recall"></div></section>
+  <section class="view" id="v-arsenal"><div id="arsenal"></div></section>
+  <section class="view" id="v-read">
+    <input class="read-search" id="readSearch" type="search" placeholder="Buscar en inglés o en castellano" autocomplete="off">
+    <div class="read-filters" id="readFilters"></div>
+    <div id="read"></div>
+  </section>
+  <section class="view" id="v-sessions"><div id="sessions"></div></section>
+</main>
+</div>
+
+<div class="player" id="player">
+  <div class="top"><div class="tt"><div class="title" id="pTitle"></div><div class="next muted" id="pNext"></div></div><button class="close" id="pClose" aria-label="Cerrar reproductor">×</button></div>
+  <input type="range" id="pSeek" min="0" max="1000" value="0" aria-label="Posición">
+  <div class="times"><span id="pCur">0:00</span><span id="pDur">0:00</span></div>
+  <div class="controls">
+    <button id="pBack" aria-label="Atrás 15 segundos">−15</button>
+    <button class="play" id="pPlay" aria-label="Reproducir"></button>
+    <button id="pFwd" aria-label="Adelante 15 segundos">+15</button>
+    <button id="pRate" aria-label="Velocidad">1×</button>
+  </div>
+</div>
+<audio id="audio" preload="none"></audio>
+
+<nav>
+  <button class="on" data-view="record"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Grabar</button>
+  <button data-view="listen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="3" y="14" width="4" height="7" rx="1.5"/><rect x="17" y="14" width="4" height="7" rx="1.5"/></svg>Escuchar</button>
+  <button data-view="recall"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="6" width="14" height="14" rx="2"/><path d="M7 3h12a2 2 0 0 1 2 2v12"/></svg>Repaso</button>
+  <button data-view="arsenal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z"/><path d="M8.5 10.5h7M8.5 13.5h4"/></svg>Arsenal</button>
+  <button data-view="read"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5C10 5 7 4.5 3 5v13c4-.5 7 0 9 1.5 2-1.5 5-2 9-1.5V5c-4-.5-7 0-9 1.5z"/><path d="M12 6.5v13"/></svg>Leer</button>
+  <button data-view="sessions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19V5M4 19h16M8 15l4-4 3 3 5-6"/></svg>Sesiones</button>
+</nav>
+
+<dialog id="settings">
+  <form method="dialog">
+    <strong style="font-size:19px">Conexión</strong>
+    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v14 · beta 1</p>
+    <label for="sRepo">Repositorio (dueño/nombre)</label>
+    <input id="sRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dueño/repositorio">
+    <label for="sToken">Token de GitHub</label>
+    <input id="sToken" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <label for="sClaude">Clave de Claude (empieza con sk-ant-)</label>
+    <input id="sClaude" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <label for="sOpenAI">Clave de transcripción, OpenAI (empieza con sk-)</label>
+    <input id="sOpenAI" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <p class="small" id="sStatus" style="min-height:1.4em"></p>
+    <div class="row" style="margin-top:8px">
+      <button class="btn ghost" value="cancel">Cerrar</button>
+      <button class="btn" id="sSave" value="save">Guardar</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const store = {
+  get(k, d = null) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+const DEMO = new URLSearchParams(location.search).has("demo");
+const ROUNDS = [240, 180, 120];
+const MIN_FREE_SECS = 3; // shorter free recordings are accidental taps; drop them
+const RING_C = 2 * Math.PI * 108;
+const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>';
+const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4.5" width="4" height="15" rx="1"/><rect x="14" y="4.5" width="4" height="15" rx="1"/></svg>';
+const ICON_QUEUE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h11M4 12h11M4 18h7M17 15v6M14 18h6"/></svg>';
+const ICON_EP = {
+  drill: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11M4 12h7M4 17h11"/><path d="M17 10l3 2-3 2"/></svg>',
+  immersion: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="3" y="14" width="4" height="7" rx="1.5"/><rect x="17" y="14" width="4" height="7" rx="1.5"/></svg>',
+  review: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>',
+  category: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v14H4z"/><path d="M4 10h16M9 10v9"/></svg>',
+  topic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z"/></svg>',
+  weak: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>',
+};
+
+const todayISO = () => new Date().toLocaleDateString("sv-SE");
+const dayDiff = (a, b) => Math.round((Date.parse(b + "T00:00:00Z") - Date.parse(a + "T00:00:00Z")) / 86400000);
+const mmss = (s) => { s = Math.max(0, Math.round(s || 0)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+const fmtDate = (iso) => new Date(iso + "T12:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" });
+
+/* ---------- GitHub connection ---------- */
+const conn = () => ({ repo: store.get("repo", ""), token: store.get("token", "") });
+const connected = () => DEMO || (conn().repo && conn().token);
+
+async function gh(path, opts = {}) {
+  const { repo, token } = conn();
+  // No trailing slash: GitHub 404s "/repos/o/r/" before CORS, which Safari reports as "Load failed".
+  const res = await fetch(`https://api.github.com/repos/${repo}${path ? "/" + path : ""}`, {
+    ...opts,
+    headers: { Authorization: `Bearer ${token}`, "X-GitHub-Api-Version": "2022-11-28",
+      Accept: opts.raw ? "application/vnd.github.raw+json" : "application/vnd.github+json", ...(opts.headers || {}) },
+  });
+  if (!res.ok) throw new Error(`GitHub ${res.status}`);
+  return opts.raw ? res.text() : res.json();
+}
+
+/* ---------- Data ---------- */
+let DATA = store.get("dataCache", { review_intervals: [1, 3, 7, 14, 30, 60, 120], sessions: [], episodes: [] });
+
+async function loadData() {
+  if (!connected()) return;
+  try {
+    const text = DEMO ? await (await fetch("demo-data.json", { cache: "no-store" })).text()
+                      : await gh(`contents/data.json?t=${Date.now()}`, { raw: true });
+    DATA = JSON.parse(text);
+    store.set("dataCache", DATA);
+  } catch (e) {
+    console.warn("data", e);
+  }
+  renderAll();
+}
+
+/* ---------- Upload queue (IndexedDB, so a failed upload is never lost) ---------- */
+const idb = new Promise((resolve, reject) => {
+  const r = indexedDB.open("espanol", 1);
+  r.onupgradeneeded = () => r.result.createObjectStore("queue", { keyPath: "name" });
+  r.onsuccess = () => resolve(r.result);
+  r.onerror = () => reject(r.error);
+});
+async function q(mode, fn) {
+  const db = await idb;
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("queue", mode);
+    const req = fn(tx.objectStore("queue"));
+    tx.oncomplete = () => resolve(req && req.result);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+const uploadState = {}; // name -> "subiendo" | "subida" | "error"
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result).split(",")[1]);
+    fr.onerror = () => reject(fr.error);
+    fr.readAsDataURL(blob);
+  });
+}
+
+async function uploadOne(item) {
+  uploadState[item.name] = "subiendo"; renderUploads();
+  try {
+    if (DEMO) { await new Promise((r) => setTimeout(r, 800)); }
+    else {
+      await gh(`contents/inbox/${encodeURIComponent(item.name)}`, {
+        method: "PUT",
+        body: JSON.stringify({ message: `Recording ${item.name}`, content: await blobToBase64(item.blob) }),
+      });
+    }
+    await q("readwrite", (s) => s.delete(item.name));
+    uploadState[item.name] = "subida";
+  } catch (e) {
+    console.warn("upload", e);
+    uploadState[item.name] = "error";
+  }
+  renderUploads();
+}
+
+let flushing = false;
+async function flushQueue() {
+  if (flushing || !connected()) return;
+  flushing = true;
+  try {
+    const items = await q("readonly", (s) => s.getAll());
+    for (const item of items || []) await uploadOne(item);
+  } finally { flushing = false; }
+}
+
+function uploadLabel(name) {
+  const m = name.match(/^432-.*-(\d)\.\w+$/);
+  if (m) return `4/3/2 · Ronda ${m[1]}`;
+  const t = name.match(/^(libre|en|sit)-\d{8}-(\d\d)(\d\d)/);
+  return t ? `${{ en: "Inglés", sit: "Situación" }[t[1]] || "Libre"} · ${t[2]}:${t[3]}` : name;
+}
+function renderUploads() {
+  const names = Object.keys(uploadState);
+  $("uploadsHead").hidden = $("uploadsCard").hidden = names.length === 0;
+  const pill = { subiendo: ["", "Subiendo…"], subida: ["ok", "✓ Subida"], error: ["err", "Error · reintentar"] };
+  $("uploads").innerHTML = names.sort().map((n) => {
+    const [cls, text] = pill[uploadState[n]];
+    return `<li><span>${esc(uploadLabel(n))}</span><span class="pill ${cls}">${text}</span></li>`;
+  }).join("");
+}
+$("uploads").addEventListener("click", () => flushQueue());
+
+/* ---------- Record: Libre (open-ended) or 4/3/2 ---------- */
+const MODES = {
+  libre: { hint: "Hablá de lo que quieras, el tiempo que quieras. Cuando terminás, se sube sola.", label: "Empezar monólogo" },
+  "432": { hint: "Contá la misma historia tres veces: 4, 3 y 2 minutos. Cada ronda se sube sola.", label: "Empezar 4/3/2" },
+  en: { hint: "Hablá en inglés de lo que querés poder decir. Lo pasamos a castellano porteño: tarjetas y audio.", label: "Empezar en inglés" },
+  sit: { hint: "Contá una situación que viviste (una charla, un trámite, algo que pasó), en inglés o en castellano. Te armamos unas 30 frases para esa situación: tarjetas y audio.", label: "Contar una situación" },
+};
+const isFree = (m) => m !== "432"; // Libre, Inglés and Situación: one open-ended recording
+const FREE_PREFIX = { en: "en", sit: "sit" };
+let mode = store.get("recMode", "libre");
+function setMode(m) {
+  mode = MODES[m] ? m : "libre"; store.set("recMode", mode);
+  $("seg").dataset.mode = mode;
+  const order = [...$("seg").querySelectorAll("button[data-mode]")].map((b) => b.dataset.mode);
+  $("seg").style.setProperty("--i", order.indexOf(mode));
+  $("seg").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
+  $("modeHint").textContent = MODES[mode].hint;
+  $("startLabel").textContent = MODES[mode].label;
+  $("topic").placeholder = mode === "432" ? "Tema (opcional): el video que viste hoy…" : mode === "sit" ? "¿Qué situación? (opcional)" : "Tema (opcional)";
+}
+$("seg").addEventListener("click", (ev) => { const b = ev.target.closest("button[data-mode]"); if (b) setMode(b.dataset.mode); });
+setMode(mode);
+
+let rec = null; // { mode, stream, recorder, round, id, timer, ext, wake, ctx, analyser, raf }
+
+function beep(ctx, times = 2) {
+  if (!ctx) return;
+  for (let i = 0; i < times; i++) {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.frequency.value = 880; o.connect(g); g.connect(ctx.destination);
+    const t = ctx.currentTime + i * 0.25;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.3, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+    o.start(t); o.stop(t + 0.2);
+  }
+}
+
+function stamp() {
+  const d = new Date(), p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+}
+
+function pickMime() {
+  for (const [mime, ext] of [["audio/mp4", "m4a"], ["audio/webm;codecs=opus", "webm"], ["audio/webm", "webm"]])
+    if (window.MediaRecorder && MediaRecorder.isTypeSupported(mime)) return { mime, ext };
+  return { mime: "", ext: "m4a" };
+}
+
+/* Live level meter: a scrolling row of bars that follows your voice. */
+const BARS = 32;
+$("meter").innerHTML = "<i></i>".repeat(BARS);
+function startMeter(r) {
+  try {
+    r.analyser = r.ctx.createAnalyser(); r.analyser.fftSize = 1024;
+    r.ctx.createMediaStreamSource(r.stream).connect(r.analyser);
+  } catch { return; }
+  const buf = new Uint8Array(r.analyser.fftSize), hist = new Array(BARS).fill(0), bars = [...$("meter").children];
+  let last = 0;
+  const tick = (t) => {
+    if (rec !== r) return;
+    if (t - last > 70) {
+      last = t;
+      r.analyser.getByteTimeDomainData(buf);
+      let sum = 0; for (const v of buf) sum += ((v - 128) / 128) ** 2;
+      hist.push(Math.min(1, Math.sqrt(sum / buf.length) * 5)); hist.shift();
+      bars.forEach((b, i) => { b.style.height = `${4 + hist[i] * 40}px`; });
+    }
+    r.raf = requestAnimationFrame(tick);
+  };
+  r.raf = requestAnimationFrame(tick);
+}
+
+function setRing(fraction, color) {
+  const p = $("ringProg");
+  p.style.strokeDasharray = RING_C;
+  p.style.strokeDashoffset = RING_C * (1 - Math.max(0, Math.min(1, fraction)));
+  p.style.stroke = color || "";
+}
+
+async function startSession() {
+  if (!connected() && !aiReady()) { openSettings(); return; }
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: true } }); }
+  catch { alert("Necesito acceso al micrófono para grabar."); return; }
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  let wake = null;
+  try { wake = await navigator.wakeLock?.request("screen"); } catch {}
+  rec = { mode, stream, ctx, wake, id: stamp(), round: 0, ...pickMime() };
+  $("recIdle").hidden = true; $("recLive").hidden = false;
+  $("topicLive").textContent = $("topic").value.trim();
+  const free = isFree(mode);
+  $("endRound").hidden = free; $("stopFree").hidden = $("stopHint").hidden = !free;
+  $("dots").hidden = free;
+  startMeter(rec);
+  startRound();
+}
+
+function startRound() {
+  const r = rec, free = isFree(r.mode), secs = free ? 0 : ROUNDS[r.round];
+  const chunks = [];
+  r.recorder = new MediaRecorder(r.stream, r.mime ? { mimeType: r.mime, audioBitsPerSecond: 64000 } : undefined);
+  r.recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+  const round = r.round + 1, rec_ = r.recorder;
+  rec_.onstop = async () => {
+    if (rec_.discard) return;
+    const blob = new Blob(chunks, { type: rec_.mimeType || r.mime || "audio/mp4" });
+    const name = free ? `${FREE_PREFIX[r.mode] || "libre"}-${r.id}.${r.ext}` : `432-${r.id}-${round}.${r.ext}`;
+    const item = { name, blob };
+    const secs = (Date.now() - started) / 1000;
+    await q("readwrite", (s) => s.put(item));
+    if (connected()) uploadOne(item);
+    if (r.mode === "libre" && aiReady()) instantCorrect(blob, name, secs);
+  };
+  rec_.start(1000);
+  $("endRound").textContent = "Terminar ronda";
+  $("liveTop").classList.remove("pause");
+  $("roundLabel").textContent = free ? "Grabando" : `Ronda ${round} de 3`;
+  $("clockSub").textContent = free ? ({ en: "en inglés", sit: "situación" }[r.mode] || "monólogo libre") : `de ${mmss(secs)}`;
+  if (!free) $("dots").innerHTML = ROUNDS.map((_, i) => `<span class="${i < r.round ? "done" : i === r.round ? "now" : ""}"></span>`).join("");
+  const started = Date.now();
+  r.started = started;
+  const draw = () => {
+    const el = (Date.now() - started) / 1000;
+    if (free) {
+      $("clock").textContent = mmss(Math.floor(el));
+      setRing((el % 60) / 60); // one lap per minute
+    } else {
+      const left = secs - el;
+      $("clock").textContent = mmss(Math.ceil(left));
+      setRing(left / secs, left <= 15 ? "var(--rec)" : "");
+      if (left <= 0) endRound();
+    }
+  };
+  clearInterval(r.timer);
+  draw();
+  r.timer = setInterval(draw, 250);
+}
+
+function endRound() {
+  const r = rec; if (!r) return;
+  clearInterval(r.timer);
+  if (r.paused) { r.paused = false; return startRound(); } // "Empezar ya" during the breather
+  if (isFree(r.mode)) {
+    if ((Date.now() - r.started) / 1000 < MIN_FREE_SECS) r.recorder.discard = true;
+    if (r.recorder.state !== "inactive") r.recorder.stop();
+    beep(r.ctx, 1);
+    return finishSession(true);
+  }
+  if (r.recorder.state !== "inactive") r.recorder.stop();
+  beep(r.ctx, r.round === ROUNDS.length - 1 ? 3 : 2);
+  r.round++;
+  if (r.round >= ROUNDS.length) return finishSession(true);
+  // Short breather, then the next round starts by itself.
+  let wait = 5;
+  r.paused = true;
+  $("endRound").textContent = "Empezar ya";
+  $("liveTop").classList.add("pause");
+  $("roundLabel").textContent = `Pausa · sigue la ronda ${r.round + 1}`;
+  $("clockSub").textContent = `${ROUNDS[r.round] / 60} minutos`;
+  $("dots").innerHTML = ROUNDS.map((_, i) => `<span class="${i < r.round ? "done" : ""}"></span>`).join("");
+  $("clock").textContent = `${wait}`;
+  setRing(1, "var(--accent-2)");
+  r.timer = setInterval(() => {
+    wait--;
+    $("clock").textContent = `${wait}`;
+    setRing(wait / 5, "var(--accent-2)");
+    if (wait <= 0) { clearInterval(r.timer); r.paused = false; startRound(); }
+  }, 1000);
+}
+
+function finishSession(done, discard = false) {
+  const r = rec; if (!r) return;
+  clearInterval(r.timer);
+  cancelAnimationFrame(r.raf);
+  if (r.recorder) {
+    if (discard) r.recorder.discard = true;
+    if (r.recorder.state !== "inactive") r.recorder.stop();
+  }
+  setTimeout(() => { r.stream.getTracks().forEach((t) => t.stop()); try { r.ctx.close(); } catch {} }, 300);
+  try { r.wake?.release(); } catch {}
+  rec = null;
+  $("recLive").hidden = true; $("recIdle").hidden = false;
+  if (done) $("topic").value = "";
+}
+
+$("startRec").onclick = startSession;
+$("endRound").onclick = endRound;
+$("stopFree").onclick = endRound;
+$("cancelRec").onclick = () => {
+  if (rec && isFree(rec.mode)) { if (confirm("¿Descartar esta grabación? No se va a subir.")) finishSession(false, true); }
+  else if (confirm("¿Terminar la sesión? Las rondas grabadas se suben igual.")) finishSession(false);
+};
+
+/* ---------- Instant corrections (beta): phone → transcription → Claude, no Mac ---------- */
+const AI_MODELS = ["claude-sonnet-5-5", "claude-opus-5-5"];
+const STT_MODELS = ["gpt-4o-transcribe", "whisper-1"];
+const aiKeys = () => ({ claude: store.get("kClaude", ""), openai: store.get("kOpenAI", "") });
+const aiReady = () => !!(aiKeys().claude && aiKeys().openai);
+const AI_SYSTEM = `You correct a learner's spoken Rioplatense Spanish (Buenos Aires, voseo). You receive a speech-to-text transcript of a short monologue. The learner's main problem is phrasing: sentences that are understandable, often grammatical, but not how a porteño would say them.
+
+Output ONLY JSON Lines: one JSON object per line, no other text, no code fences.
+Line 1: {"titulo": "<3-6 word title in Spanish>"}
+Then one line for each sentence a porteño would say differently, in the order spoken, at most 12 (keep the most useful):
+{"dijiste": "<the learner's own words for the part that changes, as transcribed, 12 words max>", "porteno": "<the whole sentence the way a porteño would naturally say it in conversation>", "por_que": "<one short sentence in English>", "tipo": "fraseo" or "gramática"}
+Use "fraseo" when the original is understandable but unnatural (phrasing, word choice, regional usage). Use "gramática" for real errors (agreement, tense, mood, prepositions, pronouns).
+Skip sentences that are already natural. Ignore fillers, false starts and obvious transcription glitches. Keep his meaning; do not embellish.
+Last line: {"fin": true}`;
+const AI_ERRORS = {
+  STT_BLOCKED: "No pude llegar al servicio de transcripción desde el teléfono (bloqueado o sin conexión). Decile a Claude: «transcripción bloqueada».",
+  STT_401: "La clave de transcripción (OpenAI) no es válida. Revisala en ⚙︎.",
+  STT_429: "El servicio de transcripción rechazó el pedido: sin crédito o límite alcanzado. Revisá el saldo en OpenAI.",
+  AI_BLOCKED: "No pude llegar a Claude desde el teléfono (bloqueado o sin conexión). Decile a Claude: «Claude bloqueado».",
+  AI_401: "La clave de Claude no es válida. Revisala en ⚙︎.",
+  AI_429: "Claude rechazó el pedido: límite alcanzado. Probá de nuevo en un minuto.",
+  EMPTY: "No se escuchó nada en la grabación.",
+};
+
+async function transcribeNow(blob, name) {
+  let last = "STT_ERROR";
+  for (const model of STT_MODELS) {
+    const fd = new FormData();
+    fd.append("file", blob, name); fd.append("model", model); fd.append("language", "es");
+    let res;
+    try {
+      res = await fetch("https://api.openai.com/v1/audio/transcriptions",
+        { method: "POST", headers: { Authorization: `Bearer ${aiKeys().openai}` }, body: fd });
+    } catch { throw new Error("STT_BLOCKED"); }
+    if (res.ok) return ((await res.json()).text || "").trim();
+    last = `STT_${res.status}`;
+    if (res.status === 401 || res.status === 429) break;
+  }
+  throw new Error(last);
+}
+
+async function correctStream(text, onItem) {
+  let res, last = "AI_ERROR";
+  for (const model of AI_MODELS) {
+    try {
+      res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "x-api-key": aiKeys().claude, "anthropic-version": "2023-06-01", "content-type": "application/json",
+          "anthropic-dangerous-direct-browser-access": "true" },
+        body: JSON.stringify({ model, max_tokens: 4000, stream: true, system: AI_SYSTEM,
+          messages: [{ role: "user", content: `<transcript>\n${text}\n</transcript>` }] }),
+      });
+    } catch { throw new Error("AI_BLOCKED"); }
+    if (res.ok) break;
+    last = `AI_${res.status}`;
+    if (res.status !== 404 && res.status !== 400) throw new Error(last);
+    res = null;
+  }
+  if (!res) throw new Error(last);
+  const reader = res.body.getReader(), dec = new TextDecoder();
+  let sse = "", out = "";
+  const flush = (final) => {
+    for (;;) {
+      const i = out.indexOf("\n");
+      if (i < 0 && !(final && out.trim())) break;
+      const line = (i >= 0 ? out.slice(0, i) : out).trim();
+      out = i >= 0 ? out.slice(i + 1) : "";
+      if (line.startsWith("{")) { try { onItem(JSON.parse(line)); } catch {} }
+    }
+  };
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    sse += dec.decode(value, { stream: true });
+    for (;;) {
+      const j = sse.indexOf("\n");
+      if (j < 0) break;
+      const l = sse.slice(0, j).trim(); sse = sse.slice(j + 1);
+      if (!l.startsWith("data:")) continue;
+      try {
+        const ev = JSON.parse(l.slice(5));
+        if (ev.type === "content_block_delta" && ev.delta && ev.delta.text) { out += ev.delta.text; flush(false); }
+      } catch {}
+    }
+  }
+  flush(true);
+}
+
+async function instantCorrect(blob, name, secs) {
+  const box = $("instant"), t0 = Date.now(), since = () => Math.round((Date.now() - t0) / 1000);
+  $("recIdle").hidden = true; box.hidden = false;
+  box.innerHTML = `<div class="ix-label">Correcciones</div><h2 id="ixTitle">Tu monólogo</h2>
+    <div class="ix-status" id="ixStatus">Transcribiendo…</div><div class="ix-time" id="ixTime"></div>
+    <div class="ix-page" id="ixPage"></div><div id="ixExtra"></div>
+    <button class="ix-done" id="ixDone">Listo</button>`;
+  $("ixDone").onclick = () => { box.hidden = true; box.innerHTML = ""; if (!rec) $("recIdle").hidden = false; };
+  const fail = (e) => {
+    $("ixStatus").textContent = "No salió.";
+    $("ixExtra").innerHTML = `<div class="ix-err">${esc(AI_ERRORS[e.message] || `Algo falló (${e.message}). Decile a Claude este código.`)}</div>`;
+  };
+  let text, tStt, tFirst = null, n = { fraseo: 0, "gramática": 0 };
+  try { text = await transcribeNow(blob, name); if (!text) throw new Error("EMPTY"); } catch (e) { return fail(e); }
+  tStt = since();
+  const words = text.split(/\s+/).filter(Boolean).length;
+  const pace = secs > 5 ? ` · Ritmo: ${Math.round(words / (secs / 60))} palabras por minuto` : "";
+  $("ixStatus").textContent = "Corrigiendo…";
+  $("ixTime").textContent = `Transcripción: ${tStt} s`;
+  $("ixExtra").innerHTML = `<details><summary>Lo que entendí</summary><p>${esc(text)}</p></details>`;
+  try {
+    await correctStream(text, (it) => {
+      if (it.titulo) { $("ixTitle").textContent = it.titulo; return; }
+      if (!it.porteno) return;
+      if (tFirst === null) { tFirst = since(); $("ixTime").textContent = `Transcripción: ${tStt} s · primera corrección: ${tFirst} s`; }
+      const tipo = it.tipo === "gramática" ? "gramática" : "fraseo"; n[tipo]++;
+      $("ixPage").insertAdjacentHTML("beforeend",
+        `<div class="ix-main"><div class="ix-said">${esc(it.dijiste || "")}</div><div class="ix-es">${esc(it.porteno)}</div><div class="ix-why">${esc(it.por_que || "")}</div></div><div class="ix-note">${tipo}</div>`);
+    });
+  } catch (e) { return fail(e); }
+  const total = n.fraseo + n["gramática"];
+  $("ixStatus").textContent = total ? `${n.fraseo} de fraseo · ${n["gramática"]} de gramática${pace}` : `Nada para corregir${pace}`;
+  $("ixTime").textContent += ` · todo: ${since()} s`;
+}
+
+/* ---------- Listen ---------- */
+const audio = $("audio");
+let current = null;
+const KIND = { review: "Repaso", immersion: "Sesión", category: "Isla", weak: "Fallos", topic: "Tema" };
+
+function epParts(e) {
+  // "Nov 8 · Title · 24 frases" → title "Title", extra "24 frases"
+  const parts = e.title.split(" · ").slice(1);
+  if (e.kind === "category") return { title: parts[0].replace(/^Isla: /, ""), extra: parts.slice(1).join(" · ") };
+  if (e.kind === "topic") return { title: parts.slice(1).join(" · "), extra: parts[0] };
+  const extra = parts.filter((t) => /^\d+ (chunks|frases)$/.test(t));
+  const title = parts.filter((t) => !["Drill", "Escuchar", "Repaso"].includes(t) && !extra.includes(t)).join(" · ").replace(/^Isla: /, "");
+  return { title: title || (e.kind === "review" ? "Repaso del día" : e.title), extra: extra[0] || "" };
+}
+// Everything here is Spanish only: today's Repaso, your sessions, and the weekly islands.
+function renderEpisodes() {
+  const eps = (DATA.episodes || []).map((e, i) => ({ e, i, kind: e.kind })).filter((x) => KIND[x.kind]);
+  if (!eps.length) { $("episodes").innerHTML = emptyState("Todavía no hay episodios."); return; }
+  const played = store.get("played", {});
+  const row = ({ e, i, kind }) => {
+    const { title, extra } = epParts(e);
+    const q = queue().indexOf(e.guid), now = current?.guid === e.guid;
+    return `<div class="ep-wrap ${now ? "now" : ""}"><button class="ep ${played[e.guid] ? "played" : ""} ${now ? "now" : ""}" data-i="${i}">
+      <span class="ep-ic ${kind}">${ICON_EP[kind]}</span>
+      <div class="t"><div>${esc(title)}</div>
+        <div class="small muted"><span class="kind">${KIND[kind]}</span> · ${esc(e.title.split(" · ")[0])}${extra ? ` · ${esc(extra)}` : ""} · ${mmss(e.duration)}</div></div>
+    </button>${now ? "" : `<button class="qbtn ${q >= 0 ? "in" : ""}" data-q="${esc(e.guid)}" aria-label="${q >= 0 ? "Sacar de la cola" : "Agregar a la cola"}">${q >= 0 ? q + 1 : ICON_QUEUE}</button>`}</div>`;
+  };
+  const section = (title, list) => list.length ? `<h2>${title}</h2><div class="card list">${list.map(row).join("")}</div>` : "";
+  const groups = [
+    eps.filter((x) => x.kind === "review").slice(0, 3),
+    eps.filter((x) => x.kind === "immersion"),
+    eps.filter((x) => x.kind === "topic").sort((a, b) => b.e.pub_date.localeCompare(a.e.pub_date)),
+    eps.filter((x) => x.kind === "weak").concat(eps.filter((x) => x.kind === "category")),
+  ];
+  // Remember each section's order: when an episode ends and the queue is empty, the next
+  // unplayed one below it in the same section plays.
+  SECTION_OF = new Map(); for (const g of groups) for (const x of g) SECTION_OF.set(x.e.guid, g.map((y) => y.e.guid));
+  const ars = (DATA.arsenal || []).map((g) => g.guid); for (const g of ars) SECTION_OF.set(g, ars);
+  const byGuid = new Map(eps.map((x) => [x.e.guid, x]));
+  const queued = queue().map((g) => byGuid.get(g)).filter(Boolean);
+  $("episodes").innerHTML =
+      (queued.length ? `<h2>En cola</h2><div class="card list">${queued.map(row).join("")}</div>` : "")
+    + section("Repaso del día", groups[0])
+    + section("Mis grabaciones", groups[1])
+    + topicsSection(groups[2], row)
+    + section("Islas de la semana", groups[3]);
+  showNext();
+}
+// Topics: vocabulary coverage per area and a "+" that asks the Mac for another pack.
+function topicsSection(list, row) {
+  const ts = DATA.topics || [];
+  if (!ts.length) return "";
+  const asked = store.get("topicAsked", {});
+  const chips = ts.map((t) => {
+    const pct = t.items ? Math.round((100 * t.covered) / t.items) : 0;
+    const st = t.status || "active";
+    const waiting = st === "active" && asked[t.slug] && Date.parse(asked[t.slug]) > Date.parse(t.lastPack || 0) && Date.now() - Date.parse(asked[t.slug]) < 3 * 3600e3;
+    const mark = st === "done" ? "✓" : st === "queued" ? "" : waiting ? "…" : "+";
+    const sub = st === "done" ? `Completo · ${t.packs} ${t.packs === 1 ? "texto" : "textos"}`
+      : st === "queued" ? "En espera: empieza cuando se complete otro"
+      : waiting ? "Escribiendo un texto nuevo…" : `${pct}% del vocabulario · ${t.packs} ${t.packs === 1 ? "texto" : "textos"}`;
+    return `<button class="topic-chip" data-topic="${esc(t.slug)}" ${waiting || st !== "active" ? "disabled" : ""}>
+      <div class="name"><span>${esc(t.name)}</span><span class="plus">${mark}</span></div>
+      <div class="bar"><div style="width:${st === "queued" ? 0 : pct}%"></div></div>
+      <div class="small muted">${sub}</div></button>`;
+  }).join("");
+  const w = DATA.topics_waiting, buf = DATA.topics_buffer || 40;
+  const note = w == null ? "" : `<p class="small muted" style="margin:-4px 0 10px">${w >= buf
+    ? `${w} tarjetas de temas esperando para Hoy. El próximo texto se escribe cuando queden menos de ${buf}.`
+    : `Quedan ${w} tarjetas de temas para Hoy: se viene un texto nuevo.`}</p>`;
+  return `<h2>Temas</h2>${note}<div class="topics">${chips}</div>` + (list.length ? `<div class="card list" style="margin-top:10px">${list.map(row).join("")}</div>` : "");
+}
+$("episodes").addEventListener("click", async (ev) => {
+  const chip = ev.target.closest("[data-topic]");
+  if (chip) {
+    const slug = chip.dataset.topic; chip.disabled = true;
+    try {
+      if (!DEMO) await gh(`contents/requests/topic-${slug}-${Date.now()}.json`, { method: "PUT",
+        body: JSON.stringify({ message: `More ${slug}`, content: btoa("{}") }) });
+      const asked = store.get("topicAsked", {}); asked[slug] = new Date().toISOString(); store.set("topicAsked", asked);
+    } catch (e) { console.warn("topic", e); chip.disabled = false; }
+    renderEpisodes();
+    return;
+  }
+  const qb = ev.target.closest("[data-q]");
+  if (qb) {
+    const q = queue(), g = qb.dataset.q, at = q.indexOf(g);
+    if (at >= 0) q.splice(at, 1); else q.push(g);
+    store.set("queue", q); renderEpisodes();
+    return;
+  }
+  const b = ev.target.closest(".ep"); if (!b) return;
+  playEpisode(DATA.episodes[+b.dataset.i]);
+});
+
+function playEpisode(e) {
+  if (current?.guid !== e.guid) {
+    current = e;
+    store.set("queue", queue().filter((g) => g !== e.guid));
+    audio.src = e.url;
+    audio.playbackRate = store.get("rate", 1);
+    const pos = store.get("pos", {})[e.guid];
+    audio.addEventListener("loadedmetadata", () => { if (pos && pos < (audio.duration || e.duration) - 5) audio.currentTime = pos; }, { once: true });
+    $("pTitle").textContent = e.title;
+    $("player").classList.add("on");
+    if ("mediaSession" in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: e.title, artist: "Español" });
+    renderEpisodes();
+  }
+  audio.play();
+}
+const setPlayIcon = () => {
+  $("pPlay").innerHTML = audio.paused ? ICON_PLAY : ICON_PAUSE;
+  $("pPlay").setAttribute("aria-label", audio.paused ? "Reproducir" : "Pausar");
+};
+audio.addEventListener("play", setPlayIcon);
+audio.addEventListener("pause", setPlayIcon);
+audio.addEventListener("timeupdate", () => {
+  const d = audio.duration || current?.duration || 0;
+  $("pCur").textContent = mmss(audio.currentTime); $("pDur").textContent = mmss(d);
+  if (d && !seeking) $("pSeek").value = Math.round((audio.currentTime / d) * 1000);
+  if (current) {
+    const pos = store.get("pos", {}); pos[current.guid] = audio.currentTime; store.set("pos", pos);
+    if (d && audio.currentTime / d > 0.95) markPlayed(current.guid);
+  }
+});
+// Up next: the queue first; if it's empty, the next unplayed episode below in the same section.
+let SECTION_OF = new Map();
+const queue = () => store.get("queue", []).filter((g) => (DATA.episodes || []).some((e) => e.guid === g));
+function upNext() {
+  const eps = DATA.episodes || [], find = (g) => eps.find((e) => e.guid === g);
+  const q = queue().filter((g) => g !== current?.guid);
+  if (q.length) return find(q[0]);
+  if (!current) return null;
+  const list = SECTION_OF.get(current.guid) || [], played = store.get("played", {});
+  const g = list.slice(list.indexOf(current.guid) + 1).find((g) => !played[g]);
+  return g ? find(g) : null;
+}
+function showNext() {
+  const n = current && upNext();
+  $("pNext").textContent = n ? `Sigue: ${epParts(n).title}` : "";
+}
+function playNext() {
+  const n = upNext();
+  if (n) playEpisode(n);
+}
+audio.addEventListener("ended", () => {
+  if (current) markPlayed(current.guid);
+  playNext();
+});
+if ("mediaSession" in navigator) {
+  try { navigator.mediaSession.setActionHandler("nexttrack", playNext); } catch {}
+}
+function markPlayed(guid) {
+  const p = store.get("played", {}); if (p[guid]) return;
+  p[guid] = 1; store.set("played", p); renderEpisodes();
+  // A Repaso heard to the end counts as reviewing its chunks; tell the Mac.
+  if (guid.startsWith("review-")) {
+    const r = store.get("results", []); r.push({ played: guid, d: todayISO() }); store.set("results", r); flushResults();
+  }
+}
+let seeking = false;
+$("pSeek").addEventListener("input", () => { seeking = true; });
+$("pSeek").addEventListener("change", () => {
+  const d = audio.duration || current?.duration || 0;
+  audio.currentTime = ($("pSeek").value / 1000) * d; seeking = false;
+});
+$("pPlay").onclick = () => (audio.paused ? audio.play() : audio.pause());
+// Close: stop and hide the bar. Where you left off is kept, so the episode resumes there next time.
+$("pClose").onclick = () => {
+  audio.pause();
+  $("player").classList.remove("on");
+  current = null;
+  if ("mediaSession" in navigator) navigator.mediaSession.metadata = null;
+  renderEpisodes();
+};
+$("pBack").onclick = () => { audio.currentTime = Math.max(0, audio.currentTime - 15); };
+$("pFwd").onclick = () => { audio.currentTime = Math.min(audio.duration || 1e9, audio.currentTime + 15); };
+$("pRate").onclick = () => {
+  const rates = [1, 1.25, 1.5, 0.85], next = rates[(rates.indexOf(audio.playbackRate) + 1) % rates.length] || 1;
+  audio.playbackRate = next; store.set("rate", next); $("pRate").textContent = `${next}×`;
+};
+$("pRate").textContent = `${store.get("rate", 1)}×`;
+setPlayIcon();
+if ("mediaSession" in navigator) {
+  navigator.mediaSession.setActionHandler("seekbackward", () => $("pBack").click());
+  navigator.mediaSession.setActionHandler("seekforward", () => $("pFwd").click());
+}
+
+/* ---------- Recall ---------- */
+// cards.json (written by the Mac) holds every chunk, from your recordings and your study
+// sheet, with its schedule: due date, step and how often you've missed it. Grades go back
+// to the Mac as small files in results/; it reschedules and sends a fresh cards.json.
+let CARDS = [];
+const kv = (() => {
+  const db = new Promise((res, rej) => {
+    const r = indexedDB.open("espanol-kv", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("kv");
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  });
+  const run = (mode, fn) => db.then((d) => new Promise((res, rej) => {
+    const tx = d.transaction("kv", mode), req = fn(tx.objectStore("kv"));
+    tx.oncomplete = () => res(req.result); tx.onerror = () => rej(tx.error);
+  }));
+  return { get: (k) => run("readonly", (s) => s.get(k)), set: (k, v) => run("readwrite", (s) => s.put(v, k)) };
+})();
+
+async function loadCards() {
+  try {
+    const cached = await kv.get("cards");
+    if (cached && !CARDS.length) { CARDS = cached.cards || []; renderRecall(); renderRead(); }
+    if (!connected()) return;
+    let data;
+    if (DEMO) data = await (await fetch("demo-cards.json", { cache: "no-store" })).json();
+    else {
+      const { repo, token } = conn();
+      const res = await fetch(`https://api.github.com/repos/${repo}/contents/cards.json`, {
+        headers: { Authorization: `Bearer ${token}`, "X-GitHub-Api-Version": "2022-11-28", Accept: "application/vnd.github.raw+json",
+          ...(cached?.etag ? { "If-None-Match": cached.etag } : {}) },
+        cache: "no-store",
+      });
+      if (res.status === 304 || res.status === 404) return;
+      if (!res.ok) throw new Error(`GitHub ${res.status}`);
+      data = { ...(await res.json()), etag: res.headers.get("ETag") };
+    }
+    CARDS = data.cards || [];
+    await kv.set("cards", data);
+    renderRecall(); renderRead();
+  } catch (e) { console.warn("cards", e); }
+}
+
+// Today's grades, kept on the phone so graded cards leave "Hoy" before the Mac catches up.
+function gradedToday() {
+  const g = store.get("graded", {});
+  return g.d === todayISO() ? g.k : {};
+}
+function grade(card, ok) {
+  const g = { d: todayISO(), k: gradedToday() }; g.k[card.k] = ok ? 1 : 0; store.set("graded", g);
+  const r = store.get("results", []); r.push({ k: card.k, ok, d: todayISO(), t: new Date().toISOString() }); store.set("results", r);
+  const seen = store.get("seen", {}); seen[card.k] = todayISO(); store.set("seen", seen);
+  if (r.length >= 10) flushResults();
+}
+let flushingResults = false;
+async function flushResults() {
+  const items = store.get("results", []);
+  if (!items.length || flushingResults || !connected() || DEMO) return;
+  flushingResults = true;
+  try {
+    const name = `results/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.json`;
+    const body = JSON.stringify(items);
+    await gh(`contents/${name}`, { method: "PUT", body: JSON.stringify({ message: `Grades (${items.length})`,
+      content: btoa(unescape(encodeURIComponent(body))) }) });
+    store.set("results", store.get("results", []).slice(items.length));
+  } catch (e) { console.warn("results", e); }
+  flushingResults = false;
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushResults(); });
+
+const isDue = (c, today = todayISO()) => c.due && c.due <= today;
+// When a card was last graded on a flashcard: this phone's record, or the Mac's (other devices).
+let SEEN = store.get("seen", {});
+const lastSeen = (c) => { const a = SEEN[c.k] || "", b = c.graded || ""; return a > b ? a : b; };
+const ROUND = 40;
+
+// Category, "Todo" and "Lo que más fallo" decks are worked through in rounds of ROUND cards.
+// Each round takes, in order: cards you've missed and haven't seen today, then cards you've
+// never had (in sheet order for a category, so a story's chunks stay together; shuffled for
+// "Todo"), then the ones you saw longest ago. Progress is per deck, so leaving and coming
+// back picks up where you were, and finished cards don't come back until it's their turn.
+// Chunks from the same sentence (siblings) are spread apart: first one chunk from every
+// sentence, then the second ones, and so on. Otherwise the sentence shown on one card's back
+// gives away the next card.
+function spread(list) {
+  const layer = new Map(), count = {};
+  for (const c of list) {
+    const s = norm(c.ctx || c.es), n = (count[s] = (count[s] || 0) + 1) - 1;
+    if (!layer.has(n)) layer.set(n, []);
+    layer.get(n).push(c);
+  }
+  return [...layer.keys()].sort((a, b) => a - b).flatMap((n) => layer.get(n));
+}
+function deckPool(name) {
+  if (name === "weak") return CARDS.filter((c) => c.lapses > 0);
+  if (name === "todo") return CARDS;
+  if (name.startsWith("top:")) return CARDS.filter((c) => c.topic === name.slice(4));
+  if (name === "ars") return CARDS.filter((c) => c.src === "arsenal");
+  if (name.startsWith("ars:")) return CARDS.filter((c) => c.grp === name.slice(4));
+  return CARDS.filter((c) => c.cat === name.slice(4) && c.src !== "topic" && c.src !== "arsenal");
+}
+function nextRound(name) {
+  const today = todayISO();
+  if (name === "hoy") {
+    const graded = gradedToday();
+    return spread(CARDS.filter((c) => isDue(c, today) && !(c.k in graded))
+      .sort((a, b) => (b.lapses || 0) - (a.lapses || 0) || (a.step > 0) - (b.step > 0) || a.due.localeCompare(b.due)));
+  }
+  const pool = deckPool(name);
+  const missed = pool.filter((c) => c.lapses > 0 && lastSeen(c) < today)
+    .sort((a, b) => b.lapses - a.lapses || lastSeen(a).localeCompare(lastSeen(b)));
+  const fresh = pool.filter((c) => !lastSeen(c) && !(c.lapses > 0));
+  const old = pool.filter((c) => lastSeen(c) && lastSeen(c) < today && !(c.lapses > 0))
+    .sort((a, b) => lastSeen(a).localeCompare(lastSeen(b)));
+  const order = name === "weak" ? spread(missed)
+    : spread(missed).concat(spread(name === "todo" ? shuffle(fresh, `todo-${today}`) : fresh), spread(old));
+  return order.slice(0, ROUND);
+}
+function deckProgress(name) {
+  const pool = deckPool(name);
+  return { seen: pool.filter((c) => lastSeen(c)).length, total: pool.length };
+}
+function shuffle(arr, seed) {
+  let h = 0; for (const c of seed) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { h = (h * 1103515245 + 12345) >>> 0; const j = h % (i + 1); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+const DECK_NAMES = { hoy: "Hoy", weak: "Lo que más fallo", todo: "Todo mezclado", ars: "Arsenal" };
+const deckName = (d) => DECK_NAMES[d] || (d.startsWith("ars:") ? (DATA.arsenal || []).find((g) => g.slug === d.slice(4))?.name || d.slice(4) : null) || (d.startsWith("top:") ? (DATA.topics || []).find((t) => t.slug === d.slice(4))?.name || d.slice(4) : d.slice(4));
+
+// The round in progress for each deck (keys, position, requeued misses), kept on the phone.
+let deck = null, shown = false;
+const byKey = () => { const m = new Map(); for (const c of CARDS) m.set(c.k, c); return m; };
+const savedDecks = () => store.get("decks", {});
+function saveDeck() {
+  const all = savedDecks();
+  if (deck) all[deck.name] = deck;
+  store.set("decks", all); store.set("deck", deck ? deck.name : null);
+}
+function openDeck(name, fresh = false) {
+  const saved = savedDecks()[name];
+  // Resume an unfinished round from today (Hoy) or any day (other decks), skipping cards graded meanwhile.
+  if (!fresh && saved && saved.pos < saved.keys.length && (name !== "hoy" || saved.day === todayISO())) {
+    deck = saved;
+  } else {
+    deck = { name, day: todayISO(), keys: nextRound(name).map((c) => c.k), pos: 0, requeued: [], done: 0 };
+  }
+  saveDeck(); shown = false; renderRecall(); $("scroller").scrollTo(0, 0);
+}
+function sessionInfo(c) {
+  // What you said and the corrections, for chunks from your recordings.
+  const s = (DATA.sessions || []).find((x) => x.id === c.sid);
+  return s?.sentences.find((x) => x.spanish === c.ctx);
+}
+// Arsenal: conversation phrases by group. Each group has its audio and its own deck.
+function renderArsenal() {
+  const gs = DATA.arsenal || [];
+  if (!gs.length) { $("arsenal").innerHTML = emptyState("El arsenal se está escribiendo."); return; }
+  const all = deckProgress("ars");
+  const eps = new Map((DATA.episodes || []).map((e, i) => [e.guid, i]));
+  $("arsenal").innerHTML = `<p class="muted small" style="margin:0 0 12px">Frases para cualquier conversación. ${all.seen} de ${all.total} vistas · ${ARS_PER_DAY} nuevas por día en Hoy.</p>
+    <button class="btn" data-ars-deck="ars">Practicar todo</button>
+    <div class="card list" style="margin-top:14px;padding:0">${gs.map((g) => {
+      const p = deckProgress(`ars:${g.slug}`), pct = p.total ? Math.round((100 * p.seen) / p.total) : 0;
+      return `<div class="ars-group"><div class="head"><span>${esc(g.name)}</span><span class="small muted">${p.seen} / ${p.total || g.cards}</span></div>
+        <div class="bar"><div style="width:${pct}%"></div></div>
+        <div class="acts">${eps.has(g.guid) ? `<button data-ars-play="${eps.get(g.guid)}">▶︎ Escuchar</button>` : ""}<button data-ars-deck="ars:${esc(g.slug)}">Tarjetas</button></div></div>`;
+    }).join("")}</div>`;
+}
+const ARS_PER_DAY = 10;
+$("arsenal").addEventListener("click", (ev) => {
+  const pl = ev.target.closest("[data-ars-play]");
+  if (pl) { const e = DATA.episodes[+pl.dataset.arsPlay]; SECTION_OF.set(e.guid, (DATA.arsenal || []).map((g) => g.guid)); playEpisode(e); return; }
+  const d = ev.target.closest("[data-ars-deck]");
+  if (d) { document.querySelector('nav button[data-view="recall"]').click(); openDeck(d.dataset.arsDeck); }
+});
+function renderRecall() {
+  try { renderArsenal(); } catch (e) { console.warn("arsenal", e); }
+  const el = $("recall");
+  SEEN = store.get("seen", {});
+  if (!deck && store.get("deck")) deck = savedDecks()[store.get("deck")] || null;
+  if (deck && deck.pos >= deck.keys.length) {
+    const p = deckProgress(deck.name), more = deck.name !== "hoy" && nextRound(deck.name).length > 0;
+    el.innerHTML = `<div class="card flash"><div class="big-num">✓</div><div class="en" style="margin-top:10px">Ronda lista</div>
+      <div class="muted small">${esc(deckName(deck.name))} · ${deck.keys.length} chunks</div>
+      ${deck.name !== "hoy" ? `<div class="muted small" style="margin-top:6px">Ya viste ${p.seen} de ${p.total}</div>` : ""}</div>
+      ${more ? `<button class="btn" data-a="more">Seguir: ${ROUND} más</button>` : ""}
+      <button class="btn ${more ? "ghost" : "secondary"}" data-a="back">Volver</button>`;
+    flushResults();
+    return;
+  }
+  if (deck) {
+    const map = byKey(), c = map.get(deck.keys[deck.pos]);
+    if (!c) { deck.pos++; saveDeck(); return renderRecall(); }
+    const info = c.src === "session" ? sessionInfo(c) : null;
+    el.innerHTML = `<div class="small muted">${esc(deckName(deck.name))} · ${deck.pos + 1} / ${deck.keys.length}</div>
+      <div class="progress"><div style="width:${(deck.pos / deck.keys.length) * 100}%"></div></div>
+      <div class="card flash" data-a="flip">
+        <div class="en">${esc(c.en)}</div>
+        ${c.sit ? `<div class="sit">${esc(c.sit)}</div>` : ""}
+        ${shown && c.opts ? `<div class="opts">${c.opts.map((o) => `<div class="opt"><span class="o">${esc(o.es)}</span><span class="reg ${esc(o.register)}">${esc(o.register)}</span>
+            ${o.note ? `<div class="note">${esc(o.note)}</div>` : ""}</div>`).join("")}</div>
+          <div><button class="speak" data-a="speak">▶︎ Escuchar</button></div>
+          <div class="src">Arsenal · ${esc(c.cat)}${c.lapses ? ` · fallada ${c.lapses}×` : ""}</div>`
+        : shown ? `<div class="es">${esc(c.es)}</div>
+          ${c.why ? `<div class="why">${esc(c.why)}</div>` : ""}
+          <div><button class="speak" data-a="speak">▶︎ Escuchar</button></div>
+          ${norm(c.ctx) !== norm(c.es) ? `<div class="ctx">${ctxHtml(c.ctx, c.es)}</div>` : ""}
+          ${info?.corrections.length ? `<div class="fix"><div class="heard">Dijiste: “${esc(info.heard)}”</div>
+            ${info.corrections.map((x) => `<div class="corr"><b>${esc(x.wrong)}</b> → <i>${esc(x.right)}</i> <span class="muted">· ${esc(x.why)}</span></div>`).join("")}</div>` : ""}
+          <div class="src">${c.src === "library" || c.src === "topic" ? `${esc(c.cat)} · ${esc(c.tab)}` : info && !info.corrections.length && DATA.sessions.find((x) => x.id === c.sid)?.source === "english" ? `Lo dijiste en inglés: “${esc(info.heard)}”` : "De tus grabaciones"}${c.lapses ? ` · fallada ${c.lapses}×` : ""}</div>`
+          : `<div class="muted small" style="margin-top:24px">Decilo en voz alta · tocá para ver</div>`}
+      </div>
+      ${shown ? `<div class="grade"><button class="btn miss" data-a="miss">No me salió</button><button class="btn" data-a="ok">La sabía</button></div>`
+              : `<button class="btn secondary" data-a="flip">Mostrar</button>`}
+      <button class="btn ghost" data-a="back" style="margin-top:6px">Salir</button>`;
+    return;
+  }
+  // Home: today's count and the decks, each with how much of it you've seen.
+  if (!CARDS.length) {
+    el.innerHTML = emptyState("Tus chunks aparecen acá después de tu primera grabación.");
+    return;
+  }
+  const hoy = nextRound("hoy"), weak = CARDS.filter((c) => c.lapses > 0).length;
+  const fresh = hoy.filter((c) => !c.step && !c.lapses).length;
+  const decks = savedDecks();
+  const cats = {};
+  const tops = {};
+  for (const c of CARDS) {
+    if (c.src === "arsenal") continue;
+    const x = c.src === "topic" ? (tops[c.topic] ||= { n: 0, seen: 0 }) : (cats[c.cat] ||= { n: 0, seen: 0 });
+    x.n++; if (lastSeen(c)) x.seen++;
+  }
+  const row = (d, label, seen, n, cls = "") => {
+    const s = decks[d], resume = s && s.pos > 0 && s.pos < s.keys.length;
+    return `<button class="deck-row ${cls}" data-a="deck" data-d="${esc(d)}">
+      <span class="t">${esc(label)}${resume ? ` <span class="small muted">· seguís en ${s.pos + 1}/${s.keys.length}</span>` : ""}</span>
+      <span class="n">${seen != null ? `${seen} / ` : ""}${n}</span><span class="chev">›</span></button>`;
+  };
+  const todo = deckProgress("todo");
+  el.innerHTML = (hoy.length
+      ? `<div class="card due"><div class="big-num">${hoy.length}</div><div class="muted">chunks para hoy</div>
+           <div class="small muted" style="margin-top:4px">${fresh} nuevos · ${hoy.length - fresh} para repasar</div></div>
+         <button class="btn" data-a="deck" data-d="hoy">${decks.hoy?.day === todayISO() && decks.hoy.pos > 0 && decks.hoy.pos < decks.hoy.keys.length ? "Seguir" : "Empezar"}</button>`
+      : `<div class="card due"><div class="big-num">✓</div><strong>Nada pendiente hoy</strong>
+           <div class="muted small">Mañana llegan chunks nuevos de tu planilla.</div></div>`)
+    + `<h2>Mazos <span style="text-transform:none;letter-spacing:0;font-weight:500">· vistos / total</span></h2><div class="card list">`
+    + (weak ? row("weak", "Lo que más fallo", null, weak, "weak") : "")
+    + Object.entries(cats).sort((a, b) => (a[0] === "Mis grabaciones" ? -1 : b[0] === "Mis grabaciones" ? 1 : a[0].localeCompare(b[0], "es")))
+        .map(([name, x]) => row(`cat:${name}`, name, x.seen, x.n)).join("")
+    + (CARDS.some((c) => c.src === "arsenal") ? (() => { const p = deckProgress("ars"); return row("ars", "Arsenal", p.seen, p.total); })() : "")
+    + row("todo", "Todo mezclado", todo.seen, todo.total) + `</div>`
+    + (Object.keys(tops).length ? `<h2>Temas</h2><div class="card list">` + (DATA.topics || []).filter((t) => tops[t.slug])
+        .map((t) => row(`top:${t.slug}`, t.name, tops[t.slug].seen, tops[t.slug].n)).join("") + `</div>` : "");
+}
+$("recall").addEventListener("click", (ev) => {
+  const t = ev.target.closest("[data-a]"); if (!t) return;
+  const a = t.dataset.a;
+  if (a === "deck") openDeck(t.dataset.d);
+  else if (a === "more") openDeck(deck.name, true);
+  else if (a === "flip") { if (!shown) { shown = true; renderRecall(); } }
+  else if (a === "ok" || a === "miss") {
+    const c = byKey().get(deck.keys[deck.pos]);
+    grade(c, a === "ok");
+    // A miss comes back a few cards later in the same round (once).
+    if (a === "miss" && !deck.requeued.includes(c.k)) {
+      deck.keys.splice(Math.min(deck.pos + 5, deck.keys.length), 0, c.k); deck.requeued.push(c.k);
+    }
+    deck.pos++; saveDeck(); shown = false; renderRecall();
+  }
+  else if (a === "back") { deck = null; store.set("deck", null); flushResults(); renderRecall(); }
+  else if (a === "speak") { ev.stopPropagation(); const c = byKey().get(deck.keys[deck.pos]); speak(c.opts ? c.opts.map((o) => o.es).join(". ") : c.es); }
+});
+const norm = (s) => s.replace(/[.,¿?¡!]/g, "").trim().toLowerCase();
+function ctxHtml(sentence, chunk) {
+  const i = sentence.toLowerCase().indexOf(chunk.toLowerCase().replace(/[.,¿?¡!]+$/, ""));
+  if (i < 0) return esc(sentence);
+  const n = chunk.replace(/[.,¿?¡!]+$/, "").length;
+  return esc(sentence.slice(0, i)) + `<b>${esc(sentence.slice(i, i + n))}</b>` + esc(sentence.slice(i + n));
+}
+function speak(text) {
+  if (!("speechSynthesis" in window)) return;
+  const voices = speechSynthesis.getVoices();
+  const v = ["es-AR", "es-US", "es-MX", "es-419", "es"].map((l) => voices.find((x) => x.lang.replace("_", "-").startsWith(l))).find(Boolean);
+  const u = new SpeechSynthesisUtterance(text); u.lang = v?.lang || "es-AR"; if (v) u.voice = v; u.rate = 0.95;
+  speechSynthesis.cancel(); speechSynthesis.speak(u);
+}
+
+/* ---------- Quick notes waiting for their episode ---------- */
+function renderPendingNotes() {
+  const p = DATA.pending_notes || {};
+  const asked = store.get("notesAsked", "") === todayISO();
+  $("pendingNotes").innerHTML = p.notes ? `<div class="card notes-card"><div class="t">
+      <strong>${p.notes} ${p.notes === 1 ? "nota suelta" : "notas sueltas"} · ${p.chunks} chunks</strong>
+      <div class="small muted">${asked ? "Pedido enviado: el episodio sale en unos minutos." : "Se juntan en un episodio a los 20 chunks o a la noche."}</div></div>
+      ${asked ? "" : `<button class="btn secondary" id="buildNotes">Armar ahora</button>`}</div>` : "";
+}
+$("pendingNotes").addEventListener("click", async (ev) => {
+  if (!ev.target.closest("#buildNotes")) return;
+  ev.target.disabled = true;
+  try {
+    if (!DEMO) await gh(`contents/requests/notes-${Date.now()}.json`, { method: "PUT",
+      body: JSON.stringify({ message: "Build Notas sueltas", content: btoa("{}") }) });
+    store.set("notesAsked", todayISO());
+  } catch (e) { console.warn("notes", e); ev.target.disabled = false; }
+  renderPendingNotes();
+});
+
+/* ---------- Sessions ---------- */
+function paceChart(sessions) {
+  const pts = sessions.filter((s) => s.rounds.length).map((s) => ({ d: s.date, r: s.rounds }));
+  if (pts.length < 2) return "";
+  const W = 320, H = 120, P = 22;
+  const vals = pts.flatMap((p) => p.r.map((r) => r.wpm));
+  const lo = Math.min(...vals) - 10, hi = Math.max(...vals) + 10;
+  const x = (i) => P + (i * (W - 2 * P)) / (pts.length - 1), y = (v) => H - P - ((v - lo) * (H - 2 * P)) / (hi - lo || 1);
+  const line = (k, op) => `<polyline fill="none" stroke="var(--accent)" stroke-opacity="${op}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="${pts.map((p, i) => { const r = p.r.find((r) => r.round === k); return r ? `${x(i)},${y(r.wpm)}` : ""; }).filter(Boolean).join(" ")}"/>`;
+  const last = pts[pts.length - 1].r.find((r) => r.round === 3) || pts[pts.length - 1].r.slice(-1)[0];
+  return `<div class="card"><div style="font-weight:650">Ritmo en 4/3/2</div><div class="small muted">Palabras por minuto · ronda 1 claro → ronda 3 oscuro</div>
+    <svg class="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${line(1, 0.3)}${line(2, 0.6)}${line(3, 1)}
+    <text x="${W - P}" y="${y(last.wpm) - 6}" text-anchor="end" font-size="12" font-weight="700" fill="var(--ink)">${last.wpm}</text></svg></div>`;
+}
+const ROLE = { vos: "Vos", otro: "Te dicen", contar: "Contándolo después" };
+function renderSessions() {
+  const ss = (DATA.sessions || []).slice().reverse();
+  const tipsFor = (s, x) => (s.tips || []).filter((t) => t.sentence === x.spanish);
+  if (!ss.length) { $("sessions").innerHTML = emptyState("Todavía no hay sesiones."); return; }
+  $("sessions").innerHTML = paceChart(DATA.sessions) + ss.map((s) => {
+    const errs = s.sentences.reduce((n, x) => n + x.corrections.length, 0);
+    return `<div class="card session"><button data-a="toggle">
+      <div><div style="font-weight:650">${esc(s.title)}${s.rounds.length ? `<span class="tag">4/3/2</span>` : ""}${s.source === "english" ? `<span class="tag">inglés</span>` : ""}${s.source === "situation" ? `<span class="tag">situación</span>` : ""}${s.pending ? `<span class="tag">en espera</span>` : ""}</div>
+        <div class="small muted">${fmtDate(s.date)} · ${s.sentences.length} frases · ${errs} correcciones${s.tips?.length ? ` · ${s.tips.length} del arsenal` : ""}</div>
+        ${s.rounds.length ? `<div class="pace">${s.rounds.map((r) => `${r.wpm}`).join(" → ")} palabras/min</div>` : ""}</div>
+      <span class="chev">›</span></button>
+      <div class="detail">${s.sentences.map((x, i, a) => `<div class="sent">${x.role && x.role !== a[i - 1]?.role ? `<div class="role">${ROLE[x.role]}</div>` : ""}<div class="es">${esc(x.spanish)}</div>
+        <div class="small muted">${esc(x.english)}</div>
+        ${x.chunks?.length ? `<div class="chips">${x.chunks.map((c) => `<span>${esc(c.spanish)}</span>`).join("")}</div>` : ""}
+        ${x.corrections.length ? `<div class="heard">Dijiste: “${esc(x.heard)}”</div>` + x.corrections.map((c) =>
+          `<div class="corr"><b>${esc(c.wrong)}</b> → <i>${esc(c.right)}</i> <span class="muted">· ${esc(c.why)}</span></div>`).join("") : ""}
+        ${tipsFor(s, x).map((t) => `<div class="tip"><span class="tip-l">Arsenal</span> <b>${esc(t.phrase)}</b> <span class="muted">· ${esc(t.why)}</span></div>`).join("")}
+      </div>`).join("")}</div></div>`;
+  }).join("");
+}
+$("sessions").addEventListener("click", (ev) => {
+  const b = ev.target.closest("[data-a=toggle]"); if (b) b.parentElement.classList.toggle("open");
+});
+
+/* ---------- Leer: every sentence, English beside Spanish ---------- */
+// Texts: each recording/situation, each sheet tab, each topic pack, each Arsenal group.
+const READ_SECS = ["Mis grabaciones", "Situaciones", "Hoja", "Temas", "Arsenal"];
+let readIndex = null, readFilter = store.get("readFilter", "Todo");
+function buildReadIndex() {
+  const texts = [];
+  for (const s of (DATA.sessions || []).slice().reverse())
+    texts.push({ sec: s.source === "situation" ? "Situaciones" : "Mis grabaciones", title: s.title, sub: fmtDate(s.date),
+                 pairs: s.sentences.map((x) => ({ en: x.english, es: x.spanish, role: x.role })) });
+  const groups = new Map();
+  const topicName = (slug) => (DATA.topics || []).find((t) => t.slug === slug)?.name || slug;
+  const arsName = (slug) => (DATA.arsenal || []).find((g) => g.slug === slug)?.name || slug;
+  for (const c of CARDS) {
+    let id, make;
+    if (c.src === "library") { id = `l|${c.cat}|${c.tab}`; make = () => ({ sec: "Hoja", title: c.tab, sub: c.cat }); }
+    else if (c.src === "topic") { id = `t|${c.topic}|${c.tab}`; make = () => ({ sec: "Temas", title: c.tab, sub: topicName(c.topic) }); }
+    else if (c.src === "arsenal") { id = `a|${c.grp}`; make = () => ({ sec: "Arsenal", title: arsName(c.grp), sub: "" }); }
+    else continue;
+    let g = groups.get(id);
+    if (!g) { g = { ...make(), pairs: [], seen: new Set() }; groups.set(id, g); texts.push(g); }
+    const pair = c.src === "arsenal" ? { en: c.en, es: (c.opts || []).map((o) => o.es).join(" · ") || c.es } : { en: c.ctxEn, es: c.ctx };
+    if (!g.seen.has(pair.es)) { g.seen.add(pair.es); g.pairs.push(pair); }
+  }
+  return texts;
+}
+const fold = (t) => (t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const pairHtml = (p, src, prev) => `<div class="pair">${src ? `<div class="src">${esc(src)}</div>` : ""}${p.role && p.role !== prev?.role ? `<div class="role">${ROLE[p.role]}</div>` : ""}<div class="en">${esc(p.en)}</div><div class="es" data-say="${esc(p.es)}">${esc(p.es)}</div></div>`;
+function renderRead() {
+  if (!$("read")) return;
+  readIndex = buildReadIndex();
+  const counts = { Todo: readIndex.length };
+  for (const t of readIndex) counts[t.sec] = (counts[t.sec] || 0) + 1;
+  if (!(readFilter in counts)) readFilter = "Todo";
+  $("readFilters").innerHTML = ["Todo", ...READ_SECS].filter((f) => counts[f])
+    .map((f) => `<button class="${f === readFilter ? "on" : ""}" data-f="${esc(f)}">${esc(f)}</button>`).join("");
+  drawRead();
+}
+function drawRead() {
+  const texts = readIndex.filter((t) => readFilter === "Todo" || t.sec === readFilter)
+    .sort((a, b) => READ_SECS.indexOf(a.sec) - READ_SECS.indexOf(b.sec));
+  const qry = fold($("readSearch").value.trim());
+  if (!readIndex.length) { $("read").innerHTML = emptyState("Todavía no hay frases."); return; }
+  if (qry.length >= 2) {
+    const hits = [];
+    for (const t of texts) for (const p of t.pairs)
+      if (hits.length < 200 && (fold(p.es).includes(qry) || fold(p.en).includes(qry))) hits.push(pairHtml(p, `${t.sec} · ${t.title}`));
+    $("read").innerHTML = `<div class="small muted" style="margin:0 4px 8px">${hits.length >= 200 ? "Las primeras 200" : hits.length} frases</div>`
+      + (hits.length ? `<div class="card">${hits.join("")}</div>` : "");
+    return;
+  }
+  let html = "", last = "";
+  texts.forEach((t) => {
+    if (t.sec !== last) { html += `<h2>${esc(t.sec)}</h2>`; last = t.sec; }
+    html += `<div class="card read-text" data-i="${readIndex.indexOf(t)}"><button data-a="open">
+      <div><div style="font-weight:650">${esc(t.title)}</div><div class="small muted">${t.sub ? esc(t.sub) + " · " : ""}${t.pairs.length} frases</div></div>
+      <span class="chev">›</span></button><div class="pairs"></div></div>`;
+  });
+  $("read").innerHTML = html;
+}
+$("readFilters").addEventListener("click", (ev) => {
+  const b = ev.target.closest("button[data-f]"); if (!b) return;
+  readFilter = b.dataset.f; store.set("readFilter", readFilter);
+  $("readFilters").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+  drawRead();
+});
+$("readSearch").addEventListener("input", () => drawRead());
+$("read").addEventListener("click", (ev) => {
+  const say = ev.target.closest("[data-say]"); if (say) { speak(say.dataset.say); return; }
+  const b = ev.target.closest("[data-a=open]"); if (!b) return;
+  const card = b.parentElement, box = card.querySelector(".pairs");
+  if (!box.innerHTML) box.innerHTML = readIndex[card.dataset.i].pairs.map((p, i, a) => pairHtml(p, "", a[i - 1])).join("");
+  card.classList.toggle("open");
+});
+
+/* ---------- Shell ---------- */
+const emptyState = (msg) => `<div class="card muted">${esc(msg)}</div>`;
+const TITLES = { record: "Grabar", listen: "Escuchar", recall: "Repaso", arsenal: "Arsenal", read: "Leer", sessions: "Sesiones" };
+document.querySelector("nav").addEventListener("click", (ev) => {
+  const b = ev.target.closest("button"); if (!b) return;
+  document.querySelectorAll("nav button").forEach((x) => x.classList.toggle("on", x === b));
+  document.querySelectorAll(".view").forEach((v) => v.classList.toggle("on", v.id === `v-${b.dataset.view}`));
+  $("heading").textContent = TITLES[b.dataset.view];
+  store.set("tab", b.dataset.view);
+  $("scroller").scrollTo(0, 0);
+});
+
+function renderAll() {
+  $("setupNotice").innerHTML = connected() ? "" :
+    `<div class="notice">${aiReady() ? "Beta: correcciones al instante activas. Sin repositorio, las grabaciones no se suben." : "Falta conectar. Tocá ⚙︎ arriba a la derecha."}</div>`;
+  renderEpisodes(); renderRecall(); renderSessions(); renderRead(); renderUploads(); renderPendingNotes();
+}
+
+function openSettings() {
+  $("sRepo").value = conn().repo; $("sToken").value = conn().token; $("sStatus").textContent = "";
+  $("sClaude").value = aiKeys().claude; $("sOpenAI").value = aiKeys().openai;
+  $("settings").showModal();
+}
+$("openSettings").onclick = openSettings;
+$("sSave").onclick = async (ev) => {
+  ev.preventDefault();
+  // Phones love to add spaces and capitals; the repo name and token never contain spaces.
+  store.set("repo", $("sRepo").value.replace(/\s+/g, "").replace(/^https?:\/\/github\.com\//, "").replace(/\/$/, ""));
+  store.set("token", $("sToken").value.replace(/\s+/g, ""));
+  store.set("kClaude", $("sClaude").value.replace(/\s+/g, ""));
+  store.set("kOpenAI", $("sOpenAI").value.replace(/\s+/g, ""));
+  if (!conn().repo || !conn().token) {
+    $("sStatus").textContent = aiReady() ? "✓ Claves guardadas. Sin repositorio: las grabaciones no se suben." : "Faltan las dos claves.";
+    if (aiReady()) setTimeout(() => $("settings").close(), 1200);
+    renderAll();
+    return;
+  }
+  $("sStatus").textContent = "Probando…";
+  try { await gh(""); $("sStatus").textContent = "✓ Conectado"; setTimeout(() => $("settings").close(), 600); loadData(); loadCards(); flushQueue(); }
+  catch (e) {
+    const hint = { "GitHub 401": "el token no es válido (copialo de nuevo)",
+      "GitHub 403": "el token espera aprobación de la organización",
+      "GitHub 404": "el token no ve ese repositorio (¿dueño NLL-Language? ¿Contents: Read and write?)" }[e.message];
+    $("sStatus").textContent = `No pude conectar: ${hint || e.message}.`;
+  }
+};
+
+const startTab = store.get("tab", "record");
+document.querySelector(`nav button[data-view="${startTab}"]`)?.click();
+renderAll();
+loadData(); loadCards();
+flushQueue(); flushResults();
+document.addEventListener("visibilitychange", () => { if (!document.hidden && !rec) { loadData(); loadCards(); flushQueue(); flushResults(); } });
+window.addEventListener("online", () => { flushQueue(); flushResults(); });
+</script>
+</body>
+</html>
