@@ -6,7 +6,15 @@
     <description>Private practice feed.</description>
     <language>es-ar</language>
     <itunes:block>yes</itunes:block>
-    <lastBuildDate>Tue, 17 Nov 2026 02:11:55 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 17 Nov 2026 02:12:00 +0000</lastBuildDate>
+    <item>
+      <title>Nov 16 · Notas sueltas · 6 frases</title>
+      <guid isPermaLink="false">notes-2026-11-16_231158-immersion</guid>
+      <pubDate>Mon, 16 Nov 2026 23:11:58 -0300</pubDate>
+      <enclosure url="https://nll-language.github.io/feed/episodes/notes_2026-11-16_231158_immersion.mp3" length="241196" type="audio/mpeg"/>
+      <itunes:duration>30</itunes:duration>
+      <description><![CDATA[<p>1 notas: El yogur griego y el déficit</p><ol><li>Being in a deficit would be easier if there were fat-free Greek yogurt in Argentina.<br><b>Hacer déficit sería más fácil si en Argentina hubiera yogur griego descremado.</b></li><li>But all the Greek yogurts have fat.<br><b>Pero todos los yogures griegos tienen grasa.</b></li><li>And the ones that don&#x27;t are full of preservatives and stuff like that.<br><b>Y los que no tienen están llenos de conservantes y esas cosas.</b></li><li>But I found one at Jumbo that&#x27;s made here in Argentina.<br><b>Pero encontré uno en Jumbo que se hace acá en Argentina.</b></li><li>It has fat, but it&#x27;s really tasty anyway.<br><b>Tiene grasa, pero igual está re rico.</b></li><li>Every time I eat it, I add blueberries, strawberries and a banana.<br><b>Cada vez que lo como, le pongo arándanos, frutillas y una banana.</b></li></ol>]]></description>
+    </item>
     <item>
       <title>Nov 16 · Situación: Clase de boxeo con Lorenzo</title>
       <guid isPermaLink="false">2026-11-16_155843-immersion</guid>
