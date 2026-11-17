@@ -327,6 +327,7 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
     </div>
 
     <div id="instant" hidden></div>
+    <pre id="dbg" hidden style="white-space:pre-wrap;font:13px/1.45 ui-monospace,Menlo,monospace;color:#16181D;background:#fff;border:1px solid #16181D;border-radius:10px;padding:10px;margin-top:12px"></pre>
 
     <div id="pendingNotes"></div>
 
@@ -373,7 +374,7 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 <dialog id="settings">
   <form method="dialog">
     <strong style="font-size:19px">Conexión</strong>
-    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v14 · beta 2</p>
+    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v14 · beta 3</p>
     <label for="sRepo">Repositorio (dueño/nombre)</label>
     <input id="sRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dueño/repositorio">
     <label for="sToken">Token de GitHub</label>
@@ -540,7 +541,7 @@ function setMode(m) {
   const order = [...$("seg").querySelectorAll("button[data-mode]")].map((b) => b.dataset.mode);
   $("seg").style.setProperty("--i", order.indexOf(mode));
   $("seg").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
-  $("modeHint").textContent = MODES[mode].hint + " · Beta 2: " + (mode === "libre" || mode === "432"
+  $("modeHint").textContent = MODES[mode].hint + " · Beta 3: " + (mode === "libre" || mode === "432"
     ? (store.get("kClaude", "") && store.get("kOpenAI", "") ? "correcciones al instante activas." : "faltan claves en ⚙︎ para las correcciones al instante.")
     : "este modo no tiene correcciones al instante.");
   $("startLabel").textContent = MODES[mode].label;
@@ -548,6 +549,15 @@ function setMode(m) {
 }
 $("seg").addEventListener("click", (ev) => { const b = ev.target.closest("button[data-mode]"); if (b) setMode(b.dataset.mode); });
 setMode(mode);
+
+/* Beta: a visible log of what happened, so problems can be reported word for word. */
+function dbg(msg) {
+  const el = $("dbg"); if (!el) return;
+  const t = new Date().toLocaleTimeString("es-AR", { hour12: false });
+  el.hidden = false; el.textContent = (el.textContent ? el.textContent + "\n" : "Registro beta:\n") + `${t} ${msg}`;
+}
+window.addEventListener("error", (e) => dbg("ERROR: " + e.message + " (línea " + e.lineno + ")"));
+window.addEventListener("unhandledrejection", (e) => dbg("ERROR: " + (e.reason && e.reason.message || e.reason)));
 
 let rec = null; // { mode, stream, recorder, round, id, timer, ext, wake, ctx, analyser, raf }
 
@@ -613,6 +623,7 @@ async function startSession() {
   let wake = null;
   try { wake = await navigator.wakeLock?.request("screen"); } catch {}
   rec = { mode, stream, ctx, wake, id: stamp(), round: 0, ...pickMime() };
+  dbg(`grabando, modo ${mode}`);
   $("recIdle").hidden = true; $("recLive").hidden = false;
   $("topicLive").textContent = $("topic").value.trim();
   const free = isFree(mode);
@@ -629,18 +640,21 @@ function startRound() {
   r.recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
   const round = r.round + 1, rec_ = r.recorder;
   rec_.onstop = async () => {
-    if (rec_.discard) return;
+    if (rec_.discard) { dbg("grabación descartada (menos de 3 s o cancelada)"); return; }
     const blob = new Blob(chunks, { type: rec_.mimeType || r.mime || "audio/mp4" });
     const name = free ? `${FREE_PREFIX[r.mode] || "libre"}-${r.id}.${r.ext}` : `432-${r.id}-${round}.${r.ext}`;
     const item = { name, blob };
     const secs = (Date.now() - started) / 1000;
-    await q("readwrite", (s) => s.put(item));
-    if (connected()) uploadOne(item);
-    if (r.mode === "libre") instantCorrect([{ blob, name, secs }]);
-    else if (r.mode === "432") {
-      (r.takes = r.takes || []).push({ blob, name, secs });
-      if (round === ROUNDS.length || r.finished) instantCorrect(r.takes);
-    }
+    dbg(`grabación lista: ${Math.round(secs)} s, ${Math.round(blob.size / 1024)} KB, modo ${r.mode}, ${blob.type || "sin tipo"}`);
+    try {
+      if (r.mode === "libre") instantCorrect([{ blob, name, secs }]);
+      else if (r.mode === "432") {
+        (r.takes = r.takes || []).push({ blob, name, secs });
+        if (round === ROUNDS.length || r.finished) instantCorrect(r.takes);
+      }
+    } catch (e) { dbg("error al abrir correcciones: " + e.message); }
+    try { await q("readwrite", (s) => s.put(item)); if (connected()) uploadOne(item); }
+    catch (e) { dbg("no pude guardar la grabación en el teléfono: " + (e && e.message)); }
   };
   rec_.start(1000);
   $("endRound").textContent = "Terminar ronda";
@@ -669,6 +683,7 @@ function startRound() {
 
 function endRound() {
   const r = rec; if (!r) return;
+  dbg("stop tocado");
   clearInterval(r.timer);
   if (r.paused) { r.paused = false; return startRound(); } // "Empezar ya" during the breather
   if (isFree(r.mode)) {
@@ -813,6 +828,7 @@ async function correctStream(text, onItem) {
 }
 
 async function instantCorrect(takes) {
+  dbg("abriendo correcciones");
   const box = $("instant"), t0 = Date.now(), since = () => Math.round((Date.now() - t0) / 1000);
   $("recIdle").hidden = true; box.hidden = false;
   box.innerHTML = `<div class="ix-label">Correcciones</div><h2 id="ixTitle">Tu monólogo</h2>
@@ -821,6 +837,7 @@ async function instantCorrect(takes) {
     <button class="ix-done" id="ixDone">Listo</button>`;
   $("ixDone").onclick = () => { box.hidden = true; box.innerHTML = ""; if (!rec) $("recIdle").hidden = false; };
   const fail = (e) => {
+    dbg("falló: " + e.message);
     $("ixStatus").textContent = "No salió.";
     $("ixExtra").innerHTML = `<div class="ix-err">${esc(AI_ERRORS[e.message] || `Algo falló (${e.message}). Decile a Claude este código.`)}</div>`;
   };
@@ -1498,6 +1515,7 @@ $("sSave").onclick = async (ev) => {
   store.set("token", $("sToken").value.replace(/\s+/g, ""));
   store.set("kClaude", $("sClaude").value.replace(/\s+/g, ""));
   store.set("kOpenAI", $("sOpenAI").value.replace(/\s+/g, ""));
+  setMode(mode);
   if (!conn().repo || !conn().token) {
     $("sStatus").textContent = aiReady() ? "✓ Claves guardadas. Sin repositorio: las grabaciones no se suben." : "Faltan las dos claves.";
     if (aiReady()) setTimeout(() => $("settings").close(), 1200);
