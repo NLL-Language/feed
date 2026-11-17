@@ -259,6 +259,45 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.45); -webkit-backdrop-filter: blu
 dialog label { display: block; font-size: 14px; color: var(--muted); margin: 14px 0 6px; }
 dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; background: var(--bg); outline: none; }
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+/* Instant corrections (beta), in the "Cuaderno · Margen" design */
+#instant { background: #fff; color: #16181D; border-radius: 14px; padding: 20px 18px 22px; margin-top: 8px; }
+#instant .ix-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #3A3F4A; font-weight: 600; }
+#instant h2 { font-family: Newsreader, Georgia, serif; font-weight: 600; font-size: 28px; line-height: 1.15; margin: 6px 0 4px; color: #16181D; }
+#instant .ix-status { font-size: 15px; color: #3A3F4A; min-height: 1.4em; }
+#instant .ix-time { font-size: 13px; color: #3A3F4A; margin-top: 2px; }
+#instant .ix-page { display: grid; grid-template-columns: minmax(0, 1fr) 84px; margin-top: 16px; border-top: 1px solid #16181D; }
+#instant .ix-main { padding: 16px 12px 16px 0; border-right: 1px solid #0A60D0; border-bottom: 1px solid #D9DCE2; display: flex; flex-direction: column; gap: 6px; }
+#instant .ix-note { padding: 16px 0 16px 10px; border-bottom: 1px solid #D9DCE2; font-family: Newsreader, Georgia, serif; font-style: italic; font-size: 16px; color: #0A60D0; }
+#instant .ix-said { font-size: 16px; color: #3A3F4A; text-decoration: line-through; text-decoration-color: #0A60D0; text-decoration-thickness: 1.5px; }
+#instant .ix-es { font-family: Newsreader, Georgia, serif; font-size: 22px; line-height: 1.25; color: #16181D; }
+#instant .ix-why { font-size: 15px; line-height: 1.4; color: #3A3F4A; }
+#instant .ix-err { font-size: 16px; line-height: 1.45; color: #16181D; border: 1.5px solid #16181D; border-radius: 12px; padding: 14px; margin-top: 14px; }
+#instant details { margin-top: 16px; font-size: 15px; color: #3A3F4A; }
+#instant details p { font-family: Newsreader, Georgia, serif; font-size: 17px; line-height: 1.45; color: #16181D; }
+#hora { background: #fff; color: #16181D; border-radius: 14px; padding: 18px 18px 22px; }
+#hora .mg-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: #3A3F4A; }
+#hora h2 { font-family: Newsreader, Georgia, serif; font-weight: 600; font-size: 30px; line-height: 1.15; margin: 8px 0 2px; color: #16181D; }
+#hora .mg-sub { font-size: 16px; color: #3A3F4A; }
+#hora .mg-page { display: grid; grid-template-columns: minmax(0, 1fr) 88px; margin-top: 14px; border-top: 1px solid #16181D; }
+#hora .mg-main { padding: 16px 12px 16px 0; border-right: 1px solid #0A60D0; border-bottom: 1px solid #D9DCE2; display: flex; flex-direction: column; gap: 8px; min-height: 64px; }
+#hora .mg-note { padding: 16px 0 16px 10px; border-bottom: 1px solid #D9DCE2; font-family: Newsreader, Georgia, serif; font-style: italic; font-size: 16px; line-height: 1.3; color: #0A60D0; display: flex; flex-direction: column; gap: 8px; overflow-wrap: anywhere; }
+#hora .mg-lab { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: #3A3F4A; }
+#hora .mg-en { font-size: 19px; line-height: 1.4; color: #16181D; }
+#hora .mg-es { font-family: Newsreader, Georgia, serif; font-size: 28px; line-height: 1.22; color: #16181D; }
+#hora .mg-es u { text-decoration-color: #0A60D0; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+#hora .mg-why { font-size: 15px; line-height: 1.4; color: #3A3F4A; }
+#hora .mg-row { font-family: Newsreader, Georgia, serif; font-size: 21px; color: #16181D; }
+#hora .mg-btns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+#hora button.mg-b { height: 54px; border-radius: 12px; font: inherit; font-size: 17px; font-weight: 600; border: 1.5px solid #16181D; background: #fff; color: #16181D; }
+#hora button.mg-b.pri { border-color: #0A60D0; background: #0A60D0; color: #fff; }
+#hora button.mg-b.wide { grid-column: 1 / -1; }
+#hora button.mg-link { font: inherit; font-size: 15px; color: #16181D; background: none; border: 0; text-decoration: underline; min-height: 44px; padding: 0 4px; }
+#hora .mg-rule { font-size: 15px; color: #3A3F4A; margin-top: 12px; }
+#instant .ix-done { margin-top: 18px; width: 100%; height: 52px; border: 0; border-radius: 12px; background: #0A60D0; color: #fff; font: inherit; font-size: 17px; font-weight: 600; }
+</style>
 </head>
 <body>
 <div id="scroller">
@@ -306,6 +345,9 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
       <button class="btn ghost" id="cancelRec" style="margin-top:4px">Cancelar</button>
     </div>
 
+    <div id="instant" hidden></div>
+    <pre id="dbg" hidden style="white-space:pre-wrap;font:13px/1.45 ui-monospace,Menlo,monospace;color:#16181D;background:#fff;border:1px solid #16181D;border-radius:10px;padding:10px;margin-top:12px"></pre>
+
     <div id="pendingNotes"></div>
 
     <h2 id="uploadsHead" hidden>Subidas</h2>
@@ -315,7 +357,9 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
   <section class="view" id="v-listen">
     <div id="episodes"></div>
   </section>
-  <section class="view" id="v-recall"><div id="recall"></div></section>
+  <section class="view" id="v-recall"><div id="hora"></div>
+    <button id="horaBack" hidden style="font:inherit;font-size:15px;color:#0A60D0;background:none;border:0;padding:12px 0;min-height:44px;text-decoration:underline">← Volver a la hora de repaso</button>
+    <div id="recall" hidden></div></section>
   <section class="view" id="v-arsenal"><div id="arsenal"></div></section>
   <section class="view" id="v-read">
     <input class="read-search" id="readSearch" type="search" placeholder="Buscar en inglés o en castellano" autocomplete="off">
@@ -351,11 +395,15 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 <dialog id="settings">
   <form method="dialog">
     <strong style="font-size:19px">Conexión</strong>
-    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v14</p>
+    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v15</p>
     <label for="sRepo">Repositorio (dueño/nombre)</label>
     <input id="sRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dueño/repositorio">
     <label for="sToken">Token de GitHub</label>
     <input id="sToken" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <label for="sClaude">Clave de Claude (empieza con sk-ant-)</label>
+    <input id="sClaude" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <label for="sOpenAI">Clave de transcripción, OpenAI (empieza con sk-)</label>
+    <input id="sOpenAI" type="password" autocomplete="off" autocapitalize="off" spellcheck="false">
     <p class="small" id="sStatus" style="min-height:1.4em"></p>
     <div class="row" style="margin-top:8px">
       <button class="btn ghost" value="cancel">Cerrar</button>
@@ -514,12 +562,23 @@ function setMode(m) {
   const order = [...$("seg").querySelectorAll("button[data-mode]")].map((b) => b.dataset.mode);
   $("seg").style.setProperty("--i", order.indexOf(mode));
   $("seg").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
-  $("modeHint").textContent = MODES[mode].hint;
+  $("modeHint").textContent = MODES[mode].hint + " · " + (mode === "libre" || mode === "432"
+    ? (store.get("kClaude", "") && store.get("kOpenAI", "") ? "correcciones al instante activas." : "faltan claves en ⚙︎ para las correcciones al instante.")
+    : "este modo no tiene correcciones al instante.");
   $("startLabel").textContent = MODES[mode].label;
   $("topic").placeholder = mode === "432" ? "Tema (opcional): el video que viste hoy…" : mode === "sit" ? "¿Qué situación? (opcional)" : "Tema (opcional)";
 }
 $("seg").addEventListener("click", (ev) => { const b = ev.target.closest("button[data-mode]"); if (b) setMode(b.dataset.mode); });
 setMode(mode);
+
+/* Beta: a visible log of what happened, so problems can be reported word for word. */
+function dbg(msg) {
+  const el = $("dbg"); if (!el) return;
+  const t = new Date().toLocaleTimeString("es-AR", { hour12: false });
+  el.hidden = false; el.textContent = (el.textContent ? el.textContent + "\n" : "Registro:\n") + `${t} ${msg}`;
+}
+window.addEventListener("error", (e) => dbg("ERROR: " + e.message + " (línea " + e.lineno + ")"));
+window.addEventListener("unhandledrejection", (e) => dbg("ERROR: " + (e.reason && e.reason.message || e.reason)));
 
 let rec = null; // { mode, stream, recorder, round, id, timer, ext, wake, ctx, analyser, raf }
 
@@ -577,7 +636,7 @@ function setRing(fraction, color) {
 }
 
 async function startSession() {
-  if (!connected()) { openSettings(); return; }
+  if (!connected() && !aiReady()) { openSettings(); return; }
   let stream;
   try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: true } }); }
   catch { alert("Necesito acceso al micrófono para grabar."); return; }
@@ -585,6 +644,7 @@ async function startSession() {
   let wake = null;
   try { wake = await navigator.wakeLock?.request("screen"); } catch {}
   rec = { mode, stream, ctx, wake, id: stamp(), round: 0, ...pickMime() };
+  dbg(`grabando, modo ${mode}`);
   $("recIdle").hidden = true; $("recLive").hidden = false;
   $("topicLive").textContent = $("topic").value.trim();
   const free = isFree(mode);
@@ -601,12 +661,21 @@ function startRound() {
   r.recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
   const round = r.round + 1, rec_ = r.recorder;
   rec_.onstop = async () => {
-    if (rec_.discard) return;
+    if (rec_.discard) { dbg("grabación descartada (menos de 3 s o cancelada)"); return; }
     const blob = new Blob(chunks, { type: rec_.mimeType || r.mime || "audio/mp4" });
     const name = free ? `${FREE_PREFIX[r.mode] || "libre"}-${r.id}.${r.ext}` : `432-${r.id}-${round}.${r.ext}`;
     const item = { name, blob };
-    await q("readwrite", (s) => s.put(item));
-    uploadOne(item);
+    const secs = (Date.now() - started) / 1000;
+    dbg(`grabación lista: ${Math.round(secs)} s, ${Math.round(blob.size / 1024)} KB, modo ${r.mode}, ${blob.type || "sin tipo"}`);
+    try {
+      if (r.mode === "libre") instantCorrect([{ blob, name, secs }]);
+      else if (r.mode === "432") {
+        (r.takes = r.takes || []).push({ blob, name, secs });
+        if (round === ROUNDS.length || r.finished) instantCorrect(r.takes);
+      }
+    } catch (e) { dbg("error al abrir correcciones: " + e.message); }
+    try { await q("readwrite", (s) => s.put(item)); if (connected()) uploadOne(item); }
+    catch (e) { dbg("no pude guardar la grabación en el teléfono: " + (e && e.message)); }
   };
   rec_.start(1000);
   $("endRound").textContent = "Terminar ronda";
@@ -635,6 +704,7 @@ function startRound() {
 
 function endRound() {
   const r = rec; if (!r) return;
+  dbg("stop tocado");
   clearInterval(r.timer);
   if (r.paused) { r.paused = false; return startRound(); } // "Empezar ya" during the breather
   if (isFree(r.mode)) {
@@ -675,6 +745,7 @@ function finishSession(done, discard = false) {
   }
   setTimeout(() => { r.stream.getTracks().forEach((t) => t.stop()); try { r.ctx.close(); } catch {} }, 300);
   try { r.wake?.release(); } catch {}
+  r.finished = true;
   rec = null;
   $("recLive").hidden = true; $("recIdle").hidden = false;
   if (done) $("topic").value = "";
@@ -687,6 +758,143 @@ $("cancelRec").onclick = () => {
   if (rec && isFree(rec.mode)) { if (confirm("¿Descartar esta grabación? No se va a subir.")) finishSession(false, true); }
   else if (confirm("¿Terminar la sesión? Las rondas grabadas se suben igual.")) finishSession(false);
 };
+
+/* ---------- Instant corrections (beta): phone → transcription → Claude, no Mac ---------- */
+const AI_MODELS = ["claude-sonnet-5-5", "claude-opus-5-5"];
+const STT_MODELS = ["gpt-4o-transcribe", "whisper-1"];
+const aiKeys = () => ({ claude: store.get("kClaude", ""), openai: store.get("kOpenAI", "") });
+const aiReady = () => !!(aiKeys().claude && aiKeys().openai);
+const AI_SYSTEM = `You correct a learner's spoken Rioplatense Spanish (Buenos Aires, voseo). You receive a speech-to-text transcript of a short monologue. The learner's main problem is phrasing: sentences that are understandable, often grammatical, but not how a porteño would say them.
+
+Output ONLY JSON Lines: one JSON object per line, no other text, no code fences.
+Line 1: {"titulo": "<3-6 word title in Spanish>"}
+Then one line for each sentence a porteño would say differently, in the order spoken, at most 12 (keep the most useful):
+{"dijiste": "<the learner's own words for the part that changes, as transcribed, 12 words max>", "porteno": "<the whole sentence the way a porteño would naturally say it in conversation>", "por_que": "<one short sentence in English>", "tipo": "fraseo" or "gramática"}
+Use "fraseo" when the original is understandable but unnatural (phrasing, word choice, regional usage). Use "gramática" for real errors (agreement, tense, mood, prepositions, pronouns).
+If the transcript is split into "Ronda 1", "Ronda 2", "Ronda 3", it is the same story told three times: give each correction once, taken from wherever the problem shows.
+Skip sentences that are already natural. Ignore fillers, false starts and obvious transcription glitches. Keep his meaning; do not embellish.
+Last line: {"fin": true}`;
+const AI_ERRORS = {
+  STT_BLOCKED: "No pude llegar al servicio de transcripción desde el teléfono (bloqueado o sin conexión). Decile a Claude: «transcripción bloqueada».",
+  STT_401: "La clave de transcripción (OpenAI) no es válida. Revisala en ⚙︎.",
+  STT_429: "El servicio de transcripción rechazó el pedido: sin crédito o límite alcanzado. Revisá el saldo en OpenAI.",
+  AI_BLOCKED: "No pude llegar a Claude desde el teléfono (bloqueado o sin conexión). Decile a Claude: «Claude bloqueado».",
+  AI_401: "La clave de Claude no es válida. Revisala en ⚙︎.",
+  AI_429: "Claude rechazó el pedido: límite alcanzado. Probá de nuevo en un minuto.",
+  EMPTY: "No se escuchó nada en la grabación.",
+};
+
+async function transcribeNow(blob, name) {
+  let last = "STT_ERROR";
+  for (const model of STT_MODELS) {
+    const fd = new FormData();
+    fd.append("file", blob, name); fd.append("model", model); fd.append("language", "es");
+    let res;
+    try {
+      res = await fetch("https://api.openai.com/v1/audio/transcriptions",
+        { method: "POST", headers: { Authorization: `Bearer ${aiKeys().openai}` }, body: fd });
+    } catch { throw new Error("STT_BLOCKED"); }
+    if (res.ok) return ((await res.json()).text || "").trim();
+    last = `STT_${res.status}`;
+    if (res.status === 401 || res.status === 429) break;
+  }
+  throw new Error(last);
+}
+
+async function correctStream(text, onItem) {
+  let res, last = "AI_ERROR";
+  for (const model of AI_MODELS) {
+    try {
+      res = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "x-api-key": aiKeys().claude, "anthropic-version": "2023-06-01", "content-type": "application/json",
+          "anthropic-dangerous-direct-browser-access": "true" },
+        body: JSON.stringify({ model, max_tokens: 4000, stream: true, system: AI_SYSTEM,
+          messages: [{ role: "user", content: `<transcript>\n${text}\n</transcript>` }] }),
+      });
+    } catch { throw new Error("AI_BLOCKED"); }
+    if (res.ok) break;
+    last = `AI_${res.status}`;
+    if (res.status !== 404 && res.status !== 400) throw new Error(last);
+    res = null;
+  }
+  if (!res) throw new Error(last);
+  const reader = res.body.getReader(), dec = new TextDecoder();
+  let sse = "", out = "";
+  const flush = (final) => {
+    for (;;) {
+      const i = out.indexOf("\n");
+      if (i < 0 && !(final && out.trim())) break;
+      const line = (i >= 0 ? out.slice(0, i) : out).trim();
+      out = i >= 0 ? out.slice(i + 1) : "";
+      if (line.startsWith("{")) { try { onItem(JSON.parse(line)); } catch {} }
+    }
+  };
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    sse += dec.decode(value, { stream: true });
+    for (;;) {
+      const j = sse.indexOf("\n");
+      if (j < 0) break;
+      const l = sse.slice(0, j).trim(); sse = sse.slice(j + 1);
+      if (!l.startsWith("data:")) continue;
+      try {
+        const ev = JSON.parse(l.slice(5));
+        if (ev.type === "content_block_delta" && ev.delta && ev.delta.text) { out += ev.delta.text; flush(false); }
+      } catch {}
+    }
+  }
+  flush(true);
+}
+
+async function instantCorrect(takes) {
+  dbg("abriendo correcciones");
+  const box = $("instant"), t0 = Date.now(), since = () => Math.round((Date.now() - t0) / 1000);
+  $("recIdle").hidden = true; box.hidden = false;
+  try { box.scrollIntoView({ block: "start" }); } catch {}
+  box.innerHTML = `<div class="ix-label">Correcciones</div><h2 id="ixTitle">Tu monólogo</h2>
+    <div class="ix-status" id="ixStatus">Transcribiendo…</div><div class="ix-time" id="ixTime"></div>
+    <div class="ix-page" id="ixPage"></div><div id="ixExtra"></div>
+    <button class="ix-done" id="ixDone">Listo</button>`;
+  $("ixDone").onclick = () => { box.hidden = true; box.innerHTML = ""; if (!rec) $("recIdle").hidden = false; };
+  const fail = (e) => {
+    dbg("falló: " + e.message);
+    $("ixStatus").textContent = "No salió.";
+    $("ixExtra").innerHTML = `<div class="ix-err">${esc(AI_ERRORS[e.message] || `Algo falló (${e.message}). Decile a Claude este código.`)}</div>`;
+  };
+  if (!aiReady()) {
+    const k = aiKeys();
+    $("ixStatus").textContent = "Faltan claves.";
+    $("ixExtra").innerHTML = `<div class="ix-err">${!k.claude && !k.openai ? "Faltan las dos claves" : !k.claude ? "Falta la clave de Claude" : "Falta la clave de transcripción (OpenAI)"}. Tocá ⚙︎ arriba a la derecha, pegala y tocá Guardar.</div>`;
+    return;
+  }
+  let texts, tStt, tFirst = null, n = { fraseo: 0, "gramática": 0 };
+  try {
+    texts = await Promise.all(takes.map((t) => transcribeNow(t.blob, t.name)));
+    if (!texts.join("").trim()) throw new Error("EMPTY");
+  } catch (e) { return fail(e); }
+  tStt = since();
+  const wpm = takes.map((t, i) => t.secs > 5 ? Math.round(texts[i].split(/\s+/).filter(Boolean).length / (t.secs / 60)) : null).filter((v) => v !== null);
+  const pace = wpm.length ? ` · Ritmo: ${wpm.join(" → ")} palabras por minuto` : "";
+  const text = takes.length > 1 ? texts.map((t, i) => `Ronda ${i + 1}:\n${t}`).join("\n\n") : texts[0];
+  $("ixStatus").textContent = "Corrigiendo…";
+  $("ixTime").textContent = `Transcripción: ${tStt} s`;
+  $("ixExtra").innerHTML = `<details><summary>Lo que entendí</summary><p style="white-space:pre-line">${esc(text)}</p></details>`;
+  try {
+    await correctStream(text, (it) => {
+      if (it.titulo) { $("ixTitle").textContent = it.titulo; return; }
+      if (!it.porteno) return;
+      if (tFirst === null) { tFirst = since(); $("ixTime").textContent = `Transcripción: ${tStt} s · primera corrección: ${tFirst} s`; }
+      const tipo = it.tipo === "gramática" ? "gramática" : "fraseo"; n[tipo]++;
+      $("ixPage").insertAdjacentHTML("beforeend",
+        `<div class="ix-main"><div class="ix-said">${esc(it.dijiste || "")}</div><div class="ix-es">${esc(it.porteno)}</div><div class="ix-why">${esc(it.por_que || "")}</div></div><div class="ix-note">${tipo}</div>`);
+    });
+  } catch (e) { return fail(e); }
+  const total = n.fraseo + n["gramática"];
+  $("ixStatus").textContent = total ? `${n.fraseo} de fraseo · ${n["gramática"]} de gramática${pace}` : `Nada para corregir${pace}`;
+  $("ixTime").textContent += ` · todo: ${since()} s`;
+}
 
 /* ---------- Listen ---------- */
 const audio = $("audio");
@@ -1054,6 +1262,7 @@ $("arsenal").addEventListener("click", (ev) => {
   if (d) { document.querySelector('nav button[data-view="recall"]').click(); openDeck(d.dataset.arsDeck); }
 });
 function renderRecall() {
+  try { horaRender(); } catch (e) { dbg("hora: " + e.message); }
   try { renderArsenal(); } catch (e) { console.warn("arsenal", e); }
   const el = $("recall");
   SEEN = store.get("seen", {});
@@ -1164,6 +1373,184 @@ function speak(text) {
   const u = new SpeechSynthesisUtterance(text); u.lang = v?.lang || "es-AR"; if (v) u.voice = v; u.rate = 0.95;
   speechSynthesis.cancel(); speechSynthesis.speak(u);
 }
+
+/* ---------- La hora de repaso (beta): full sentences, three fenced blocks ---------- */
+const H_BLOCKS = { ancho: { name: "Ancho", mins: 25 }, fijar: { name: "Fijar", mins: 15 }, usar: { name: "Usar", mins: 20 } };
+const H_NEW_PER_DAY = 15, H_FIJAR_MAX = 10, H_FIJAR_TRIES = 2;
+let hShown = false, hOld = false;
+const hState = () => { const st = store.get("hora", null); return st && st.d === todayISO() ? st : { d: todayISO(), block: "intro" }; };
+const hSave = (st) => store.set("hora", st);
+
+/* One card per full sentence: every chunk that came from the same sentence is graded together. */
+function hSentences() {
+  const m = new Map();
+  for (const c of CARDS) {
+    if (c.src === "arsenal" || !c.ctx || !c.ctxEn) continue;
+    let s = m.get(c.ctx);
+    if (!s) m.set(c.ctx, s = { key: c.ctx, es: c.ctx, en: c.ctxEn, cards: [], src: c.src, where: c.src === "session" ? "tu grabación" : (c.tab || c.cat || "") });
+    s.cards.push(c);
+  }
+  return m;
+}
+function hBuildQueue() {
+  const today = todayISO(), done = gradedToday(), out = [];
+  for (const s of hSentences().values()) {
+    if (s.cards.some((c) => c.k in done)) continue;
+    if (!s.cards.some((c) => isDue(c, today))) continue;
+    const lapses = Math.max(...s.cards.map((c) => +c.lapses || 0));
+    const isNew = s.cards.every((c) => !(+c.step) && !c.graded && !(+c.lapses));
+    const due = s.cards.map((c) => c.due || "9").sort()[0];
+    out.push({ key: s.key, lapses, isNew, due, mine: s.src === "session" });
+  }
+  // Your own recordings first, then what you have missed, then the most overdue; new ones are capped.
+  const old = out.filter((x) => !x.isNew).sort((a, b) => (b.mine - a.mine) || (b.lapses - a.lapses) || (a.due < b.due ? -1 : 1));
+  const fresh = out.filter((x) => x.isNew).sort((a, b) => (b.mine - a.mine)).slice(0, H_NEW_PER_DAY);
+  const q = []; let f = 0;
+  old.forEach((x, i) => { q.push(x.key); if (i % 3 === 2 && f < fresh.length) q.push(fresh[f++].key); });
+  while (f < fresh.length) q.push(fresh[f++].key);
+  return q;
+}
+function hMark(sentence, chunks) {
+  const low = sentence.toLowerCase(), ranges = [];
+  for (const ch of chunks) {
+    const t = ch.replace(/[.,¿?¡!]+$/, ""), i = low.indexOf(t.toLowerCase());
+    if (i >= 0 && !ranges.some(([a, b]) => i < b && i + t.length > a)) ranges.push([i, i + t.length]);
+  }
+  ranges.sort((a, b) => a[0] - b[0]);
+  let html = "", at = 0;
+  for (const [a, b] of ranges) { html += esc(sentence.slice(at, a)) + "<u>" + esc(sentence.slice(a, b)) + "</u>"; at = b; }
+  return html + esc(sentence.slice(at));
+}
+function hStartBlock(st, block) {
+  st.block = block; hShown = false;
+  if (block === "ancho") { st.queue = hBuildQueue(); st.pos = 0; st.misses = []; st.ok = 0; st.n = 0; st.left = H_BLOCKS.ancho.mins * 60; }
+  if (block === "fijar") {
+    st.fq = (st.misses || []).slice(0, H_FIJAR_MAX); st.tries = {}; st.fixed = 0; st.left = H_BLOCKS.fijar.mins * 60;
+    if (!st.fq.length) return hStartBlock(st, "usar");
+  }
+  if (block === "usar") { st.usarEnds = Date.now() + H_BLOCKS.usar.mins * 60000; st.answers = st.answers || 0; }
+  hSave(st);
+}
+function hCurrent(st) {
+  const map = hSentences();
+  if (st.block === "ancho") { while (st.pos < st.queue.length && !map.has(st.queue[st.pos])) st.pos++; return map.get(st.queue[st.pos]) || null; }
+  if (st.block === "fijar") { while (st.fq.length && !map.has(st.fq[0])) st.fq.shift(); return map.get(st.fq[0]) || null; }
+  return null;
+}
+function hGrade(ok) {
+  const st = hState(), s = hCurrent(st); if (!s) return;
+  for (const c of s.cards) grade(c, ok);
+  hShown = false;
+  if (st.block === "ancho") {
+    st.n++; if (ok) st.ok++; else st.misses.push(s.key);
+    st.pos++;
+    if (st.left <= 0 || st.pos >= st.queue.length) { hStartBlock(st, "fijar"); return horaRender(); }
+  } else if (st.block === "fijar") {
+    st.fq.shift();
+    if (ok) st.fixed++;
+    else { st.tries[s.key] = (st.tries[s.key] || 0) + 1; if (st.tries[s.key] < H_FIJAR_TRIES) st.fq.push(s.key); }
+    if (st.left <= 0 || !st.fq.length) { hStartBlock(st, "usar"); return horaRender(); }
+  }
+  hSave(st); horaRender();
+}
+function hUsarPhrases(st) {
+  const map = hSentences(), keys = [...(st.misses || []), ...((st.queue || []).slice(0, st.pos || 0))], out = [];
+  for (const k of keys) { const s = map.get(k); if (!s) continue; const es = s.cards[0].es; if (!out.includes(es)) out.push(es); if (out.length >= 5) break; }
+  return out;
+}
+function horaRender() {
+  const el = $("hora"); if (!el) return;
+  el.hidden = hOld; $("recall").hidden = !hOld; $("horaBack").hidden = !hOld;
+  if (hOld) return;
+  const st = hState(), B = H_BLOCKS[st.block];
+  if (!CARDS.length) {
+    el.innerHTML = connected()
+      ? `<div class="mg-top"><span>Repaso</span></div><h2>Bajando tus frases…</h2><div class="mg-sub">La primera vez tarda unos segundos. Si en un minuto sigue así, tocá Reintentar.</div><div class="mg-btns"><button class="mg-b pri wide" data-h="reload">Reintentar</button></div>`
+      : `<div class="mg-top"><span>Repaso</span></div><h2>Falta conectar tus tarjetas</h2><div class="mg-sub">En este navegador la app todavía no tiene el repositorio ni el token de GitHub, así que no puede bajar tus frases.</div><div class="mg-btns"><button class="mg-b pri wide" data-h="settings">Abrir ajustes</button></div>`;
+    return;
+  }
+  if (st.block === "intro") {
+    const n = hBuildQueue().length;
+    el.innerHTML = `<div class="mg-top"><span>Repaso</span><span>60 min</span></div><h2>La hora de repaso</h2>
+      <div class="mg-sub">${n} frases para hoy. Frases enteras, no pedacitos.</div>
+      <div class="mg-page">
+        <div class="mg-main"><div class="mg-row">Ancho</div><div class="mg-why">Muchas frases, un intento cada una, sin volver atrás.</div></div><div class="mg-note">25 min</div>
+        <div class="mg-main"><div class="mg-row">Fijar</div><div class="mg-why">Solo las que no salieron hoy. Como mucho ${H_FIJAR_MAX}, dos intentos más.</div></div><div class="mg-note">15 min</div>
+        <div class="mg-main"><div class="mg-row">Usar</div><div class="mg-why">Respuestas cortas en voz alta con las frases de hoy, corregidas al instante.</div></div><div class="mg-note">20 min</div>
+      </div>
+      <div class="mg-btns"><button class="mg-b pri wide" data-h="start">${n ? "Empezar" : "Ir a Usar"}</button></div>
+      <button class="mg-link" data-h="old">Ver los mazos de antes</button>`;
+    return;
+  }
+  if (st.block === "ancho" || st.block === "fijar") {
+    const s = hCurrent(st);
+    if (!s) { hStartBlock(st, st.block === "ancho" ? "fijar" : "usar"); return horaRender(); }
+    const count = st.block === "ancho" ? `tarjeta ${st.n + 1}` : `quedan ${st.fq.length}`;
+    el.innerHTML = `<div class="mg-top"><span>${B.name}</span><span id="hClock">quedan ${mmss(Math.max(0, st.left))}</span></div>
+      <div class="mg-page">
+        <div class="mg-main"><div class="mg-lab">En inglés</div><div class="mg-en">${esc(s.en)}</div>
+          ${hShown ? `<div class="mg-lab" style="margin-top:8px">En porteño</div><div class="mg-es">${hMark(s.es, s.cards.map((c) => c.es))}</div>
+            ${s.cards.filter((c) => c.why).slice(0, 2).map((c) => `<div class="mg-why">${esc(c.why)}</div>`).join("")}` : ""}
+        </div>
+        <div class="mg-note"><span>${count}</span>${hShown ? s.cards.map((c) => `<span>${esc(c.es)}</span>`).join("") + (s.where ? `<span style="color:#3A3F4A">${esc(s.where)}</span>` : "") : ""}</div>
+      </div>
+      ${hShown
+        ? `<div class="mg-btns"><button class="mg-b" data-h="miss">No me salió</button><button class="mg-b pri" data-h="ok">La sabía</button></div>
+           <button class="mg-link" data-h="say">Escuchar</button>`
+        : `<div class="mg-btns"><button class="mg-b pri wide" data-h="show">Mostrar</button></div>`}
+      <div class="mg-rule">${hShown ? "Vale si el sentido está y suena natural. No hace falta que sea palabra por palabra." : st.block === "ancho" ? "Decila entera en voz alta. Un intento. Sin volver atrás." : "Otra vez, entera y en voz alta."}</div>`;
+    return;
+  }
+  if (st.block === "usar") {
+    const left = Math.max(0, Math.round((st.usarEnds - Date.now()) / 1000)), ph = hUsarPhrases(st);
+    el.innerHTML = `<div class="mg-top"><span>Usar</span><span>quedan ${mmss(left)}</span></div><h2>Ahora usalas</h2>
+      <div class="mg-sub">Hablá uno o dos minutos de lo que quieras y metele estas frases. Sin leer.</div>
+      <div class="mg-page">${ph.map((p, i) => `<div class="mg-main"><div class="mg-row">${esc(p)}</div></div><div class="mg-note">${i + 1}</div>`).join("")}</div>
+      <div class="mg-btns"><button class="mg-b pri wide" data-h="rec">Grabar una respuesta</button><button class="mg-b wide" data-h="end">Terminar la hora</button></div>
+      <div class="mg-rule">Respuestas grabadas hoy: ${st.answers || 0}. Las correcciones aparecen apenas terminás.</div>`;
+    return;
+  }
+  const pct = st.n ? Math.round(100 * st.ok / st.n) : 0;
+  el.innerHTML = `<div class="mg-top"><span>Repaso</span><span>hecho</span></div><h2>Listo por hoy</h2>
+    <div class="mg-page">
+      <div class="mg-main"><div class="mg-row">Ancho</div><div class="mg-why">${st.n || 0} frases, ${st.ok || 0} salieron de una.</div></div><div class="mg-note">${st.n ? pct + " %" : ""}</div>
+      <div class="mg-main"><div class="mg-row">Fijar</div><div class="mg-why">${st.fixed || 0} de ${(st.misses || []).slice(0, H_FIJAR_MAX).length} recuperadas.</div></div><div class="mg-note"></div>
+      <div class="mg-main"><div class="mg-row">Usar</div><div class="mg-why">${st.answers || 0} respuestas grabadas.</div></div><div class="mg-note"></div>
+    </div>
+    <button class="mg-link" data-h="old">Ver los mazos de antes</button>`;
+  flushResults();
+}
+$("hora").addEventListener("click", (ev) => {
+  const b = ev.target.closest("[data-h]"); if (!b) return;
+  const a = b.dataset.h, st = hState();
+  if (a === "settings") return openSettings();
+  if (a === "reload") { loadCards(); return; }
+  if (a === "start") { hStartBlock(st, hBuildQueue().length ? "ancho" : "usar"); }
+  else if (a === "show") { hShown = true; }
+  else if (a === "ok" || a === "miss") return hGrade(a === "ok");
+  else if (a === "say") { const s = hCurrent(st); if (s) speak(s.es); return; }
+  else if (a === "old") { hOld = true; }
+  else if (a === "end") { st.block = "fin"; hSave(st); }
+  else if (a === "rec") {
+    st.answers = (st.answers || 0) + 1; hSave(st);
+    document.querySelector('nav button[data-view="record"]').click();
+    setMode("libre"); $("topic").value = "Usar: " + hUsarPhrases(st).slice(0, 3).join(" · ");
+    return startSession();
+  }
+  horaRender();
+});
+$("horaBack").onclick = () => { hOld = false; horaRender(); };
+setInterval(() => {
+  if (document.hidden || hOld || !$("v-recall").classList.contains("on")) return;
+  const st = hState();
+  if (st.block === "ancho" || st.block === "fijar") {
+    st.left = (st.left || 0) - 1; hSave(st);
+    const c = $("hClock"); if (c) c.textContent = st.left > 0 ? `quedan ${mmss(st.left)}` : "tiempo: última tarjeta";
+  } else if (st.block === "usar") {
+    if (Date.now() > st.usarEnds) { st.block = "fin"; hSave(st); }
+    horaRender();
+  }
+}, 1000);
 
 /* ---------- Quick notes waiting for their episode ---------- */
 function renderPendingNotes() {
@@ -1312,12 +1699,13 @@ document.querySelector("nav").addEventListener("click", (ev) => {
 
 function renderAll() {
   $("setupNotice").innerHTML = connected() ? "" :
-    `<div class="notice">Falta conectar el repositorio. Tocá ⚙︎ arriba a la derecha.</div>`;
+    `<div class="notice">${aiReady() ? "Correcciones al instante activas. Sin repositorio, las grabaciones no se suben." : "Falta conectar. Tocá ⚙︎ arriba a la derecha."}</div>`;
   renderEpisodes(); renderRecall(); renderSessions(); renderRead(); renderUploads(); renderPendingNotes();
 }
 
 function openSettings() {
   $("sRepo").value = conn().repo; $("sToken").value = conn().token; $("sStatus").textContent = "";
+  $("sClaude").value = aiKeys().claude; $("sOpenAI").value = aiKeys().openai;
   $("settings").showModal();
 }
 $("openSettings").onclick = openSettings;
@@ -1326,6 +1714,15 @@ $("sSave").onclick = async (ev) => {
   // Phones love to add spaces and capitals; the repo name and token never contain spaces.
   store.set("repo", $("sRepo").value.replace(/\s+/g, "").replace(/^https?:\/\/github\.com\//, "").replace(/\/$/, ""));
   store.set("token", $("sToken").value.replace(/\s+/g, ""));
+  store.set("kClaude", $("sClaude").value.replace(/\s+/g, ""));
+  store.set("kOpenAI", $("sOpenAI").value.replace(/\s+/g, ""));
+  setMode(mode);
+  if (!conn().repo || !conn().token) {
+    $("sStatus").textContent = aiReady() ? "✓ Claves guardadas. Sin repositorio: las grabaciones no se suben." : "Faltan las dos claves.";
+    if (aiReady()) setTimeout(() => $("settings").close(), 1200);
+    renderAll();
+    return;
+  }
   $("sStatus").textContent = "Probando…";
   try { await gh(""); $("sStatus").textContent = "✓ Conectado"; setTimeout(() => $("settings").close(), 600); loadData(); loadCards(); flushQueue(); }
   catch (e) {
