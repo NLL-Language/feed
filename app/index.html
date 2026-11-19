@@ -275,6 +275,26 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 #instant .ix-note { padding: 16px 0 16px 10px; border-bottom: 1px solid #D9DCE2; font-family: Newsreader, Georgia, serif; font-style: italic; font-size: 16px; color: #0A60D0; }
 #instant .ix-said { font-size: 16px; color: #3A3F4A; }
 /* Only the words that changed: struck in what you said, underlined in the fix */
+.tag.ok { background: color-mix(in srgb, var(--ok) 15%, transparent); color: var(--ok); }
+.tag.warn { background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--warn); margin-left: 4px; }
+.mg-link { color: var(--accent); font-weight: 650; padding: 0; margin-bottom: 8px; }
+.rd-title { font-size: 22px; font-weight: 750; letter-spacing: -0.01em; line-height: 1.2; }
+.rd .seg { margin-top: 14px; }
+.rd-text { font-size: 18px; line-height: 1.6; }
+.rd-list { padding-left: 22px; margin: 6px 0 0; } .rd-list li { padding: 4px 0; }
+.rd-list.en { color: var(--ink); font-size: 16px; }
+.rd-errs { margin-top: 14px; font-size: 15px; } .rd-errs summary { color: var(--accent); font-weight: 650; cursor: pointer; }
+.rd-recbox { text-align: center; padding: 26px 0 10px; }
+.rd-dot { width: 14px; height: 14px; border-radius: 7px; background: var(--rec); margin: 0 auto 8px; animation: blink 1.2s infinite; }
+@keyframes blink { 50% { opacity: 0.25; } }
+.rd-clock { font-size: 40px; font-weight: 750; font-variant-numeric: tabular-nums; }
+.rd-score { font-size: 20px; font-weight: 750; margin-top: 14px; color: var(--warn); } .rd-score.ok { color: var(--ok); }
+.rd-rows { margin-top: 10px; }
+.rd-row { display: grid; grid-template-columns: 22px 1fr; gap: 8px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 16px; }
+.rd-row.ok { color: var(--muted); } .rd-row.ok .rd-mark { color: var(--ok); } .rd-row.bad .rd-mark { color: var(--warn); } .rd-row.miss .rd-mark { color: var(--muted); }
+.rd-mark { font-weight: 800; }
+.rd-fix { font-weight: 650; margin-top: 3px; }
+.rd .ix-said { color: var(--muted); }
 s.del { text-decoration: line-through; text-decoration-color: #B3261E; text-decoration-thickness: 2px; color: #B3261E; }
 u.ins { text-decoration: underline; text-decoration-color: #0A60D0; text-decoration-thickness: 2px; text-underline-offset: 3px; }
 #instant .ix-es { font-family: Newsreader, Georgia, serif; font-size: 22px; line-height: 1.25; color: #16181D; }
@@ -504,7 +524,7 @@ dialog input { background: #fff; border: 1px solid var(--line); }
 <dialog id="settings">
   <form method="dialog">
     <strong style="font-size:19px">Conexión</strong>
-    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v21</p>
+    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v22</p>
     <label for="sRepo">Repositorio (dueño/nombre)</label>
     <input id="sRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dueño/repositorio">
     <label for="sToken">Token de GitHub</label>
@@ -2178,18 +2198,164 @@ function paceChart(sessions) {
     <text x="${W - P}" y="${y(last.wpm) - 6}" text-anchor="end" font-size="12" font-weight="700" fill="var(--ink)">${last.wpm}</text></svg></div>`;
 }
 const ROLE = { vos: "Vos", otro: "Te dicen", contar: "Contándolo después" };
+/* Rehacer: study a corrected monologue, tell it again with the text hidden, and get checked against it. */
+const redoLog = () => store.get("redo", {});
+const canRedo = (s) => s.sentences.length && !s.sentences.some((x) => x.role);
+function redoSummary(sid) {
+  const a = redoLog()[sid] || []; if (!a.length) return "";
+  const best = Math.min(...a.map((x) => x.err));
+  return best === 0 ? `<span class="tag ok">sin errores ✓</span>` : `<span class="tag">rehecho ${a.length}× · mejor ${best} error${best === 1 ? "" : "es"}</span>`;
+}
+let redo = null; // { sid, phase: "study" | "rec" | "busy" | "result", view: "es" | "en", rec, busy, res }
+const REDO_SYSTEM = `You check a learner's retelling of a monologue in Rioplatense Spanish (Buenos Aires, voseo). Earlier he told this story, it was corrected, and he studied the corrected version. Now he told it again from memory. You receive the corrected version as numbered sentences, the mistakes he made the first time, and a speech-to-text transcript of the new telling.
+
+Output ONLY JSON Lines: one JSON object per line, no other text, no code fences.
+First, exactly one line per numbered sentence, in order:
+{"n": <number>, "estado": "bien" | "error" | "falta", "dijiste": "<his words for that idea, as transcribed, or empty>", "porteno": "<only for error: his sentence fixed, staying as close to his words as possible>", "por_que": "<only for error: one short sentence in English>", "repetido": true | false}
+"bien": the idea is there and it is natural, correct Rioplatense. Different wording from the corrected version is fine; do not ask for word-for-word recall. "error": the idea is there with a grammar mistake or phrasing a porteño wouldn't use. "falta": the idea is missing. "repetido": true when the error is the same as one of the earlier mistakes.
+Then, for sentences he added that are not in the corrected version and have a mistake, at most 6:
+{"extra": true, "dijiste": "<his words>", "porteno": "<fixed>", "por_que": "<one short sentence in English>"}
+Ignore fillers, false starts, self-corrections that end up right, and obvious transcription glitches (names, numbers).
+Last line: {"fin": true}`;
+
+function redoOpen(sid) { speechSynthesis?.cancel?.(); redo = { sid, phase: "study", view: "es" }; renderSessions(); $("scroller").scrollTo(0, 0); }
+function redoClose() { if (redo?.rec) redoStop(true); speechSynthesis?.cancel?.(); const sid = redo?.sid; redo = null; renderSessions();
+  const el = document.querySelector(`.session[data-sid="${sid}"]`); if (el) { el.classList.add("open"); el.scrollIntoView({ block: "start" }); } }
+function speakAll(list) {
+  if (!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel(); let i = 0;
+  const next = () => { if (i >= list.length || !redo || redo.phase !== "study") return; speak(list[i++]);
+    const u = speechSynthesis; const wait = setInterval(() => { if (!u.speaking && !u.pending) { clearInterval(wait); setTimeout(next, 350); } }, 200); };
+  next();
+}
+
+async function redoStart() {
+  if (!redo || redo.rec) return;
+  speechSynthesis?.cancel?.();
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: true } }); }
+  catch { alert("Necesito acceso al micrófono para grabar."); return; }
+  const m = pickMime(), chunks = [];
+  const recorder = new MediaRecorder(stream, m.mime ? { mimeType: m.mime, audioBitsPerSecond: 64000 } : undefined);
+  recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+  try { recorder.start(1000); }
+  catch (e) { stream.getTracks().forEach((t) => t.stop()); alert("No pude empezar a grabar. Probá de nuevo."); return; }
+  const r = { stream, recorder, chunks, ext: m.ext, mime: m.mime, started: Date.now(), wake: null };
+  try { navigator.wakeLock?.request("screen").then((w) => { if (redo?.rec === r) r.wake = w; else w.release(); }).catch(() => {}); } catch {}
+  redo.rec = r; redo.phase = "rec"; renderSessions();
+  r.timer = setInterval(() => { const c = $("rdClock"); if (c && redo?.rec === r) c.textContent = mmss((Date.now() - r.started) / 1000); }, 500);
+}
+function redoStop(discard = false) {
+  const r = redo?.rec; if (!r) return;
+  redo.rec = null; clearInterval(r.timer);
+  const secs = (Date.now() - r.started) / 1000;
+  const keep = !discard && secs >= MIN_FREE_SECS;
+  redo.phase = keep ? "busy" : "study"; redo.busy = "Transcribiendo…";
+  r.recorder.onstop = () => {
+    r.stream.getTracks().forEach((t) => t.stop());
+    try { r.wake?.release(); } catch {}
+    if (!keep || !redo) return renderSessions();
+    logAdd("h", Math.round(secs));
+    redoCheck(new Blob(r.chunks, { type: r.recorder.mimeType || r.mime || "audio/mp4" }), `rehacer-${stamp()}.${r.ext}`, secs);
+  };
+  if (r.recorder.state !== "inactive") r.recorder.stop(); else r.recorder.onstop();
+  renderSessions();
+}
+async function redoCheck(blob, name, secs) {
+  const me = redo, s = (DATA.sessions || []).find((x) => x.id === me.sid);
+  if (!aiReady()) { me.phase = "result"; me.res = { err: "Para que te corrija, agregá las claves de Claude y de transcripción en ⚙︎." }; return renderSessions(); }
+  const res = { by: {}, extra: [], secs };
+  try {
+    renderSessions();
+    const text = await transcribeNow(blob, name);
+    if (!text) throw new Error("EMPTY");
+    res.text = text;
+    me.busy = "Comparando con la versión corregida…"; if (redo === me) renderSessions();
+    const version = s.sentences.map((x, i) => `${i + 1}. ${x.spanish}`).join("\n");
+    const before = s.sentences.flatMap((x) => x.corrections.map((c) => `- "${c.wrong}" → "${c.right}"`)).join("\n") || "(none)";
+    await correctStream(`<version>\n${version}\n</version>\n<errores_de_antes>\n${before}\n</errores_de_antes>\n<transcript>\n${text}\n</transcript>`, (it) => {
+      if (it.extra && it.porteno) res.extra.push(it);
+      else if (it.n && it.estado) res.by[it.n] = it;
+    }, REDO_SYSTEM);
+  } catch (e) {
+    me.phase = "result"; me.res = { err: AI_ERRORS[e.message] || `Algo falló (${e.message}).` };
+    return redo === me && renderSessions();
+  }
+  const vals = Object.values(res.by);
+  res.err = vals.filter((x) => x.estado === "error").length + res.extra.length;
+  res.miss = s.sentences.filter((_, i) => !res.by[i + 1] || res.by[i + 1].estado === "falta").length;
+  res.rep = vals.filter((x) => x.estado === "error" && x.repetido).length;
+  const all = redoLog(); (all[me.sid] = all[me.sid] || []).push({ d: todayISO(), err: res.err, miss: res.miss, rep: res.rep, n: s.sentences.length, secs: Math.round(secs) });
+  store.set("redo", all);
+  me.phase = "result"; me.res = res;
+  if (redo === me) { renderSessions(); $("scroller").scrollTo(0, 0); }
+}
+
+function renderRedo(s) {
+  const tries = redoLog()[s.id] || [], last = tries[tries.length - 1];
+  const head = `<button class="mg-link" data-r="close">← Sesiones</button>
+    <div class="rd-title">${esc(s.title)}</div>
+    <div class="small muted">${fmtDate(s.date)} · ${s.sentences.length} frases${tries.length ? ` · ${tries.length} intento${tries.length === 1 ? "" : "s"}, mejor: ${Math.min(...tries.map((t) => t.err))} errores` : ""}</div>`;
+  const R = redo;
+  if (R.phase === "study") {
+    const body = R.view === "en"
+      ? `<p class="small muted">Solo la idea de cada frase. Probá decirla en castellano antes de mirar.</p><ol class="rd-list en">${s.sentences.map((x) => `<li>${esc(x.english)}</li>`).join("")}</ol>`
+      : `<p class="small muted">La versión corregida. Lo subrayado es lo que cambió respecto de lo que dijiste.</p><div class="rd-text">${s.sentences.map((x) => `<span class="rd-s">${x.corrections.length ? wordDiff(x.heard, x.spanish).fix : esc(x.spanish)}</span>`).join(" ")}</div>`;
+    const errs = s.sentences.flatMap((x) => x.corrections);
+    return `<div class="card rd">${head}
+      <div class="seg" style="--n:2;--i:${R.view === "en" ? 1 : 0}"><span class="thumb"></span><button data-r="view" data-v="es" aria-pressed="${R.view !== "en"}">Versión corregida</button><button data-r="view" data-v="en" aria-pressed="${R.view === "en"}">Solo la idea</button></div>
+      ${body}
+      <button class="btn secondary" data-r="listen" style="margin-top:14px">▶ Escuchar la versión</button>
+      ${errs.length ? `<details class="rd-errs"><summary>Tus ${errs.length} errores de la primera vez</summary>${errs.map((c) => `<div class="corr"><b>${esc(c.wrong)}</b> → <i>${esc(c.right)}</i> <span class="muted">· ${esc(c.why)}</span></div>`).join("")}</details>` : ""}
+    </div>
+    <div class="card"><div style="font-weight:650">Contalo de nuevo</div>
+      <p class="small muted" style="margin:4px 0 12px">El texto se esconde. Contá la misma historia de memoria; no hace falta palabra por palabra, pero sin los errores de antes.</p>
+      <button class="btn danger" data-r="rec">● Grabar</button></div>`;
+  }
+  if (R.phase === "rec") {
+    return `<div class="card rd">${head}
+      <div class="rd-recbox"><div class="rd-dot"></div><div id="rdClock" class="rd-clock">0:00</div><div class="small muted">Grabando. Contá la historia entera.</div></div>
+      <details class="rd-errs"><summary>Ayuda: la idea de cada frase</summary><ol class="rd-list en">${s.sentences.map((x) => `<li>${esc(x.english)}</li>`).join("")}</ol></details>
+      <div class="row" style="margin-top:14px"><button class="btn ghost" data-r="cancel">Cancelar</button><button class="btn" data-r="stop">Terminar y revisar</button></div></div>`;
+  }
+  if (R.phase === "busy") return `<div class="card rd">${head}<div class="rd-recbox"><div class="small muted">${esc(R.busy)}</div></div></div>`;
+  const res = R.res || {};
+  if (res.err && typeof res.err === "string") return `<div class="card rd">${head}<div class="notice" style="margin-top:12px">${esc(res.err)}</div>
+    <button class="btn secondary" data-r="again">Volver a la versión</button></div>`;
+  const prev = tries.length > 1 ? tries[tries.length - 2] : null;
+  const score = res.err === 0 ? `<div class="rd-score ok">Sin errores${res.miss ? `, pero te faltaron ${res.miss} ideas` : ""}.</div>`
+    : `<div class="rd-score">${res.err} error${res.err === 1 ? "" : "es"}${res.rep ? ` · ${res.rep} repetido${res.rep === 1 ? "" : "s"} de la primera vez` : ""}${res.miss ? ` · ${res.miss} ideas que faltaron` : ""}</div>`;
+  const trend = prev ? `<div class="small muted">La vez anterior: ${prev.err} errores${prev.miss ? `, ${prev.miss} ideas que faltaron` : ""}.</div>` : "";
+  const rows = s.sentences.map((x, i) => {
+    const it = res.by[i + 1] || { estado: "falta" };
+    if (it.estado === "bien") return `<div class="rd-row ok"><span class="rd-mark">✓</span><div>${esc(it.dijiste || x.spanish)}</div></div>`;
+    if (it.estado === "falta") return `<div class="rd-row miss"><span class="rd-mark">–</span><div><span class="small muted">Te faltó:</span> ${esc(x.spanish)}</div></div>`;
+    const d = wordDiff(it.dijiste || "", it.porteno || x.spanish);
+    return `<div class="rd-row bad"><span class="rd-mark">✗</span><div><div class="ix-said">${d.said}</div><div class="rd-fix">${d.fix}</div>
+      <div class="small muted">${esc(it.por_que || "")}${it.repetido ? ` <span class="tag warn">otra vez</span>` : ""}</div></div></div>`;
+  }).join("");
+  const extra = res.extra.map((it) => { const d = wordDiff(it.dijiste || "", it.porteno); return `<div class="rd-row bad"><span class="rd-mark">✗</span><div><div class="ix-said">${d.said}</div><div class="rd-fix">${d.fix}</div><div class="small muted">${esc(it.por_que || "")}</div></div></div>`; }).join("");
+  return `<div class="card rd">${head}${score}${trend}<div class="rd-rows">${rows}</div>
+    ${extra ? `<h2 style="margin-left:0">Lo que agregaste</h2><div class="rd-rows">${extra}</div>` : ""}
+    <details class="rd-errs"><summary>Lo que entendí</summary><p style="white-space:pre-line">${esc(res.text || "")}</p></details></div>
+    <div class="row"><button class="btn secondary" data-r="again">Estudiar y otra vez</button><button class="btn" data-r="rec">Otra vez ya</button></div>`;
+}
+
 function renderSessions() {
+  const cur = redo && (DATA.sessions || []).find((s) => s.id === redo.sid);
+  if (cur) { $("sessions").innerHTML = renderRedo(cur); return; }
+  if (redo) redo = null;
   const ss = (DATA.sessions || []).slice().reverse();
   const tipsFor = (s, x) => (s.tips || []).filter((t) => t.sentence === x.spanish);
   if (!ss.length) { $("sessions").innerHTML = emptyState("Todavía no hay sesiones."); return; }
   $("sessions").innerHTML = paceChart(DATA.sessions) + ss.map((s) => {
     const errs = s.sentences.reduce((n, x) => n + x.corrections.length, 0);
-    return `<div class="card session"><button data-a="toggle">
-      <div><div style="font-weight:650">${esc(s.title)}${s.rounds.length ? `<span class="tag">4/3/2</span>` : ""}${s.source === "english" ? `<span class="tag">inglés</span>` : ""}${s.source === "situation" ? `<span class="tag">situación</span>` : ""}${s.pending ? `<span class="tag">en espera</span>` : ""}</div>
+    return `<div class="card session" data-sid="${esc(s.id)}"><button data-a="toggle">
+      <div><div style="font-weight:650">${esc(s.title)}${s.rounds.length ? `<span class="tag">4/3/2</span>` : ""}${s.source === "english" ? `<span class="tag">inglés</span>` : ""}${s.source === "situation" ? `<span class="tag">situación</span>` : ""}${s.pending ? `<span class="tag">en espera</span>` : ""}${redoSummary(s.id)}</div>
         <div class="small muted">${fmtDate(s.date)} · ${s.sentences.length} frases · ${errs} correcciones${s.tips?.length ? ` · ${s.tips.length} del arsenal` : ""}</div>
         ${s.rounds.length ? `<div class="pace">${s.rounds.map((r) => `${r.wpm}`).join(" → ")} palabras/min</div>` : ""}</div>
       <span class="chev">›</span></button>
-      <div class="detail">${s.sentences.map((x, i, a) => `<div class="sent">${x.role && x.role !== a[i - 1]?.role ? `<div class="role">${ROLE[x.role]}</div>` : ""}<div class="es">${esc(x.spanish)}</div>
+      <div class="detail">${canRedo(s) ? `<button class="btn secondary" data-a="redo" style="margin-bottom:6px">Rehacer este monólogo</button>` : ""}${s.sentences.map((x, i, a) => `<div class="sent">${x.role && x.role !== a[i - 1]?.role ? `<div class="role">${ROLE[x.role]}</div>` : ""}<div class="es">${esc(x.spanish)}</div>
         <div class="small muted">${esc(x.english)}</div>
         ${x.chunks?.length ? `<div class="chips">${x.chunks.map((c) => `<span>${esc(c.spanish)}</span>`).join("")}</div>` : ""}
         ${x.corrections.length ? `<div class="heard">Dijiste: “${wordDiff(x.heard, x.spanish).said}”</div>` + x.corrections.map((c) =>
@@ -2199,6 +2365,19 @@ function renderSessions() {
   }).join("");
 }
 $("sessions").addEventListener("click", (ev) => {
+  const r = ev.target.closest("[data-r]");
+  if (r && redo) {
+    const s = (DATA.sessions || []).find((x) => x.id === redo.sid), a = r.dataset.r;
+    if (a === "close") redoClose();
+    else if (a === "view") { redo.view = r.dataset.v; renderSessions(); }
+    else if (a === "listen") speakAll(s.sentences.map((x) => x.spanish));
+    else if (a === "rec") redoStart();
+    else if (a === "stop") redoStop(false);
+    else if (a === "cancel") redoStop(true);
+    else if (a === "again") { redo.phase = "study"; redo.res = null; renderSessions(); $("scroller").scrollTo(0, 0); }
+    return;
+  }
+  const d = ev.target.closest("[data-a=redo]"); if (d) return redoOpen(d.closest(".session").dataset.sid);
   const b = ev.target.closest("[data-a=toggle]"); if (b) b.parentElement.classList.toggle("open");
 });
 
