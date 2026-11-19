@@ -127,6 +127,8 @@ h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: 
 .ep-wrap { display: flex; align-items: center; border-radius: 14px; }
 .ep-wrap.now { background: var(--accent-soft); }
 .ep-wrap .ep { flex: 1; min-width: 0; }
+a.ep { color: inherit; text-decoration: none; }
+a.ep[data-vid] .t div:first-child { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 18px; line-height: 1.25; }
 .ep-wrap .ep.now { background: none; }
 .qbtn { flex: none; min-width: 40px; height: 40px; margin-right: 4px; border-radius: 20px; color: var(--accent); display: grid; place-items: center; font-size: 13px; font-weight: 700; }
 .qbtn svg { width: 20px; height: 20px; }
@@ -271,7 +273,10 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 #instant .ix-page { display: grid; grid-template-columns: minmax(0, 1fr) 84px; margin-top: 16px; border-top: 1px solid #16181D; }
 #instant .ix-main { padding: 16px 12px 16px 0; border-right: 1px solid #0A60D0; border-bottom: 1px solid #D9DCE2; display: flex; flex-direction: column; gap: 6px; }
 #instant .ix-note { padding: 16px 0 16px 10px; border-bottom: 1px solid #D9DCE2; font-family: Newsreader, Georgia, serif; font-style: italic; font-size: 16px; color: #0A60D0; }
-#instant .ix-said { font-size: 16px; color: #3A3F4A; text-decoration: line-through; text-decoration-color: #0A60D0; text-decoration-thickness: 1.5px; }
+#instant .ix-said { font-size: 16px; color: #3A3F4A; }
+/* Only the words that changed: struck in what you said, underlined in the fix */
+s.del { text-decoration: line-through; text-decoration-color: #B3261E; text-decoration-thickness: 2px; color: #B3261E; }
+u.ins { text-decoration: underline; text-decoration-color: #0A60D0; text-decoration-thickness: 2px; text-underline-offset: 3px; }
 #instant .ix-es { font-family: Newsreader, Georgia, serif; font-size: 22px; line-height: 1.25; color: #16181D; }
 #instant .ix-why { font-size: 15px; line-height: 1.4; color: #3A3F4A; }
 #instant .ix-err { font-size: 16px; line-height: 1.45; color: #16181D; border: 1.5px solid #16181D; border-radius: 12px; padding: 14px; margin-top: 14px; }
@@ -300,6 +305,16 @@ dialog input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 0; 
 :is(#hora, #hoy) .mg-rule { font-size: 15px; color: #3A3F4A; margin-top: 12px; }
 :is(#hora, #hoy) .mg-bar { height: 10px; background: #16181D; border-radius: 2px; min-width: 2px; }
 :is(#hora, #hoy) .mg-num { font-variant-numeric: tabular-nums; }
+/* Repaso: back to the overview + jump between blocks, pause, and recording inside Usar */
+#hora .mg-bar-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: -6px 0 8px; flex-wrap: wrap; }
+#hora .mg-bar-nav button.mg-link { padding: 0; }
+#hora .mg-tabs { display: flex; gap: 3px; background: #F1F2F4; border-radius: 10px; padding: 3px; }
+#hora .mg-tabs button { font: inherit; font-size: 14px; font-weight: 600; padding: 0 10px; min-height: 38px; border: 1px solid transparent; border-radius: 8px; background: none; color: #16181D; }
+#hora .mg-tabs button.on { background: #fff; border-color: #16181D; }
+#hora .mg-tabs button:disabled { color: #9AA0AA; }
+#hora .mg-pause { font: inherit; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: #0A60D0; background: none; border: 0; padding: 0 0 0 2px; min-height: 36px; }
+#hora .mg-rec { display: flex; align-items: center; gap: 10px; margin-top: 18px; font-size: 18px; font-weight: 600; color: #B3261E; }
+#hora details summary { cursor: pointer; }
 :is(#hora, #hoy) a.mg-vid { text-decoration: none; display: block; }
 :is(#hora, #hoy) a.mg-vid .mg-row { font-size: 19px; line-height: 1.25; display: block; }
 :is(#hora, #hoy) a.mg-link { font-size: 15px; color: #16181D; text-decoration: underline; min-height: 44px; display: inline-flex; align-items: center; padding: 0 4px; }
@@ -489,7 +504,7 @@ dialog input { background: #fff; border: 1px solid var(--line); }
 <dialog id="settings">
   <form method="dialog">
     <strong style="font-size:19px">Conexión</strong>
-    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v20</p>
+    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v21</p>
     <label for="sRepo">Repositorio (dueño/nombre)</label>
     <input id="sRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dueño/repositorio">
     <label for="sToken">Token de GitHub</label>
@@ -534,6 +549,37 @@ const todayISO = () => new Date().toLocaleDateString("sv-SE");
 const dayDiff = (a, b) => Math.round((Date.parse(b + "T00:00:00Z") - Date.parse(a + "T00:00:00Z")) / 86400000);
 const mmss = (s) => { s = Math.max(0, Math.round(s || 0)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
 const fmtDate = (iso) => new Date(iso + "T12:00:00").toLocaleDateString("es-AR", { day: "numeric", month: "short" });
+
+/* Word-level diff between what you said and the fix: only the words that changed get marked.
+   Returns { said, fix } as HTML: removed words struck in "said", new words underlined in "fix".
+   Words of the fix outside the stretch you actually said (when "said" is a fragment) stay plain. */
+function wordDiff(said, fix) {
+  const A = String(said || "").split(/\s+/).filter(Boolean), B = String(fix || "").split(/\s+/).filter(Boolean);
+  const norm = (w) => w.toLowerCase().replace(/[¿?¡!.,;:"“”«»()…]/g, "");
+  const a = A.map(norm), b = B.map(norm), n = a.length, m = b.length;
+  const L = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--)
+    L[i][j] = a[i] && a[i] === b[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  const keepA = new Array(n).fill(false), keepB = new Array(m).fill(false);
+  for (let i = 0, j = 0; i < n && j < m;) {
+    if (a[i] && a[i] === b[j]) { keepA[i] = keepB[j] = true; i++; j++; }
+    else if (L[i + 1][j] >= L[i][j + 1]) i++; else j++;
+  }
+  // When "said" is only a fragment of the fixed sentence, underline new words only between the first and
+  // last shared word, so the rest of the sentence (which you never said) isn't marked as a correction.
+  const fragment = n < m * 0.6, first = keepB.indexOf(true), last = keepB.lastIndexOf(true);
+  const wrap = (words, keep, tag, inRange) => {
+    let html = "", run = [];
+    const flush = () => { if (run.length) { html += `<${tag} class="${tag === "s" ? "del" : "ins"}">${esc(run.join(" "))}</${tag}> `; run = []; } };
+    words.forEach((w, i) => { if (!keep[i] && inRange(i)) run.push(w); else { flush(); html += esc(w) + " "; } });
+    flush();
+    return html.trim();
+  };
+  return {
+    said: wrap(A, keepA, "s", () => true),
+    fix: wrap(B, keepB, "u", (j) => !fragment || first < 0 || (j > first && j < last)),
+  };
+}
 
 /* ---------- GitHub connection ---------- */
 const conn = () => ({ repo: store.get("repo", ""), token: store.get("token", "") });
@@ -896,7 +942,8 @@ async function transcribeNow(blob, name) {
   throw new Error(last);
 }
 
-async function correctStream(text, onItem) {
+// With the default prompt the text is a transcript; with another prompt it is sent as given.
+async function correctStream(text, onItem, system = AI_SYSTEM) {
   let res, last = "AI_ERROR";
   for (const model of AI_MODELS) {
     try {
@@ -904,8 +951,8 @@ async function correctStream(text, onItem) {
         method: "POST",
         headers: { "x-api-key": aiKeys().claude, "anthropic-version": "2023-06-01", "content-type": "application/json",
           "anthropic-dangerous-direct-browser-access": "true" },
-        body: JSON.stringify({ model, max_tokens: 4000, stream: true, system: AI_SYSTEM,
-          messages: [{ role: "user", content: `<transcript>\n${text}\n</transcript>` }] }),
+        body: JSON.stringify({ model, max_tokens: 4000, stream: true, system,
+          messages: [{ role: "user", content: system === AI_SYSTEM ? `<transcript>\n${text}\n</transcript>` : text }] }),
       });
     } catch { throw new Error("AI_BLOCKED"); }
     if (res.ok) break;
@@ -982,8 +1029,9 @@ async function instantCorrect(takes) {
       if (!it.porteno) return;
       if (tFirst === null) { tFirst = since(); $("ixTime").textContent = `Transcripción: ${tStt} s · primera corrección: ${tFirst} s`; }
       const tipo = it.tipo === "gramática" ? "gramática" : "fraseo"; n[tipo]++;
+      const d = wordDiff(it.dijiste || "", it.porteno);
       $("ixPage").insertAdjacentHTML("beforeend",
-        `<div class="ix-main"><div class="ix-said">${esc(it.dijiste || "")}</div><div class="ix-es">${esc(it.porteno)}</div><div class="ix-why">${esc(it.por_que || "")}</div></div><div class="ix-note">${tipo}</div>`);
+        `<div class="ix-main"><div class="ix-said">${d.said}</div><div class="ix-es">${d.fix}</div><div class="ix-why">${esc(it.por_que || "")}</div></div><div class="ix-note">${tipo}</div>`);
     });
   } catch (e) { return fail(e); }
   const total = n.fraseo + n["gramática"];
@@ -1006,9 +1054,19 @@ function epParts(e) {
   return { title: title || (e.kind === "review" ? "Repaso del día" : e.title), extra: extra[0] || "" };
 }
 // Everything here is Spanish only: today's Repaso, your sessions, and the weekly islands.
+// Videos from your YouTube channels, on top of Escuchar. Tapping one opens it and starts the Escucha clock (in Hoy).
+function videosSection() {
+  const vs = vNext(8);
+  if (!vs.length) return VIDEOS.length ? "" : `<h2>Videos de tus canales</h2><div class="card muted small">Todavía no bajaron los videos. Aparecen cuando el Mac actualiza (cada hora).</div>`;
+  return `<h2>Videos de tus canales</h2><div class="card list">${vs.map((v) => `<div class="ep-wrap">
+    <a class="ep" data-vid="${esc(v.id)}" href="https://www.youtube.com/watch?v=${encodeURIComponent(v.id)}" target="_blank" rel="noopener">
+      <span class="ep-ic immersion">${ICON_EP.immersion}</span>
+      <div class="t"><div>${esc(v.t)}</div><div class="small muted">${esc(v.c)} · ${vAge(v.p)}</div></div></a>
+    <button class="qbtn" data-vskip="${esc(v.id)}" aria-label="No me interesa">×</button></div>`).join("")}</div>`;
+}
 function renderEpisodes() {
   const eps = (DATA.episodes || []).map((e, i) => ({ e, i, kind: e.kind })).filter((x) => KIND[x.kind]);
-  if (!eps.length) { $("episodes").innerHTML = emptyState("Todavía no hay episodios."); return; }
+  if (!eps.length) { $("episodes").innerHTML = videosSection() + emptyState("Todavía no hay episodios."); return; }
   const played = store.get("played", {});
   const row = ({ e, i, kind }) => {
     const { title, extra } = epParts(e);
@@ -1032,7 +1090,7 @@ function renderEpisodes() {
   const ars = (DATA.arsenal || []).map((g) => g.guid); for (const g of ars) SECTION_OF.set(g, ars);
   const byGuid = new Map(eps.map((x) => [x.e.guid, x]));
   const queued = queue().map((g) => byGuid.get(g)).filter(Boolean);
-  $("episodes").innerHTML =
+  $("episodes").innerHTML = videosSection() +
       (queued.length ? `<h2>En cola</h2><div class="card list">${queued.map(row).join("")}</div>` : "")
     + section("Repaso del día", groups[0])
     + section("Mis grabaciones", groups[1])
@@ -1065,6 +1123,15 @@ function topicsSection(list, row) {
   return `<h2>Temas</h2>${note}<div class="topics">${chips}</div>` + (list.length ? `<div class="card list" style="margin-top:10px">${list.map(row).join("")}</div>` : "");
 }
 $("episodes").addEventListener("click", async (ev) => {
+  const vid = ev.target.closest("[data-vid]");
+  if (vid) { // the link itself opens YouTube; the app starts counting and waits on Hoy → Escucha for "Terminé"
+    const v = VIDEOS.find((x) => x.id === vid.dataset.vid);
+    store.set("esc", { start: Date.now(), vid: vid.dataset.vid, t: v ? v.t : "" });
+    setTimeout(() => { hoyScreen = "escucha"; goView("hoy"); renderHoy(); }, 400);
+    return;
+  }
+  const skip = ev.target.closest("[data-vskip]");
+  if (skip) { vMark(skip.dataset.vskip, "skip"); renderEpisodes(); return; }
   const chip = ev.target.closest("[data-topic]");
   if (chip) {
     const slug = chip.dataset.topic; chip.disabled = true;
@@ -1203,7 +1270,8 @@ async function loadNucleo() {
   try {
     const cached = await kv.get("nucleo");
     if (cached && !NUCLEO.length) { NUCLEO = cached.frames || []; try { horaRender(); } catch {} }
-    if (!connected() || DEMO) return;
+    if (DEMO) { try { NUCLEO = (await (await fetch("demo-nucleo.json", { cache: "no-store" })).json()).frames || []; horaRender(); } catch {} return; }
+    if (!connected()) return;
     const { repo, token } = conn();
     const res = await fetch(`https://api.github.com/repos/${repo}/contents/nucleo.json`, {
       headers: { Authorization: `Bearer ${token}`, "X-GitHub-Api-Version": "2022-11-28", Accept: "application/vnd.github.raw+json",
@@ -1223,8 +1291,9 @@ let VIDEOS = [];
 async function loadVideos() {
   try {
     const cached = await kv.get("videos");
-    if (cached && !VIDEOS.length) { VIDEOS = cached.videos || []; try { renderHoy(); } catch {} }
-    if (!connected() || DEMO) return;
+    if (cached && !VIDEOS.length) { VIDEOS = cached.videos || []; try { renderHoy(); renderEpisodes(); } catch {} }
+    if (DEMO) { VIDEOS = (await (await fetch("demo-videos.json", { cache: "no-store" })).json()).videos || []; renderHoy(); renderEpisodes(); return; }
+    if (!connected()) return;
     const { repo, token } = conn();
     const res = await fetch(`https://api.github.com/repos/${repo}/contents/videos.json`, {
       headers: { Authorization: `Bearer ${token}`, "X-GitHub-Api-Version": "2022-11-28", Accept: "application/vnd.github.raw+json",
@@ -1236,7 +1305,7 @@ async function loadVideos() {
     const data = { ...(await res.json()), etag: res.headers.get("ETag") };
     VIDEOS = data.videos || [];
     await kv.set("videos", data);
-    try { renderHoy(); } catch {}
+    try { renderHoy(); renderEpisodes(); } catch {}
   } catch (e) { console.warn("videos", e); }
 }
 // Next videos to watch: not seen or skipped, Rioplatense channels first, newest first, at most 2 per channel.
@@ -1442,7 +1511,7 @@ function renderRecall() {
           ${c.why ? `<div class="why">${esc(c.why)}</div>` : ""}
           <div><button class="speak" data-a="speak">▶︎ Escuchar</button></div>
           ${norm(c.ctx) !== norm(c.es) ? `<div class="ctx">${ctxHtml(c.ctx, c.es)}</div>` : ""}
-          ${info?.corrections.length ? `<div class="fix"><div class="heard">Dijiste: “${esc(info.heard)}”</div>
+          ${info?.corrections.length ? `<div class="fix"><div class="heard">Dijiste: “${wordDiff(info.heard, info.spanish).said}”</div>
             ${info.corrections.map((x) => `<div class="corr"><b>${esc(x.wrong)}</b> → <i>${esc(x.right)}</i> <span class="muted">· ${esc(x.why)}</span></div>`).join("")}</div>` : ""}
           <div class="src">${c.src === "library" || c.src === "topic" ? `${esc(c.cat)} · ${esc(c.tab)}` : info && !info.corrections.length && DATA.sessions.find((x) => x.id === c.sid)?.source === "english" ? `Lo dijiste en inglés: “${esc(info.heard)}”` : "De tus grabaciones"}${c.lapses ? ` · fallada ${c.lapses}×` : ""}</div>`
           : `<div class="muted small" style="margin-top:24px">Decilo en voz alta · tocá para ver</div>`}
@@ -1525,8 +1594,14 @@ function speak(text) {
 /* ---------- La hora de repaso (beta): full sentences, three fenced blocks ---------- */
 const H_BLOCKS = { ancho: { name: "Ancho", mins: 25 }, fijar: { name: "Fijar", mins: 15 }, usar: { name: "Usar", mins: 20 } };
 const H_NEW_PER_DAY = 15, H_FIJAR_MAX = 10, H_FIJAR_TRIES = 2;
-let hShown = false, hOld = false;
-const hState = () => { const st = store.get("hora", null); return st && st.d === todayISO() && st.v === 2 ? st : { d: todayISO(), block: "intro", v: 2 }; };
+let hShown = false, hOld = false, hMenu = false;
+const hState = () => {
+  const st = store.get("hora", null);
+  if (!(st && st.d === todayISO() && st.v === 2)) return { d: todayISO(), block: "intro", v: 2 };
+  // Usar used to run on the wall clock (usarEnds); it now counts down like the other blocks.
+  if (st.block === "usar" && st.usarEnds) { st.left = Math.max(0, Math.round((st.usarEnds - Date.now()) / 1000)); delete st.usarEnds; }
+  return st;
+};
 
 /* Núcleo: ranked phrasing frames, each drilled through sibling sentences. A frame never shows the same
    sentence twice in a row, so what gets tested is the phrasing, not a memorized string. */
@@ -1616,15 +1691,31 @@ function hMark(sentence, chunks) {
   return html + esc(sentence.slice(at));
 }
 function hStartBlock(st, block) {
-  st.block = block; hShown = false;
+  if (st.block in H_BLOCKS && st.left != null) (st.saved = st.saved || {})[st.block] = st.left; // time left in the block you leave
+  st.block = block; hShown = false; st.paused = false; hMenu = false;
   if (block === "ancho") { st.queue = hBuildQueue(); st.pos = 0; st.misses = []; st.casi = []; st.nc = 0; st.ok = 0; st.n = 0; st.left = H_BLOCKS.ancho.mins * 60; }
   if (block === "fijar") {
     st.fq = [...(st.misses || []), ...(st.casi || [])].slice(0, H_FIJAR_MAX); st.fn = st.fq.length; st.tries = {}; st.fixed = 0; st.left = H_BLOCKS.fijar.mins * 60;
     if (!st.fq.length) return hStartBlock(st, "usar");
   }
-  if (block === "usar") { st.usarEnds = Date.now() + H_BLOCKS.usar.mins * 60000; st.answers = st.answers || 0; }
+  if (block === "usar") { st.left = H_BLOCKS.usar.mins * 60; st.answers = st.answers || 0; st.used = st.used || {}; st.usarPh = hUsarPhrases(st); delete st.usarEnds; }
   hSave(st);
 }
+// Jump between blocks from the bar at the top: a block you already started picks up where you left it.
+function hGoBlock(block) {
+  const st = hState(); hMenu = false;
+  if (block === st.block) { hSave(st); return horaRender(); }
+  const saved = (st.saved || {})[block];
+  const resumable = block === "ancho" ? st.queue && st.pos < st.queue.length
+    : block === "fijar" ? st.fq && st.fq.length
+    : block === "usar" ? st.usarPh && st.usarPh.length : false;
+  if (resumable && saved > 0) {
+    if (st.block in H_BLOCKS && st.left != null) (st.saved = st.saved || {})[st.block] = st.left;
+    st.block = block; st.left = saved; st.paused = false; hShown = false; hSave(st);
+  } else hStartBlock(st, block);
+  horaRender();
+}
+const hFijarCount = (st) => (st.block === "fijar" ? (st.fq || []).length : [...(st.misses || []), ...(st.casi || [])].slice(0, H_FIJAR_MAX).length);
 function hCurrent(st) {
   const map = hSentences();
   if (st.block === "ancho") { while (st.pos < st.queue.length && !hGet(st.queue[st.pos], map)) st.pos++; return hGet(st.queue[st.pos], map); }
@@ -1649,12 +1740,135 @@ function hGrade(kind) { // "ok" | "casi" | "miss"
   }
   hSave(st); horaRender();
 }
-function hUsarPhrases(st) {
+// The phrases to use in Usar: today's misses first, then "casi", then Núcleo frames and other cards you saw.
+// Phrases you already used well today are skipped, so "Otras frases" brings new ones. [{ es, key }]
+function hUsarPhrases(st, skip = []) {
   const map = hSentences(), seen = (st.queue || []).slice(0, st.pos || 0), out = [];
   const keys = [...(st.misses || []), ...(st.casi || []), ...seen.filter((k) => k.startsWith("nu:")), ...seen];
-  for (const k of keys) { const s = hGet(k, map); if (!s) continue; const es = s.nu ? s.nu.short : s.cards[0].es; if (!out.includes(es)) out.push(es); if (out.length >= 5) break; }
+  if (!keys.length) keys.push(...hBuildQueue().slice(0, 12));
+  for (const k of keys) {
+    const s = hGet(k, map); if (!s) continue;
+    const es = s.nu ? s.nu.label : s.cards[0].es, en = s.nu ? s.nu.en : s.cards[0].en || "";
+    if (out.some((x) => x.es === es) || skip.includes(es) || (st.used || {})[es] === "sí") continue;
+    out.push({ es, en, key: k }); if (out.length >= 5) break;
+  }
   return out;
 }
+// The list stays fixed until you ask for "Otras frases", so a phrase you just used doesn't vanish from it.
+function hPhrases(st) {
+  if (!(st.usarPh && st.usarPh.length)) { st.usarPh = hUsarPhrases(st); hSave(st); }
+  return st.usarPh;
+}
+/* Usar: record an answer right here in Repaso, see which of the phrases you used, and get it corrected. */
+let hRec = null, hBusy = "", hLast = null;
+const USAR_SYSTEM = `You check a learner's short spoken answer in Rioplatense Spanish (Buenos Aires, voseo). You receive a numbered list of target phrases and a speech-to-text transcript of the answer.
+
+Output ONLY JSON Lines: one JSON object per line, no other text, no code fences.
+First, exactly one line per target phrase, in the order given:
+{"frase": "<the target phrase exactly as given, without the meaning in parentheses>", "uso": "sí" | "casi" | "no", "cita": "<the learner's words where they used it, as transcribed, or empty>"}
+"sí": used with the right meaning and a correct form (conjugating it, changing the person or adding words around it is fine). "casi": attempted, but with a mistake inside the phrase. "no": not used.
+Then one line for each sentence a porteño would say differently, in the order spoken, at most 8:
+{"dijiste": "<the learner's own words for that sentence, as transcribed>", "porteno": "<the whole sentence the way a porteño would naturally say it>", "por_que": "<one short sentence in English>", "tipo": "fraseo" or "gramática"}
+Skip sentences that are already natural. Ignore fillers, false starts and obvious transcription glitches. Keep the learner's meaning.
+Last line: {"fin": true}`;
+
+async function hRecStart() {
+  if (hRec || hBusy) return;
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: true } }); }
+  catch { alert("Necesito acceso al micrófono para grabar."); return; }
+  const m = pickMime(), chunks = [];
+  const recorder = new MediaRecorder(stream, m.mime ? { mimeType: m.mime, audioBitsPerSecond: 64000 } : undefined);
+  recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+  const st = hState(); st.paused = false; hSave(st);
+  try { recorder.start(1000); }
+  catch (e) { stream.getTracks().forEach((t) => t.stop()); dbg("Usar: no pude empezar a grabar: " + e.message); alert("No pude empezar a grabar. Probá de nuevo."); return; }
+  hRec = { stream, recorder, chunks, wake: null, ext: m.ext, mime: m.mime, id: stamp(), started: Date.now(), phrases: hPhrases(st).slice() };
+  // Keep the screen on, without waiting for it: the request can hang, and the recorder must show at once.
+  const r0 = hRec; try { navigator.wakeLock?.request("screen").then((w) => { if (hRec === r0) r0.wake = w; else w.release(); }).catch(() => {}); } catch {}
+  hLast = null;
+  dbg("Usar: grabando respuesta");
+  horaRender();
+  hRec.timer = setInterval(() => { const c = $("hRecClock"); if (c && hRec) c.textContent = mmss((Date.now() - hRec.started) / 1000); }, 500);
+}
+
+function hRecStop(discard = false) {
+  const r = hRec; if (!r) return;
+  hRec = null; clearInterval(r.timer);
+  const secs = (Date.now() - r.started) / 1000, short = secs < MIN_FREE_SECS;
+  hBusy = discard || short ? "" : "Subiendo…";
+  r.recorder.onstop = () => {
+    r.stream.getTracks().forEach((t) => t.stop());
+    try { r.wake?.release(); } catch {}
+    if (discard || short) { dbg(`Usar: respuesta descartada (${Math.round(secs)} s)`); hBusy = ""; return horaRender(); }
+    const blob = new Blob(r.chunks, { type: r.recorder.mimeType || r.mime || "audio/mp4" });
+    hCheckAnswer(blob, `libre-${r.id}.${r.ext}`, r.phrases);
+  };
+  if (r.recorder.state !== "inactive") r.recorder.stop(); else r.recorder.onstop();
+  horaRender();
+}
+
+async function hCheckAnswer(blob, name, phrases) {
+  const st0 = hState(); st0.answers = (st0.answers || 0) + 1; hSave(st0);
+  // The recording also goes to the Mac like any monologue: it becomes a session with its own corrections.
+  try { const item = { name, blob }; await q("readwrite", (s) => s.put(item)); if (connected()) uploadOne(item); }
+  catch (e) { dbg("no pude guardar la respuesta: " + (e && e.message)); }
+  if (!aiReady()) {
+    hBusy = ""; hLast = { note: "Se subió. Para ver acá qué frases usaste y las correcciones, agregá las claves de Claude y de transcripción en ⚙︎." };
+    return horaRender();
+  }
+  const res = { used: {}, quotes: {}, items: [] };
+  try {
+    hBusy = "Transcribiendo…"; horaRender();
+    const text = await transcribeNow(blob, name);
+    if (!text) throw new Error("EMPTY");
+    res.text = text;
+    hBusy = "Revisando qué frases usaste…"; horaRender();
+    const list = phrases.map((p, i) => `${i + 1}. ${p.es}${p.en ? ` (means: ${p.en})` : ""}`).join("\n");
+    await correctStream(`<frases>\n${list}\n</frases>\n<transcript>\n${text}\n</transcript>`, (it) => {
+      if (it.frase) {
+        const p = phrases.find((x) => x.es === it.frase) || phrases.find((x) => fold(x.es) === fold(it.frase));
+        if (p) { res.used[p.es] = it.uso; res.quotes[p.es] = it.cita || ""; }
+      } else if (it.porteno) res.items.push(it);
+    }, USAR_SYSTEM);
+  } catch (e) {
+    hBusy = ""; hLast = { err: (AI_ERRORS[e.message] || `Algo falló (${e.message}).`) + " La grabación igual se subió." };
+    return horaRender();
+  }
+  // Grades: used well = "la sabía", almost = "casi". A phrase you didn't use isn't graded; it stays on the list.
+  const st = hState(), map = hSentences(), rank = { "sí": 2, casi: 1, no: 0 };
+  st.used = st.used || {};
+  for (const p of phrases) {
+    const u = res.used[p.es]; if (u !== "sí" && u !== "casi") continue;
+    const s = hGet(p.key, map);
+    if (s) { if (s.nu) nuGrade(s.nu, u === "sí" ? "ok" : "casi", s.idx); for (const c of s.cards) grade(c, true, u === "casi" ? "casi" : undefined); }
+    if ((rank[u] || 0) > (rank[st.used[p.es]] || 0)) st.used[p.es] = u;
+  }
+  hSave(st); flushResults();
+  dbg(`Usar: ${Object.values(res.used).filter((u) => u === "sí").length} frases usadas, ${res.items.length} correcciones`);
+  hBusy = ""; hLast = res; horaRender();
+}
+
+/* The bar on top of every block: back to the overview, and jump to any block. */
+function hBar(st) {
+  const n = hFijarCount(st);
+  return `<div class="mg-bar-nav"><button class="mg-link" data-h="menu">← Resumen</button>
+    <div class="mg-tabs">${Object.entries(H_BLOCKS).map(([k, b]) => `<button data-h="go" data-b="${k}" class="${st.block === k ? "on" : ""}" ${hRec || hBusy ? "disabled" : ""}>${b.name}${k === "fijar" && n ? ` · ${n}` : ""}</button>`).join("")}</div></div>`;
+}
+function hClockText(st) {
+  if (st.paused) return "en pausa";
+  if (st.left > 0) return `quedan ${mmss(st.left)}`;
+  return st.block === "usar" ? "tiempo cumplido" : "tiempo: última tarjeta";
+}
+function hTop(st, name) {
+  return `<div class="mg-top"><span>${name}</span><span><span id="hClock">${hClockText(st)}</span>${hRec || hBusy ? "" : ` · <button class="mg-pause" data-h="${st.paused ? "resume" : "pause"}">${st.paused ? "Seguir" : "Pausa"}</button>`}</span></div>`;
+}
+function hPausedHtml(st) {
+  return `<div class="mg-page"><div class="mg-main"><div class="mg-row">En pausa</div><div class="mg-why">El reloj está quieto. Quedan ${mmss(Math.max(0, st.left))} de ${H_BLOCKS[st.block].name}.</div></div><div class="mg-note"></div></div>
+    <div class="mg-btns"><button class="mg-b pri wide" data-h="resume">Seguir</button></div>`;
+}
+const hLeftOf = (st, k) => (k === st.block ? st.left : (st.saved || {})[k]);
+
 function horaRender() {
   const el = $("hora"); if (!el) return;
   el.hidden = hOld; $("recall").hidden = !hOld; $("horaBack").hidden = !hOld;
@@ -1673,21 +1887,37 @@ function horaRender() {
       <div class="mg-page">
         <div class="mg-main"><div class="mg-row">Ancho</div><div class="mg-why">Muchas frases, un intento cada una, sin volver atrás.</div></div><div class="mg-note">25 min</div>
         <div class="mg-main"><div class="mg-row">Fijar</div><div class="mg-why">Las que no salieron hoy y después las "casi". Como mucho ${H_FIJAR_MAX}, dos intentos más.</div></div><div class="mg-note">15 min</div>
-        <div class="mg-main"><div class="mg-row">Usar</div><div class="mg-why">Respuestas cortas en voz alta con las frases de hoy, corregidas al instante.</div></div><div class="mg-note">20 min</div>
+        <div class="mg-main"><div class="mg-row">Usar</div><div class="mg-why">Respuestas cortas en voz alta con las frases de hoy, grabadas acá mismo y corregidas al instante.</div></div><div class="mg-note">20 min</div>
       </div>
       <div class="mg-btns"><button class="mg-b pri wide" data-h="start">${n ? "Empezar" : "Ir a Usar"}</button></div>
       <button class="mg-link" data-h="old">Ver los mazos de antes</button>`;
     return;
   }
+  if (hMenu && B) {
+    const row = (k) => {
+      const left = hLeftOf(st, k), mins = H_BLOCKS[k].mins * 60;
+      const sub = k === "ancho" ? (st.queue ? `${st.n || 0} hechas${st.queue.length > st.pos ? ` · quedan ${st.queue.length - st.pos} frases` : " · todas hechas"}` : "sin empezar")
+        : k === "fijar" ? (st.fn ? `${st.fixed || 0} de ${st.fn} recuperadas` : hFijarCount(st) ? `${hFijarCount(st)} para fijar` : "nada para fijar todavía")
+        : `${st.answers || 0} respuestas · ${Object.values(st.used || {}).filter((u) => u === "sí").length} frases usadas`;
+      return `<div class="mg-main"><button class="mg-link" data-h="go" data-b="${k}" style="text-align:left;padding:0;text-decoration:none"><span class="mg-row">${H_BLOCKS[k].name}${k === st.block ? " · acá estabas" : ""}</span></button><div class="mg-why">${sub}</div></div><div class="mg-note">${left != null ? mmss(Math.max(0, left)) : mmss(mins)}</div>`;
+    };
+    el.innerHTML = `<div class="mg-top"><span>Repaso</span><span>resumen</span></div><h2>La hora de repaso</h2>
+      <div class="mg-sub">Tocá un bloque para ir. Cada uno sigue donde lo dejaste. El reloj no corre mientras estás acá.</div>
+      <div class="mg-page">${Object.keys(H_BLOCKS).map(row).join("")}</div>
+      <div class="mg-btns"><button class="mg-b pri wide" data-h="back">Seguir en ${B.name}</button><button class="mg-b wide" data-h="end">Terminar la hora</button></div>
+      <button class="mg-link" data-h="old">Ver los mazos de antes</button>`;
+    return;
+  }
   if (st.block === "ancho" || st.block === "fijar") {
+    if (st.paused) { el.innerHTML = hBar(st) + hTop(st, B.name) + hPausedHtml(st); return; }
     const s = hCurrent(st);
     if (!s) { hStartBlock(st, st.block === "ancho" ? "fijar" : "usar"); return horaRender(); }
     const count = st.block === "ancho" ? `tarjeta ${st.n + 1}` : `quedan ${st.fq.length}`;
-    el.innerHTML = `<div class="mg-top"><span>${B.name}</span><span id="hClock">quedan ${mmss(Math.max(0, st.left))}</span></div>
+    el.innerHTML = hBar(st) + hTop(st, B.name) + `
       <div class="mg-page">
         <div class="mg-main"><div class="mg-lab">En inglés</div><div class="mg-en">${esc(s.en)}</div>
           ${hShown ? `<div class="mg-lab" style="margin-top:8px">En porteño</div><div class="mg-es">${hMark(s.es, s.nu ? s.marks : s.cards.map((c) => c.es))}</div>
-            ${s.nu ? `<div class="mg-why">${esc(s.nu.why)}</div>${s.nu.said ? `<div class="mg-why">Dijiste: <s style="text-decoration-color:#0A60D0">${esc(s.nu.said)}</s> → ${esc(s.nu.fix)}</div>` : ""}`
+            ${s.nu ? `<div class="mg-why">${esc(s.nu.why)}</div>${s.nu.said ? (() => { const d = wordDiff(s.nu.said, s.nu.fix); return `<div class="mg-why">Dijiste: ${d.said} → ${d.fix}</div>`; })() : ""}`
               : s.cards.filter((c) => c.why).slice(0, 2).map((c) => `<div class="mg-why">${esc(c.why)}</div>`).join("")}` : ""}
         </div>
         <div class="mg-note"><span>${count}</span>${s.nu ? `<span style="color:#3A3F4A">Núcleo #${s.nu.rank}</span>` : ""}${hShown ? (s.nu ? `<span>${esc(s.nu.label)}</span>` : s.cards.map((c) => `<span>${esc(c.es)}</span>`).join("") + (s.where ? `<span style="color:#3A3F4A">${esc(s.where)}</span>` : "")) : ""}</div>
@@ -1700,12 +1930,38 @@ function horaRender() {
     return;
   }
   if (st.block === "usar") {
-    const left = Math.max(0, Math.round((st.usarEnds - Date.now()) / 1000)), ph = hUsarPhrases(st);
-    el.innerHTML = `<div class="mg-top"><span>Usar</span><span>quedan ${mmss(left)}</span></div><h2>Ahora usalas</h2>
+    if (st.paused && !hRec && !hBusy) { el.innerHTML = hBar(st) + hTop(st, "Usar") + hPausedHtml(st); return; }
+    const ph = hPhrases(st), used = st.used || {}, last = hLast && hLast.used ? hLast : null;
+    const rows = ph.map((p, i) => {
+      const u = (last && last.used[p.es]) || used[p.es] || "", qt = last && last.quotes[p.es];
+      const mark = u === "sí" ? "✓ usada" : u === "casi" ? "casi" : last ? "no la usaste" : String(i + 1);
+      return `<div class="mg-main"><div class="mg-row">${esc(p.es)}</div>${p.en ? `<div class="mg-why">${esc(p.en)}</div>` : ""}${qt && u !== "no" ? `<div class="mg-why">Dijiste: “${esc(qt)}”</div>` : ""}</div><div class="mg-note">${mark}</div>`;
+    }).join("");
+    let body;
+    if (hRec) {
+      body = `<div class="mg-rec"><span class="rec-dot"></span><span>Grabando</span><span id="hRecClock" class="mg-num">${mmss((Date.now() - hRec.started) / 1000)}</span></div>
+        <div class="mg-btns"><button class="mg-b pri wide" data-h="recStop">Terminar y revisar</button><button class="mg-b wide" data-h="recCancel">Descartar</button></div>`;
+    } else if (hBusy) {
+      body = `<div class="mg-rec" style="color:#16181D">${esc(hBusy)}</div>`;
+    } else {
+      let res = "";
+      if (hLast && (hLast.err || hLast.note)) res = `<div class="mg-sub" style="margin-top:16px">${esc(hLast.err || hLast.note)}</div>`;
+      else if (last) {
+        const nOk = ph.filter((p) => last.used[p.es] === "sí").length, nCasi = ph.filter((p) => last.used[p.es] === "casi").length;
+        res = `<h2 style="font-size:24px;margin-top:20px">Tu respuesta</h2>
+          <div class="mg-sub">Usaste ${nOk} de ${ph.length} frases${nCasi ? `, ${nCasi} casi` : ""}. ${last.items.length ? "Lo que diría un porteño:" : "Nada para corregir."}</div>
+          ${last.items.length ? `<div class="mg-page">${last.items.map((it) => { const d = wordDiff(it.dijiste || "", it.porteno);
+            return `<div class="mg-main"><div class="mg-why">${d.said}</div><div class="mg-es" style="font-size:22px">${d.fix}</div><div class="mg-why">${esc(it.por_que || "")}</div></div><div class="mg-note">${it.tipo === "gramática" ? "gramática" : "fraseo"}</div>`; }).join("")}</div>` : ""}
+          ${last.text ? `<details class="mg-why" style="margin-top:12px"><summary>Lo que entendí</summary><p>${esc(last.text)}</p></details>` : ""}`;
+      }
+      body = res + `<div class="mg-btns"><button class="mg-b pri wide" data-h="rec">${hLast ? "Grabar otra respuesta" : "Grabar una respuesta"}</button>
+        <button class="mg-b" data-h="newph">Otras frases</button><button class="mg-b" data-h="end">Terminar la hora</button></div>`;
+    }
+    el.innerHTML = hBar(st) + hTop(st, "Usar") + `<h2>Ahora usalas</h2>
       <div class="mg-sub">Hablá uno o dos minutos de lo que quieras y metele estas frases. Sin leer.</div>
-      <div class="mg-page">${ph.map((p, i) => `<div class="mg-main"><div class="mg-row">${esc(p)}</div></div><div class="mg-note">${i + 1}</div>`).join("")}</div>
-      <div class="mg-btns"><button class="mg-b pri wide" data-h="rec">Grabar una respuesta</button><button class="mg-b wide" data-h="end">Terminar la hora</button></div>
-      <div class="mg-rule">Respuestas grabadas hoy: ${st.answers || 0}. Las correcciones aparecen apenas terminás.</div>`;
+      <div class="mg-page">${rows || `<div class="mg-main"><div class="mg-why">No hay frases de hoy todavía. Hacé un poco de Ancho primero.</div></div><div class="mg-note"></div>`}</div>
+      ${body}
+      <div class="mg-rule">Respuestas hoy: ${st.answers || 0}. Una frase bien usada cuenta como "la sabía" y casi, como "casi". Las que no usaste no se califican: quedan en la lista.</div>`;
     return;
   }
   const pct = st.n ? Math.round(100 * st.ok / st.n) : 0;
@@ -1713,42 +1969,42 @@ function horaRender() {
     <div class="mg-page">
       <div class="mg-main"><div class="mg-row">Ancho</div><div class="mg-why">${st.n || 0} frases: ${st.ok || 0} de una, ${st.nc || 0} casi, ${(st.misses || []).length} no salieron.</div></div><div class="mg-note">${st.n ? pct + " %" : ""}</div>
       <div class="mg-main"><div class="mg-row">Fijar</div><div class="mg-why">${st.fixed || 0} de ${st.fn || 0} recuperadas.</div></div><div class="mg-note"></div>
-      <div class="mg-main"><div class="mg-row">Usar</div><div class="mg-why">${st.answers || 0} respuestas grabadas.</div></div><div class="mg-note"></div>
+      <div class="mg-main"><div class="mg-row">Usar</div><div class="mg-why">${st.answers || 0} respuestas grabadas · ${Object.values(st.used || {}).filter((u) => u === "sí").length} frases usadas.</div></div><div class="mg-note"></div>
     </div>
-    <div class="mg-btns"><button class="mg-b wide" data-h="again">Otra ronda de Ancho</button></div>
+    <div class="mg-btns"><button class="mg-b wide" data-h="go" data-b="usar">Volver a Usar</button><button class="mg-b wide" data-h="again">Otra ronda de Ancho</button></div>
     <button class="mg-link" data-h="old">Ver los mazos de antes</button>`;
   flushResults();
 }
 $("hora").addEventListener("click", (ev) => {
-  const b = ev.target.closest("[data-h]"); if (!b) return;
+  const b = ev.target.closest("[data-h]"); if (!b || b.disabled) return;
   const a = b.dataset.h, st = hState();
   if (a === "settings") return openSettings();
   if (a === "reload") { loadCards(); return; }
+  if (a === "go") return hGoBlock(b.dataset.b);
+  if (a === "rec") return hRecStart();
+  if (a === "recStop") return hRecStop();
+  if (a === "recCancel") { if (confirm("¿Descartar esta respuesta? No se va a subir.")) hRecStop(true); return; }
   if (a === "start" || a === "again") { st.short = false; hStartBlock(st, hBuildQueue().length ? "ancho" : "usar"); }
   else if (a === "show") { hShown = true; }
   else if (a === "ok" || a === "miss" || a === "casi") return hGrade(a);
   else if (a === "say") { const s = hCurrent(st); if (s) speak(s.es); return; }
-  else if (a === "old") { hOld = true; }
-  else if (a === "end") { st.block = "fin"; hSave(st); }
-  else if (a === "rec") {
-    st.answers = (st.answers || 0) + 1; hSave(st);
-    document.querySelector('nav button[data-view="record"]').click();
-    setMode("libre"); $("topic").value = "Usar: " + hUsarPhrases(st).slice(0, 3).join(" · ");
-    return startSession();
-  }
+  else if (a === "old") { hOld = true; hMenu = false; }
+  else if (a === "menu") { hMenu = true; }
+  else if (a === "back") { hMenu = false; }
+  else if (a === "pause") { st.paused = true; hSave(st); }
+  else if (a === "resume") { st.paused = false; hSave(st); }
+  else if (a === "newph") { const skip = (st.usarPh || []).map((p) => p.es); st.usarPh = hUsarPhrases(st, skip); if (!st.usarPh.length) st.usarPh = hUsarPhrases(st); hLast = null; hSave(st); }
+  else if (a === "end") { if (st.block in H_BLOCKS && st.left != null) (st.saved = st.saved || {})[st.block] = st.left; st.block = "fin"; hMenu = false; hSave(st); }
   horaRender();
 });
 $("horaBack").onclick = () => { hOld = false; horaRender(); };
+// The clock runs only while you're on this screen, inside a block, and not paused or in the overview.
 setInterval(() => {
-  if (document.hidden || hOld || !$("v-recall").classList.contains("on")) return;
+  if (document.hidden || hOld || hMenu || !$("v-recall").classList.contains("on")) return;
   const st = hState();
-  if (st.block === "ancho" || st.block === "fijar") {
-    st.left = (st.left || 0) - 1; hSave(st); logAdd("r", 1);
-    const c = $("hClock"); if (c) c.textContent = st.left > 0 ? `quedan ${mmss(st.left)}` : "tiempo: última tarjeta";
-  } else if (st.block === "usar") {
-    if (Date.now() > st.usarEnds) { st.block = "fin"; hSave(st); }
-    horaRender();
-  }
+  if (!(st.block in H_BLOCKS) || st.paused) return;
+  st.left = (st.left || 0) - 1; hSave(st); logAdd("r", 1);
+  const c = $("hClock"); if (c) c.textContent = hClockText(st);
 }, 1000);
 
 /* ---------- Hoy: the day, already decided ---------- */
@@ -1936,7 +2192,7 @@ function renderSessions() {
       <div class="detail">${s.sentences.map((x, i, a) => `<div class="sent">${x.role && x.role !== a[i - 1]?.role ? `<div class="role">${ROLE[x.role]}</div>` : ""}<div class="es">${esc(x.spanish)}</div>
         <div class="small muted">${esc(x.english)}</div>
         ${x.chunks?.length ? `<div class="chips">${x.chunks.map((c) => `<span>${esc(c.spanish)}</span>`).join("")}</div>` : ""}
-        ${x.corrections.length ? `<div class="heard">Dijiste: “${esc(x.heard)}”</div>` + x.corrections.map((c) =>
+        ${x.corrections.length ? `<div class="heard">Dijiste: “${wordDiff(x.heard, x.spanish).said}”</div>` + x.corrections.map((c) =>
           `<div class="corr"><b>${esc(c.wrong)}</b> → <i>${esc(c.right)}</i> <span class="muted">· ${esc(c.why)}</span></div>`).join("") : ""}
         ${tipsFor(s, x).map((t) => `<div class="tip"><span class="tip-l">Arsenal</span> <b>${esc(t.phrase)}</b> <span class="muted">· ${esc(t.why)}</span></div>`).join("")}
       </div>`).join("")}</div></div>`;
