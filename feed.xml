@@ -6,7 +6,15 @@
     <description>Private practice feed.</description>
     <language>es-ar</language>
     <itunes:block>yes</itunes:block>
-    <lastBuildDate>Fri, 20 Nov 2026 03:09:09 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 20 Nov 2026 12:35:50 +0000</lastBuildDate>
+    <item>
+      <title>Nov 20 · Boxeo, sueño y hormonas</title>
+      <guid isPermaLink="false">2026-11-20_090203-immersion</guid>
+      <pubDate>Fri, 20 Nov 2026 09:02:03 -0300</pubDate>
+      <enclosure url="https://nll-language.github.io/feed/episodes/2026-11-20_090203_immersion.mp3" length="286892" type="audio/mpeg"/>
+      <itunes:duration>36</itunes:duration>
+      <description><![CDATA[<ol><li>I&#x27;m so hyped about the boxing class.<br><b>Estoy re manija con la clase de boxeo.</b></li><li>It&#x27;s freezing outside.<br><b>Hace un frío bárbaro afuera.</b></li><li>With the little gadget that tracks my sleep, I realized I slept very little.<br><b>Con el aparatito que me mide el sueño, me di cuenta de que dormí poco.</b></li><li>We agreed to train on Wednesdays.<br><b>Quedamos en entrenar los miércoles.</b></li><li>We agreed I&#x27;d sign up after the call.<br><b>Quedamos en que me iba a anotar después de la llamada.</b></li><li>Ideally it should be between seventy and ninety in the morning, fasting.<br><b>Lo ideal es tenerla entre setenta y noventa a la mañana, en ayunas.</b></li><li>Ideally I&#x27;d get up at seven.<br><b>Lo ideal sería levantarme a las siete.</b></li><li>Carbs help balance your hormones.<br><b>Los carbohidratos sirven para equilibrar las hormonas.</b></li></ol>]]></description>
+    </item>
     <item>
       <title>Nov 20 · Repaso · 120 frases</title>
       <guid isPermaLink="false">review-2026-11-20</guid>
