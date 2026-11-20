@@ -6,7 +6,15 @@
     <description>Private practice feed.</description>
     <language>es-ar</language>
     <itunes:block>yes</itunes:block>
-    <lastBuildDate>Thu, 19 Nov 2026 17:45:55 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 20 Nov 2026 00:02:06 +0000</lastBuildDate>
+    <item>
+      <title>Nov 19 · Notas sueltas · 5 frases</title>
+      <guid isPermaLink="false">notes-2026-11-19_210206-immersion</guid>
+      <pubDate>Thu, 19 Nov 2026 21:02:06 -0300</pubDate>
+      <enclosure url="https://nll-language.github.io/feed/episodes/notes_2026-11-19_210206_immersion.mp3" length="178988" type="audio/mpeg"/>
+      <itunes:duration>22</itunes:duration>
+      <description><![CDATA[<p>1 notas: Hablar mientras camino</p><ol><li>The thing is I&#x27;ve got a half-hour walk.<br><b>Es que tengo una caminata de media hora.</b></li><li>And I wanted to make the most of it to see if the app works OK.<br><b>Y quería aprovechar para ver si la aplicación anda bien.</b></li><li>Because I always find it easier to talk while I walk.<br><b>Porque a mí siempre me resulta más fácil hablar mientras camino.</b></li><li>I mean, the words and ideas come out more freely, you know?<br><b>O sea, las palabras y las ideas me salen más sueltas, ¿viste?</b></li><li>I dunno.<br><b>Qué sé yo.</b></li></ol>]]></description>
+    </item>
     <item>
       <title>Nov 19 · Notas sueltas · 13 frases</title>
       <guid isPermaLink="false">notes-2026-11-19_144550-immersion</guid>
