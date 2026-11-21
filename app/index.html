@@ -232,6 +232,12 @@ svg.chart { width: 100%; height: 120px; display: block; margin-top: 8px; }
 .read-search { width: 100%; padding: 12px 14px; border-radius: 14px; border: 0; background: var(--card); box-shadow: var(--shadow); outline: none; margin-bottom: 10px; }
 .read-filters { display: flex; gap: 6px; overflow-x: auto; margin: 0 -16px 12px; padding: 0 16px; scrollbar-width: none; }
 .read-filters::-webkit-scrollbar { display: none; }
+.read-filters.fns button { font-weight: 550; font-size: 13px; }
+.fn-tag { display: inline-block; font-size: 12px; font-weight: 650; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 0 6px; margin-top: 6px; }
+.fn-bars { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: center; font-size: 13px; margin: 2px 0 10px; }
+.fn-bars .bar { height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; } .fn-bars .bar div { height: 100%; background: var(--accent); }
+.ev-form textarea, .ev-form input { width: 100%; font: inherit; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--ink); margin-bottom: 8px; }
+.ev-form textarea { min-height: 84px; resize: vertical; }
 .read-filters button { flex: none; font-size: 14px; font-weight: 650; padding: 6px 12px; border-radius: 999px; background: var(--card); color: var(--muted); box-shadow: var(--shadow); }
 .read-filters button.on { background: var(--accent); color: var(--accent-ink); }
 .read-text > button { display: flex; justify-content: space-between; align-items: center; width: 100%; text-align: left; gap: 10px; }
@@ -493,6 +499,7 @@ dialog input { background: #fff; border: 1px solid var(--line); }
   <section class="view" id="v-read">
     <input class="read-search" id="readSearch" type="search" placeholder="Buscar en inglés o en castellano" autocomplete="off">
     <div class="read-filters" id="readFilters"></div>
+    <div class="read-filters fns" id="readFns"></div>
     <div id="read"></div>
   </section>
   <section class="view" id="v-sessions"><div id="sessions"></div></section>
@@ -524,7 +531,7 @@ dialog input { background: #fff; border: 1px solid var(--line); }
 <dialog id="settings">
   <form method="dialog">
     <strong style="font-size:19px">Conexión</strong>
-    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v22</p>
+    <p class="small muted" style="margin:6px 0 0">Se guarda solo en este teléfono. · v23</p>
     <label for="sRepo">Repositorio (dueño/nombre)</label>
     <input id="sRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="dueño/repositorio">
     <label for="sToken">Token de GitHub</label>
@@ -557,6 +564,8 @@ const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v
 const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4.5" width="4" height="15" rx="1"/><rect x="14" y="4.5" width="4" height="15" rx="1"/></svg>';
 const ICON_QUEUE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h11M4 12h11M4 18h7M17 15v6M14 18h6"/></svg>';
 const ICON_EP = {
+  function: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg>',
+  event: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
   drill: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11M4 12h7M4 17h11"/><path d="M17 10l3 2-3 2"/></svg>',
   immersion: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="3" y="14" width="4" height="7" rx="1.5"/><rect x="17" y="14" width="4" height="7" rx="1.5"/></svg>',
   review: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>',
@@ -1062,7 +1071,7 @@ async function instantCorrect(takes) {
 /* ---------- Listen ---------- */
 const audio = $("audio");
 let current = null;
-const KIND = { review: "Repaso", immersion: "Sesión", category: "Isla", weak: "Fallos", topic: "Tema" };
+const KIND = { review: "Repaso", immersion: "Sesión", category: "Isla", weak: "Fallos", topic: "Tema", function: "Función", event: "Evento" };
 
 function epParts(e) {
   // "Nov 8 · Title · 24 frases" → title "Title", extra "24 frases"
@@ -1103,6 +1112,8 @@ function renderEpisodes() {
     eps.filter((x) => x.kind === "immersion"),
     eps.filter((x) => x.kind === "topic").sort((a, b) => b.e.pub_date.localeCompare(a.e.pub_date)),
     eps.filter((x) => x.kind === "weak").concat(eps.filter((x) => x.kind === "category")),
+    eps.filter((x) => x.kind === "event"),
+    eps.filter((x) => x.kind === "function"),
   ];
   // Remember each section's order: when an episode ends and the queue is empty, the next
   // unplayed one below it in the same section plays.
@@ -1113,10 +1124,29 @@ function renderEpisodes() {
   $("episodes").innerHTML = videosSection() +
       (queued.length ? `<h2>En cola</h2><div class="card list">${queued.map(row).join("")}</div>` : "")
     + section("Repaso del día", groups[0])
+    + section("Eventos", groups[4])
     + section("Mis grabaciones", groups[1])
+    + functionsSection(groups[5], row)
     + topicsSection(groups[2], row)
     + section("Islas de la semana", groups[3]);
   showNext();
+}
+// Functions: an episode of one function (opinions, stories, follow-up questions…) on demand.
+// The chip asks the Mac to build it from the sentences you miss or have heard least.
+function functionsSection(list, row) {
+  const counts = fnCounts();
+  const fs = FNS().filter((f) => counts[f.slug]);
+  if (!fs.length) return "";
+  const asked = store.get("fnAsked", {});
+  const made = Object.fromEntries(list.map((x) => [x.e.guid, x.e.pub_date]));
+  const chips = fs.map((f) => {
+    const waiting = asked[f.slug] && Date.parse(asked[f.slug]) > Date.parse(made[f.guid] || 0) && Date.now() - Date.parse(asked[f.slug]) < 3 * 3600e3;
+    return `<button class="topic-chip" data-fn="${esc(f.slug)}" ${waiting ? "disabled" : ""}>
+      <div class="name"><span>${esc(f.name)}</span><span class="plus">${waiting ? "…" : "+"}</span></div>
+      <div class="small muted">${waiting ? "Armando el episodio…" : `${counts[f.slug].sents} frases${made[f.guid] ? " · armar otro" : ""}`}</div></button>`;
+  }).join("");
+  return `<h2>Funciones</h2><p class="small muted" style="margin:-4px 0 10px">Tocá una para armar un episodio con tus frases de ese tipo: primero las que fallás y las que menos escuchaste.</p>
+    <div class="topics">${chips}</div>` + (list.length ? `<div class="card list" style="margin-top:10px">${list.map(row).join("")}</div>` : "");
 }
 // Topics: vocabulary coverage per area and a "+" that asks the Mac for another pack.
 function topicsSection(list, row) {
@@ -1152,6 +1182,17 @@ $("episodes").addEventListener("click", async (ev) => {
   }
   const skip = ev.target.closest("[data-vskip]");
   if (skip) { vMark(skip.dataset.vskip, "skip"); renderEpisodes(); return; }
+  const fchip = ev.target.closest("[data-fn]");
+  if (fchip) {
+    const slug = fchip.dataset.fn; fchip.disabled = true;
+    try {
+      if (!DEMO) await gh(`contents/requests/fn-${slug}-${Date.now()}.json`, { method: "PUT",
+        body: JSON.stringify({ message: `Episode ${slug}`, content: btoa("{}") }) });
+      const asked = store.get("fnAsked", {}); asked[slug] = new Date().toISOString(); store.set("fnAsked", asked);
+    } catch (e) { console.warn("fn", e); fchip.disabled = false; }
+    renderEpisodes();
+    return;
+  }
   const chip = ev.target.closest("[data-topic]");
   if (chip) {
     const slug = chip.dataset.topic; chip.disabled = true;
@@ -1413,7 +1454,38 @@ function spread(list) {
   }
   return [...layer.keys()].sort((a, b) => a - b).flatMap((n) => layer.get(n));
 }
+// Functions and events. Each card carries fn (what its sentence does), fn2 and fr (its frame);
+// DATA.functions lists the functions with their frames, DATA.events the event packs.
+const FNS = () => DATA.functions || [];
+const fnName = (slug) => FNS().find((f) => f.slug === slug)?.name || slug;
+let frameMap = null, frameMapOf = null;
+function frames() {
+  if (frameMapOf !== DATA.functions) {
+    frameMap = new Map(); frameMapOf = DATA.functions;
+    for (const f of FNS()) for (const fr of f.frames || []) frameMap.set(fr.id, { ...fr, rank: frameMap.size });
+  }
+  return frameMap;
+}
+const frameRank = (c) => frames().get(c.fr)?.rank ?? 1e6;
+function fnCounts() {
+  const out = {}, seen = new Set();
+  for (const c of CARDS) {
+    if (!c.fn) continue;
+    const x = (out[c.fn] ||= { n: 0, seen: 0, sents: 0 });
+    x.n++; if (lastSeen(c)) x.seen++;
+    const s = c.fn + "|" + (c.ctx || c.es); if (!seen.has(s)) { seen.add(s); x.sents++; }
+  }
+  return out;
+}
+const EVENTS = () => DATA.events || [];
+function eventOrder(id) {
+  const m = new Map(), e = EVENTS().find((x) => x.id === id);
+  if (e) for (const st of e.stages) for (const s of st.sentences) for (const k of s.keys) if (!m.has(k)) m.set(k, m.size);
+  return m;
+}
 function deckPool(name) {
+  if (name.startsWith("fn:")) return CARDS.filter((c) => c.fn === name.slice(3));
+  if (name.startsWith("ev:")) { const o = eventOrder(name.slice(3)); return CARDS.filter((c) => o.has(c.k)).sort((a, b) => o.get(a.k) - o.get(b.k)); }
   if (name === "weak") return CARDS.filter((c) => c.lapses > 0);
   if (name === "todo") return CARDS;
   if (name.startsWith("top:")) return CARDS.filter((c) => c.topic === name.slice(4));
@@ -1432,6 +1504,8 @@ function nextRound(name) {
   const missed = pool.filter((c) => c.lapses > 0 && lastSeen(c) < today)
     .sort((a, b) => b.lapses - a.lapses || lastSeen(a).localeCompare(lastSeen(b)));
   const fresh = pool.filter((c) => !lastSeen(c) && !(c.lapses > 0));
+  // A function deck goes frame by frame, so sentences built the same way come together.
+  if (name.startsWith("fn:")) fresh.sort((a, b) => frameRank(a) - frameRank(b));
   const old = pool.filter((c) => lastSeen(c) && lastSeen(c) < today && !(c.lapses > 0))
     .sort((a, b) => lastSeen(a).localeCompare(lastSeen(b)));
   const order = name === "weak" ? spread(missed)
@@ -1449,8 +1523,22 @@ function shuffle(arr, seed) {
   return a;
 }
 const DECK_NAMES = { hoy: "Hoy", weak: "Lo que más fallo", todo: "Todo mezclado", ars: "Arsenal" };
-const deckName = (d) => DECK_NAMES[d] || (d.startsWith("ars:") ? (DATA.arsenal || []).find((g) => g.slug === d.slice(4))?.name || d.slice(4) : null) || (d.startsWith("top:") ? (DATA.topics || []).find((t) => t.slug === d.slice(4))?.name || d.slice(4) : d.slice(4));
+const deckName = (d) => DECK_NAMES[d] || (d.startsWith("fn:") ? fnName(d.slice(3)) : null) || (d.startsWith("ev:") ? EVENTS().find((e) => e.id === d.slice(3))?.title || "Evento" : null) || (d.startsWith("ars:") ? (DATA.arsenal || []).find((g) => g.slug === d.slice(4))?.name || d.slice(4) : null) || (d.startsWith("top:") ? (DATA.topics || []).find((t) => t.slug === d.slice(4))?.name || d.slice(4) : d.slice(4));
 
+// Event packs: describe what's coming and the Mac builds a deck, an episode and a text from your sentences.
+let evOpen = false;
+async function sendEvent(btn) {
+  const text = $("evText").value.trim(), date = $("evDate").value || todayISO();
+  if (text.length < 8) { $("evText").focus(); return; }
+  btn.disabled = true;
+  try {
+    const body = btoa(unescape(encodeURIComponent(JSON.stringify({ text, date }))));
+    if (!DEMO) await gh(`contents/requests/event-${Date.now()}.json`, { method: "PUT",
+      body: JSON.stringify({ message: "Event pack", content: body }) });
+    store.set("evAsked", { text, at: new Date().toISOString() }); evOpen = false;
+  } catch (e) { console.warn("event", e); btn.disabled = false; return; }
+  renderRecall();
+}
 // The round in progress for each deck (keys, position, requeued misses), kept on the phone.
 let deck = null, shown = false;
 const byKey = () => { const m = new Map(); for (const c of CARDS) m.set(c.k, c); return m; };
@@ -1533,7 +1621,7 @@ function renderRecall() {
           ${norm(c.ctx) !== norm(c.es) ? `<div class="ctx">${ctxHtml(c.ctx, c.es)}</div>` : ""}
           ${info?.corrections.length ? `<div class="fix"><div class="heard">Dijiste: “${wordDiff(info.heard, info.spanish).said}”</div>
             ${info.corrections.map((x) => `<div class="corr"><b>${esc(x.wrong)}</b> → <i>${esc(x.right)}</i> <span class="muted">· ${esc(x.why)}</span></div>`).join("")}</div>` : ""}
-          <div class="src">${c.src === "library" || c.src === "topic" ? `${esc(c.cat)} · ${esc(c.tab)}` : info && !info.corrections.length && DATA.sessions.find((x) => x.id === c.sid)?.source === "english" ? `Lo dijiste en inglés: “${esc(info.heard)}”` : "De tus grabaciones"}${c.lapses ? ` · fallada ${c.lapses}×` : ""}</div>`
+          <div class="src">${c.src === "library" || c.src === "topic" ? `${esc(c.cat)} · ${esc(c.tab)}` : info && !info.corrections.length && DATA.sessions.find((x) => x.id === c.sid)?.source === "english" ? `Lo dijiste en inglés: “${esc(info.heard)}”` : "De tus grabaciones"}${c.lapses ? ` · fallada ${c.lapses}×` : ""}</div>${c.fn ? `<div class="fn-tag">${esc(fnName(c.fn))}${frames().get(c.fr) ? ` · ${esc(frames().get(c.fr).es)}` : ""}</div>` : ""}`
           : `<div class="muted small" style="margin-top:24px">Decilo en voz alta · tocá para ver</div>`}
       </div>
       ${shown ? `<div class="grade"><button class="btn miss" data-a="miss">No me salió</button><button class="btn" data-a="ok">La sabía</button></div>`
@@ -1563,6 +1651,18 @@ function renderRecall() {
       <span class="n">${seen != null ? `${seen} / ` : ""}${n}</span><span class="chev">›</span></button>`;
   };
   const todo = deckProgress("todo");
+  const fnc = fnCounts();
+  const evRows = EVENTS().map((e) => { const p = deckProgress(`ev:${e.id}`); return row(`ev:${e.id}`, `${e.title} · ${fmtDate(e.date)}`, p.seen, p.total); }).join("");
+  const asked = store.get("evAsked", null), evWaiting = asked && Date.now() - Date.parse(asked.at) < 3 * 3600e3 && !EVENTS().some((e) => Date.parse(e.made || 0) > Date.parse(asked.at) || e.text === asked.text);
+  const eventsHtml = (FNS().length || EVENTS().length) ? `<h2>Eventos</h2>${evRows ? `<div class="card list">${evRows}</div>` : ""}
+    ${evWaiting ? `<div class="card muted small">Armando el paquete para “${esc(asked.text.slice(0, 80))}”… aparece acá en unos minutos.</div>`
+      : evOpen ? `<div class="card ev-form"><div class="small muted" style="margin-bottom:8px">Contá qué viene: con quién, dónde, de qué van a hablar. Armo un mazo, un episodio y un texto con tus propias frases.</div>
+          <textarea id="evText" placeholder="Primera cita el viernes en un bar de Palermo. Es diseñadora y le gusta viajar."></textarea>
+          <input id="evDate" type="date" value="${todayISO()}">
+          <button class="btn" data-a="ev-send">Armar paquete</button><button class="btn ghost" data-a="ev-close">Cancelar</button></div>`
+      : `<button class="btn secondary" data-a="ev-open">Preparar un evento</button>`}` : "";
+  const fnHtml = Object.keys(fnc).length ? `<h2>Por función <span style="text-transform:none;letter-spacing:0;font-weight:500">· qué hace la frase</span></h2><div class="card list">`
+    + FNS().filter((f) => fnc[f.slug]).map((f) => row(`fn:${f.slug}`, f.name, fnc[f.slug].seen, fnc[f.slug].n)).join("") + `</div>` : "";
   el.innerHTML = (hoy.length
       ? `<div class="card due"><div class="big-num">${hoy.length}</div><div class="muted">chunks para hoy</div>
            <div class="small muted" style="margin-top:4px">${fresh} nuevos · ${hoy.length - fresh} para repasar</div></div>
@@ -1575,6 +1675,7 @@ function renderRecall() {
         .map(([name, x]) => row(`cat:${name}`, name, x.seen, x.n)).join("")
     + (CARDS.some((c) => c.src === "arsenal") ? (() => { const p = deckProgress("ars"); return row("ars", "Arsenal", p.seen, p.total); })() : "")
     + row("todo", "Todo mezclado", todo.seen, todo.total) + `</div>`
+    + eventsHtml + fnHtml
     + (Object.keys(tops).length ? `<h2>Temas</h2><div class="card list">` + (DATA.topics || []).filter((t) => tops[t.slug])
         .map((t) => row(`top:${t.slug}`, t.name, tops[t.slug].seen, tops[t.slug].n)).join("") + `</div>` : "");
 }
@@ -1582,6 +1683,8 @@ $("recall").addEventListener("click", (ev) => {
   const t = ev.target.closest("[data-a]"); if (!t) return;
   const a = t.dataset.a;
   if (a === "deck") openDeck(t.dataset.d);
+  else if (a === "ev-open" || a === "ev-close") { evOpen = a === "ev-open"; renderRecall(); }
+  else if (a === "ev-send") sendEvent(t);
   else if (a === "more") openDeck(deck.name, true);
   else if (a === "flip") { if (!shown) { shown = true; renderRecall(); } }
   else if (a === "ok" || a === "miss") {
@@ -1669,12 +1772,52 @@ function hSentences() {
   for (const c of CARDS) {
     if (c.src === "arsenal" || !c.ctx || !c.ctxEn) continue;
     let s = m.get(c.ctx);
-    if (!s) m.set(c.ctx, s = { key: c.ctx, es: c.ctx, en: c.ctxEn, cards: [], src: c.src, where: c.src === "session" ? "tu grabación" : (c.tab || c.cat || "") });
+    if (!s) m.set(c.ctx, s = { key: c.ctx, es: c.ctx, en: c.ctxEn, cards: [], src: c.src, fn: c.fn, fn2: c.fn2, fr: c.fr, where: c.src === "session" ? "tu grabación" : (c.tab || c.cat || "") });
     s.cards.push(c);
   }
   return m;
 }
-function hBuildQueue() {
+// A focused round: one function ("fn:opinar") or one event pack ("ev:<id>") instead of what's due today.
+// Function: what you've missed, then what you've never had, then what you saw longest ago; up to H_FOCUS_MAX,
+// laid out frame by frame so sentences built the same way come one after another. Event: the pack's own order.
+const H_FOCUS_MAX = 40;
+const hFocusName = (f) => !f ? "" : f.startsWith("fn:") ? fnName(f.slice(3)) : EVENTS().find((e) => e.id === f.slice(3))?.title || "Evento";
+function hFocusPool(focus) {
+  const all = [...hSentences().values()];
+  if (focus.startsWith("fn:")) return all.filter((s) => s.fn === focus.slice(3));
+  const o = eventOrder(focus.slice(3)), at = (s) => Math.min(...s.cards.map((c) => o.get(c.k) ?? 1e9));
+  return all.filter((s) => s.cards.some((c) => o.has(c.k))).sort((a, b) => at(a) - at(b));
+}
+function hFocusQueue(focus) {
+  const done = gradedToday();
+  const pool = hFocusPool(focus).filter((s) => !s.cards.some((c) => c.k in done));
+  if (focus.startsWith("ev:")) return pool.map((s) => s.key);
+  const info = (s) => ({ s, lapses: Math.max(...s.cards.map((c) => +c.lapses || 0)), seen: s.cards.map(lastSeen).sort().pop() || "" });
+  const xs = pool.map(info);
+  const missed = xs.filter((x) => x.lapses > 0).sort((a, b) => b.lapses - a.lapses);
+  const fresh = xs.filter((x) => !x.lapses && !x.seen);
+  const old = xs.filter((x) => !x.lapses && x.seen).sort((a, b) => a.seen.localeCompare(b.seen));
+  // Fresh ones are taken a few per frame, so a round covers several structures with enough repeats of each.
+  const perFrame = new Map(); for (const x of fresh) { const k = x.s.fr || ""; if (!perFrame.has(k)) perFrame.set(k, []); perFrame.get(k).push(x); }
+  const freshPick = [...perFrame.entries()].sort((a, b) => b[1].length - a[1].length).flatMap(([k, list]) => k ? list.slice(0, 6) : []).concat(perFrame.get("") || []);
+  return missed.concat(freshPick, old).slice(0, H_FOCUS_MAX).map((x) => x.s)
+    .sort((a, b) => (frames().get(a.fr)?.rank ?? 1e6) - (frames().get(b.fr)?.rank ?? 1e6)).map((s) => s.key);
+}
+// The list of functions and event packs you can start a focused round from.
+function hFocusHtml() {
+  const sents = [...hSentences().values()], n = {};
+  for (const s of sents) if (s.fn) n[s.fn] = (n[s.fn] || 0) + 1;
+  const fs = FNS().filter((f) => n[f.slug]), evs = EVENTS();
+  if (!fs.length && !evs.length) return "";
+  const row = (f, name, sub, note) => `<div class="mg-main"><button class="mg-link" data-h="focus" data-f="${esc(f)}" style="text-align:left;padding:0;text-decoration:none"><span class="mg-row">${esc(name)}</span></button>${sub ? `<div class="mg-why">${esc(sub)}</div>` : ""}</div><div class="mg-note">${note}</div>`;
+  return `<h2 style="font-size:24px;margin-top:28px">Practicar algo puntual</h2>
+    <div class="mg-sub">Una ronda de frases enteras de un solo tipo, sin importar el tema. Cuenta igual que el repaso de siempre.</div>
+    <div class="mg-page">${evs.map((e) => row(`ev:${e.id}`, e.title, `Evento · ${fmtDate(e.date)}`, `${hFocusPool(`ev:${e.id}`).length} frases`)).join("")}
+      ${fs.map((f) => row(`fn:${f.slug}`, f.name, (f.frames || []).slice(0, 3).map((x) => x.es.split(" / ")[0]).join(" · "), `${n[f.slug]} frases`)).join("")}</div>
+    <button class="mg-link" data-h="evnew">Preparar un evento (una cita, un asado, un trámite)</button>`;
+}
+function hBuildQueue(focus) {
+  if (focus) return hFocusQueue(focus);
   const today = todayISO(), done = gradedToday(), out = [];
   for (const s of hSentences().values()) {
     if (s.cards.some((c) => c.k in done)) continue;
@@ -1713,7 +1856,7 @@ function hMark(sentence, chunks) {
 function hStartBlock(st, block) {
   if (st.block in H_BLOCKS && st.left != null) (st.saved = st.saved || {})[st.block] = st.left; // time left in the block you leave
   st.block = block; hShown = false; st.paused = false; hMenu = false;
-  if (block === "ancho") { st.queue = hBuildQueue(); st.pos = 0; st.misses = []; st.casi = []; st.nc = 0; st.ok = 0; st.n = 0; st.left = H_BLOCKS.ancho.mins * 60; }
+  if (block === "ancho") { st.queue = hBuildQueue(st.focus); st.pos = 0; st.misses = []; st.casi = []; st.nc = 0; st.ok = 0; st.n = 0; st.left = H_BLOCKS.ancho.mins * 60; }
   if (block === "fijar") {
     st.fq = [...(st.misses || []), ...(st.casi || [])].slice(0, H_FIJAR_MAX); st.fn = st.fq.length; st.tries = {}; st.fixed = 0; st.left = H_BLOCKS.fijar.mins * 60;
     if (!st.fq.length) return hStartBlock(st, "usar");
@@ -1910,7 +2053,7 @@ function horaRender() {
         <div class="mg-main"><div class="mg-row">Usar</div><div class="mg-why">Respuestas cortas en voz alta con las frases de hoy, grabadas acá mismo y corregidas al instante.</div></div><div class="mg-note">20 min</div>
       </div>
       <div class="mg-btns"><button class="mg-b pri wide" data-h="start">${n ? "Empezar" : "Ir a Usar"}</button></div>
-      <button class="mg-link" data-h="old">Ver los mazos de antes</button>`;
+      <button class="mg-link" data-h="old">Ver los mazos de antes</button>${hFocusHtml()}`;
     return;
   }
   if (hMenu && B) {
@@ -1932,7 +2075,8 @@ function horaRender() {
     if (st.paused) { el.innerHTML = hBar(st) + hTop(st, B.name) + hPausedHtml(st); return; }
     const s = hCurrent(st);
     if (!s) { hStartBlock(st, st.block === "ancho" ? "fijar" : "usar"); return horaRender(); }
-    const count = st.block === "ancho" ? `tarjeta ${st.n + 1}` : `quedan ${st.fq.length}`;
+    const count = st.block === "ancho" ? `tarjeta ${st.n + 1}${st.focus ? ` de ${st.queue.length}` : ""}` : `quedan ${st.fq.length}`;
+    const fnNote = !s.nu && s.fn ? `<span style="color:#3A3F4A">${esc(fnName(s.fn))}${frames().get(s.fr) ? `: ${esc(frames().get(s.fr).es.split(" / ")[0])}` : ""}</span>` : "";
     el.innerHTML = hBar(st) + hTop(st, B.name) + `
       <div class="mg-page">
         <div class="mg-main"><div class="mg-lab">En inglés</div><div class="mg-en">${esc(s.en)}</div>
@@ -1940,7 +2084,7 @@ function horaRender() {
             ${s.nu ? `<div class="mg-why">${esc(s.nu.why)}</div>${s.nu.said ? (() => { const d = wordDiff(s.nu.said, s.nu.fix); return `<div class="mg-why">Dijiste: ${d.said} → ${d.fix}</div>`; })() : ""}`
               : s.cards.filter((c) => c.why).slice(0, 2).map((c) => `<div class="mg-why">${esc(c.why)}</div>`).join("")}` : ""}
         </div>
-        <div class="mg-note"><span>${count}</span>${s.nu ? `<span style="color:#3A3F4A">Núcleo #${s.nu.rank}</span>` : ""}${hShown ? (s.nu ? `<span>${esc(s.nu.label)}</span>` : s.cards.map((c) => `<span>${esc(c.es)}</span>`).join("") + (s.where ? `<span style="color:#3A3F4A">${esc(s.where)}</span>` : "")) : ""}</div>
+        <div class="mg-note"><span>${count}</span>${s.nu ? `<span style="color:#3A3F4A">Núcleo #${s.nu.rank}</span>` : ""}${hShown ? (s.nu ? `<span>${esc(s.nu.label)}</span>` : s.cards.map((c) => `<span>${esc(c.es)}</span>`).join("") + (s.where ? `<span style="color:#3A3F4A">${esc(s.where)}</span>` : "") + fnNote) : st.focus ? `<span style="color:#3A3F4A">${esc(hFocusName(st.focus))}</span>` : ""}</div>
       </div>
       ${hShown
         ? `<div class="mg-btns three"><button class="mg-b" data-h="miss">No me salió</button><button class="mg-b" data-h="casi">Casi</button><button class="mg-b pri" data-h="ok">La sabía</button></div>
@@ -1992,7 +2136,7 @@ function horaRender() {
       <div class="mg-main"><div class="mg-row">Usar</div><div class="mg-why">${st.answers || 0} respuestas grabadas · ${Object.values(st.used || {}).filter((u) => u === "sí").length} frases usadas.</div></div><div class="mg-note"></div>
     </div>
     <div class="mg-btns"><button class="mg-b wide" data-h="go" data-b="usar">Volver a Usar</button><button class="mg-b wide" data-h="again">Otra ronda de Ancho</button></div>
-    <button class="mg-link" data-h="old">Ver los mazos de antes</button>`;
+    <button class="mg-link" data-h="old">Ver los mazos de antes</button>${hFocusHtml()}`;
   flushResults();
 }
 $("hora").addEventListener("click", (ev) => {
@@ -2004,11 +2148,13 @@ $("hora").addEventListener("click", (ev) => {
   if (a === "rec") return hRecStart();
   if (a === "recStop") return hRecStop();
   if (a === "recCancel") { if (confirm("¿Descartar esta respuesta? No se va a subir.")) hRecStop(true); return; }
-  if (a === "start" || a === "again") { st.short = false; hStartBlock(st, hBuildQueue().length ? "ancho" : "usar"); }
+  if (a === "start" || a === "again") { st.short = false; st.focus = null; hStartBlock(st, hBuildQueue().length ? "ancho" : "usar"); }
+  else if (a === "focus") { st.short = false; st.focus = b.dataset.f; if (!hBuildQueue(st.focus).length) { st.focus = null; return; } hStartBlock(st, "ancho"); $("scroller").scrollTo(0, 0); }
   else if (a === "show") { hShown = true; }
   else if (a === "ok" || a === "miss" || a === "casi") return hGrade(a);
   else if (a === "say") { const s = hCurrent(st); if (s) speak(s.es); return; }
   else if (a === "old") { hOld = true; hMenu = false; }
+  else if (a === "evnew") { hOld = true; hMenu = false; evOpen = true; deck = null; store.set("deck", null); renderRecall(); setTimeout(() => $("evText")?.scrollIntoView({ block: "center" }), 50); return; }
   else if (a === "menu") { hMenu = true; }
   else if (a === "back") { hMenu = false; }
   else if (a === "pause") { st.paused = true; hSave(st); }
@@ -2136,7 +2282,7 @@ $("hoy").addEventListener("click", (ev) => {
   const b = ev.target.closest("[data-y]"); if (!b) return;
   let a = b.dataset.y; const st = hState();
   if (a === "go") a = { r: "goR", e: "goE", h: "goH" }[hoyNext()] || "";
-  if (a === "goR") { if (st.block === "intro" || st.block === "fin") { st.short = false; hStartBlock(st, hBuildQueue().length ? "ancho" : "usar"); } hOld = false; goView("recall"); horaRender(); return; }
+  if (a === "goR") { if (st.block === "intro" || st.block === "fin") { st.short = false; st.focus = null; hStartBlock(st, hBuildQueue().length ? "ancho" : "usar"); } hOld = false; goView("recall"); horaRender(); return; }
   if (a === "goE") hoyScreen = "escucha";
   else if (a === "goH") { goView("record"); setMode("libre"); return; }
   else if (a === "short") { hStartBlock(st, "ancho"); const s2 = hState(); s2.left = 600; s2.short = true; hSave(s2); hOld = false; goView("recall"); horaRender(); return; }
@@ -2341,6 +2487,17 @@ function renderRedo(s) {
     <div class="row"><button class="btn secondary" data-r="again">Estudiar y otra vez</button><button class="btn" data-r="rec">Otra vez ya</button></div>`;
 }
 
+// Which functions your own monologues are made of (so you see what you never practise out loud).
+function fnUsage(sessions) {
+  const n = {}; let total = 0;
+  for (const s of sessions || []) if (s.source !== "situation") for (const x of s.sentences) if (x.fn) { n[x.fn] = (n[x.fn] || 0) + 1; total++; }
+  if (!total) return "";
+  const max = Math.max(...Object.values(n));
+  return `<div class="card"><div style="font-weight:650;margin-bottom:8px">Qué hacés cuando hablás</div><div class="fn-bars">`
+    + FNS().map((f) => ({ f, c: n[f.slug] || 0 })).sort((a, b) => b.c - a.c)
+        .map(({ f, c }) => `<span>${esc(f.name)}</span><span class="bar"><div style="width:${(100 * c) / max}%"></div></span><span class="muted">${c}</span>`).join("")
+    + `</div><div class="small muted">Frases de tus grabaciones por función. Las que están en cero no las estás practicando en voz alta.</div></div>`;
+}
 function renderSessions() {
   const cur = redo && (DATA.sessions || []).find((s) => s.id === redo.sid);
   if (cur) { $("sessions").innerHTML = renderRedo(cur); return; }
@@ -2348,7 +2505,7 @@ function renderSessions() {
   const ss = (DATA.sessions || []).slice().reverse();
   const tipsFor = (s, x) => (s.tips || []).filter((t) => t.sentence === x.spanish);
   if (!ss.length) { $("sessions").innerHTML = emptyState("Todavía no hay sesiones."); return; }
-  $("sessions").innerHTML = paceChart(DATA.sessions) + ss.map((s) => {
+  $("sessions").innerHTML = paceChart(DATA.sessions) + fnUsage(DATA.sessions) + ss.map((s) => {
     const errs = s.sentences.reduce((n, x) => n + x.corrections.length, 0);
     return `<div class="card session" data-sid="${esc(s.id)}"><button data-a="toggle">
       <div><div style="font-weight:650">${esc(s.title)}${s.rounds.length ? `<span class="tag">4/3/2</span>` : ""}${s.source === "english" ? `<span class="tag">inglés</span>` : ""}${s.source === "situation" ? `<span class="tag">situación</span>` : ""}${s.pending ? `<span class="tag">en espera</span>` : ""}${redoSummary(s.id)}</div>
@@ -2357,6 +2514,7 @@ function renderSessions() {
       <span class="chev">›</span></button>
       <div class="detail">${canRedo(s) ? `<button class="btn secondary" data-a="redo" style="margin-bottom:6px">Rehacer este monólogo</button>` : ""}${s.sentences.map((x, i, a) => `<div class="sent">${x.role && x.role !== a[i - 1]?.role ? `<div class="role">${ROLE[x.role]}</div>` : ""}<div class="es">${esc(x.spanish)}</div>
         <div class="small muted">${esc(x.english)}</div>
+        ${x.fn ? `<div class="fn-tag">${esc(fnName(x.fn))}</div>` : ""}
         ${x.chunks?.length ? `<div class="chips">${x.chunks.map((c) => `<span>${esc(c.spanish)}</span>`).join("")}</div>` : ""}
         ${x.corrections.length ? `<div class="heard">Dijiste: “${wordDiff(x.heard, x.spanish).said}”</div>` + x.corrections.map((c) =>
           `<div class="corr"><b>${esc(c.wrong)}</b> → <i>${esc(c.right)}</i> <span class="muted">· ${esc(c.why)}</span></div>`).join("") : ""}
@@ -2383,10 +2541,28 @@ $("sessions").addEventListener("click", (ev) => {
 
 /* ---------- Leer: every sentence, English beside Spanish ---------- */
 // Texts: each recording/situation, each sheet tab, each topic pack, each Arsenal group.
-const READ_SECS = ["Mis grabaciones", "Situaciones", "Hoja", "Temas", "Arsenal"];
-let readIndex = null, readFilter = store.get("readFilter", "Todo");
+const READ_SECS = ["Eventos", "Mis grabaciones", "Situaciones", "Hoja", "Temas", "Arsenal"];
+let readIndex = null, readShown = [], readFilter = store.get("readFilter", "Todo"), readFn = store.get("readFn", "");
+const secOf = (c) => c.src === "library" ? "Hoja" : c.src === "topic" ? "Temas" : c.src === "arsenal" ? "Arsenal" : c.src === "event" ? "Eventos" : c.cat === "Situaciones" ? "Situaciones" : "Mis grabaciones";
+// One function's sentences as texts, one per frame (in the frame list's order), then the ones without a frame.
+function fnTexts(slug, sec) {
+  const groups = new Map(), seen = new Set();
+  for (const c of CARDS) {
+    if (c.fn !== slug && c.fn2 !== slug) continue;
+    if (sec !== "Todo" && secOf(c) !== sec) continue;
+    const pair = c.src === "arsenal" ? { en: c.en, es: (c.opts || []).map((o) => o.es).join(" · ") || c.es } : { en: c.ctxEn, es: c.ctx };
+    if (!pair.es || seen.has(pair.es)) continue; seen.add(pair.es);
+    const fr = c.fn === slug ? frames().get(c.fr) : null, id = fr ? fr.id : "";
+    if (!groups.has(id)) groups.set(id, { sec: fnName(slug), title: fr ? fr.es : "Sin estructura fija", sub: fr ? fr.en : "", rank: fr ? fr.rank : 1e6, pairs: [] });
+    groups.get(id).pairs.push(pair);
+  }
+  return [...groups.values()].sort((a, b) => a.rank - b.rank);
+}
 function buildReadIndex() {
   const texts = [];
+  for (const e of EVENTS())
+    texts.push({ sec: "Eventos", title: e.title, sub: fmtDate(e.date),
+                 pairs: e.stages.flatMap((st) => st.sentences.map((x, i) => ({ en: x.en, es: x.es, head: i ? "" : st.name }))) });
   for (const s of (DATA.sessions || []).slice().reverse())
     texts.push({ sec: s.source === "situation" ? "Situaciones" : "Mis grabaciones", title: s.title, sub: fmtDate(s.date),
                  pairs: s.sentences.map((x) => ({ en: x.english, es: x.spanish, role: x.role })) });
@@ -2407,7 +2583,7 @@ function buildReadIndex() {
   return texts;
 }
 const fold = (t) => (t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-const pairHtml = (p, src, prev) => `<div class="pair">${src ? `<div class="src">${esc(src)}</div>` : ""}${p.role && p.role !== prev?.role ? `<div class="role">${ROLE[p.role]}</div>` : ""}<div class="en">${esc(p.en)}</div><div class="es" data-say="${esc(p.es)}">${esc(p.es)}</div></div>`;
+const pairHtml = (p, src, prev) => `<div class="pair">${src ? `<div class="src">${esc(src)}</div>` : ""}${p.head ? `<div class="role">${esc(p.head)}</div>` : ""}${p.role && p.role !== prev?.role ? `<div class="role">${ROLE[p.role]}</div>` : ""}<div class="en">${esc(p.en)}</div><div class="es" data-say="${esc(p.es)}">${esc(p.es)}</div></div>`;
 function renderRead() {
   if (!$("read")) return;
   readIndex = buildReadIndex();
@@ -2416,11 +2592,16 @@ function renderRead() {
   if (!(readFilter in counts)) readFilter = "Todo";
   $("readFilters").innerHTML = ["Todo", ...READ_SECS].filter((f) => counts[f])
     .map((f) => `<button class="${f === readFilter ? "on" : ""}" data-f="${esc(f)}">${esc(f)}</button>`).join("");
+  const fnc = fnCounts();
+  if (readFn && !fnc[readFn]) readFn = "";
+  $("readFns").innerHTML = Object.keys(fnc).length ? [{ slug: "", name: "Por tema" }, ...FNS().filter((f) => fnc[f.slug])]
+    .map((f) => `<button class="${f.slug === readFn ? "on" : ""}" data-fn="${esc(f.slug)}">${esc(f.name)}</button>`).join("") : "";
   drawRead();
 }
 function drawRead() {
-  const texts = readIndex.filter((t) => readFilter === "Todo" || t.sec === readFilter)
-    .sort((a, b) => READ_SECS.indexOf(a.sec) - READ_SECS.indexOf(b.sec));
+  const texts = readShown = readFn ? fnTexts(readFn, readFilter)
+    : readIndex.filter((t) => readFilter === "Todo" || t.sec === readFilter)
+        .sort((a, b) => READ_SECS.indexOf(a.sec) - READ_SECS.indexOf(b.sec));
   const qry = fold($("readSearch").value.trim());
   if (!readIndex.length) { $("read").innerHTML = emptyState("Todavía no hay frases."); return; }
   if (qry.length >= 2) {
@@ -2432,9 +2613,9 @@ function drawRead() {
     return;
   }
   let html = "", last = "";
-  texts.forEach((t) => {
+  texts.forEach((t, i) => {
     if (t.sec !== last) { html += `<h2>${esc(t.sec)}</h2>`; last = t.sec; }
-    html += `<div class="card read-text" data-i="${readIndex.indexOf(t)}"><button data-a="open">
+    html += `<div class="card read-text" data-i="${i}"><button data-a="open">
       <div><div style="font-weight:650">${esc(t.title)}</div><div class="small muted">${t.sub ? esc(t.sub) + " · " : ""}${t.pairs.length} frases</div></div>
       <span class="chev">›</span></button><div class="pairs"></div></div>`;
   });
@@ -2446,12 +2627,18 @@ $("readFilters").addEventListener("click", (ev) => {
   $("readFilters").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
   drawRead();
 });
+$("readFns").addEventListener("click", (ev) => {
+  const b = ev.target.closest("button[data-fn]"); if (!b) return;
+  readFn = b.dataset.fn; store.set("readFn", readFn);
+  $("readFns").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+  drawRead(); $("scroller").scrollTo(0, 0);
+});
 $("readSearch").addEventListener("input", () => drawRead());
 $("read").addEventListener("click", (ev) => {
   const say = ev.target.closest("[data-say]"); if (say) { speak(say.dataset.say); return; }
   const b = ev.target.closest("[data-a=open]"); if (!b) return;
   const card = b.parentElement, box = card.querySelector(".pairs");
-  if (!box.innerHTML) box.innerHTML = readIndex[card.dataset.i].pairs.map((p, i, a) => pairHtml(p, "", a[i - 1])).join("");
+  if (!box.innerHTML) box.innerHTML = readShown[card.dataset.i].pairs.map((p, i, a) => pairHtml(p, "", a[i - 1])).join("");
   card.classList.toggle("open");
 });
 
