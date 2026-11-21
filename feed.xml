@@ -6,7 +6,15 @@
     <description>Private practice feed.</description>
     <language>es-ar</language>
     <itunes:block>yes</itunes:block>
-    <lastBuildDate>Sat, 21 Nov 2026 01:11:25 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 21 Nov 2026 01:11:41 +0000</lastBuildDate>
+    <item>
+      <title>Nov 20 · Notas sueltas · 1 frases</title>
+      <guid isPermaLink="false">notes-2026-11-20_221140-immersion</guid>
+      <pubDate>Fri, 20 Nov 2026 22:11:40 -0300</pubDate>
+      <enclosure url="https://nll-language.github.io/feed/episodes/notes_2026-11-20_221140_immersion.mp3" length="31916" type="audio/mpeg"/>
+      <itunes:duration>4</itunes:duration>
+      <description><![CDATA[<p>1 notas: Avisame si llegás</p><ol><li>Let me know when you know whether you&#x27;re making it or not.<br><b>Avisame cuando sepas si llegás o no.</b></li></ol>]]></description>
+    </item>
     <item>
       <title>Nov 20 · Boxeo y frases para pedir cosas</title>
       <guid isPermaLink="false">2026-11-20_215846-immersion</guid>
