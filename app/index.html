@@ -410,7 +410,13 @@ h2 { color: #3A3F4A; margin: 22px 0 6px; font-weight: 600; }
 .speak { background: none; color: var(--ink); text-decoration: underline; padding: 6px 0; font-weight: 500; }
 .due { text-align: left; padding: 22px 0; }
 .sent .es, .pair .es { font-family: var(--serif); font-size: 20px; font-weight: 500; line-height: 1.28; }
-.pair { grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 12px 0; font-size: 16px; }
+/* Leer: English | Spanish side by side, like the study sheet (columns A and B). */
+.pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0; padding: 0; font-size: 15px; line-height: 1.35; }
+.pair .en, .pair .es { padding: 10px 10px 10px 0; overflow-wrap: break-word; }
+.pair .es { padding: 10px 0 10px 10px; border-left: 1px solid var(--line); font-size: 17px; line-height: 1.3; }
+.pair .src, .pair .role { padding-top: 9px; margin-bottom: 0; }
+.pair-head { border-top: 1px solid var(--ink); }
+.pair-head .en, .pair-head .es { font-family: inherit; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding-top: 6px; padding-bottom: 6px; cursor: default; }
 .heard { font-size: 15px; }
 .corr { font-size: 15px; line-height: 1.4; margin-top: 8px; }
 .corr b { color: var(--muted); font-weight: 400; text-decoration-color: var(--accent); text-decoration-thickness: 1.5px; }
@@ -462,6 +468,13 @@ dialog input { background: #fff; border: 1px solid var(--line); }
         </button>
         <div class="mic-label" id="startLabel"></div>
         <input class="topic" id="topic" placeholder="Tema (opcional)" autocomplete="off">
+      </div>
+      <div class="card ev-form" id="pasteCard">
+        <div style="font-weight:650">¿Lo dictaste en Wispr Flow? Pegalo acá</div>
+        <div class="small muted" id="pasteHint" style="margin:4px 0 10px"></div>
+        <textarea id="pasteText" placeholder="Pegá el texto…" autocomplete="off"></textarea>
+        <button class="btn" id="pasteSend">Enviar texto</button>
+        <div class="small muted" id="pasteMsg" style="margin-top:8px" hidden></div>
       </div>
     </div>
 
@@ -702,7 +715,7 @@ function uploadLabel(name) {
   const m = name.match(/^432-.*-(\d)\.\w+$/);
   if (m) return `4/3/2 · Ronda ${m[1]}`;
   const t = name.match(/^(libre|en|sit)-\d{8}-(\d\d)(\d\d)/);
-  return t ? `${{ en: "Inglés", sit: "Situación" }[t[1]] || "Libre"} · ${t[2]}:${t[3]}` : name;
+  return t ? `${{ en: "Inglés", sit: "Situación" }[t[1]] || "Libre"}${name.endsWith(".txt") ? " (texto)" : ""} · ${t[2]}:${t[3]}` : name;
 }
 function renderUploads() {
   const names = Object.keys(uploadState);
@@ -736,7 +749,36 @@ function setMode(m) {
     : "este modo no tiene correcciones al instante.");
   $("startLabel").textContent = MODES[mode].label;
   $("topic").placeholder = mode === "432" ? "Tema (opcional): el video que viste hoy…" : mode === "sit" ? "¿Qué situación? (opcional)" : "Tema (opcional)";
+  $("pasteCard").hidden = !PASTE_HINT[mode];
+  $("pasteHint").textContent = PASTE_HINT[mode] || "";
 }
+// Text dictated elsewhere (Wispr Flow) goes through the same pipeline as a recording, minus the transcription.
+const PASTE_HINT = {
+  libre: "Lo que dijiste en castellano. Lo corrijo como si fuera una grabación: tarjetas, audio y sesión.",
+  en: "Lo que dijiste en inglés. Lo paso a castellano porteño: tarjetas y audio.",
+  sit: "La situación, en inglés o en castellano. Te armo unas 30 frases para esa situación.",
+};
+const PASTE_MIN = 20;
+async function sendPasted() {
+  const text = $("pasteText").value.trim(), m = mode;
+  if (!PASTE_HINT[m]) return;
+  if (text.length < PASTE_MIN) { $("pasteText").focus(); return; }
+  if (!connected() && !(m === "libre" && aiKeys().claude)) { openSettings(); return; }
+  const name = `${FREE_PREFIX[m] || "libre"}-${stamp()}.txt`;
+  const item = { name, blob: new Blob([text], { type: "text/plain;charset=utf-8" }) };
+  // About 130 spoken words a minute: the dictation still counts as speaking time.
+  if (m === "libre") logAdd("h", Math.round(text.split(/\s+/).length / 130 * 60));
+  dbg(`texto pegado: ${text.length} caracteres, modo ${m}`);
+  $("pasteText").value = "";
+  const msg = $("pasteMsg"); msg.hidden = false;
+  msg.textContent = connected() ? "Enviado. Aparece en Sesiones cuando la Mac lo procese." : "Sin repositorio conectado: solo correcciones al instante, no se guarda.";
+  setTimeout(() => { msg.hidden = true; }, 8000);
+  try { if (m === "libre" && aiKeys().claude) instantCorrect([], text); } catch (e) { dbg("error al abrir correcciones: " + e.message); }
+  if (!connected()) return;
+  try { await q("readwrite", (s) => s.put(item)); uploadOne(item); }
+  catch (e) { dbg("no pude guardar el texto en el teléfono: " + (e && e.message)); }
+}
+$("pasteSend").onclick = sendPasted;
 $("seg").addEventListener("click", (ev) => { const b = ev.target.closest("button[data-mode]"); if (b) setMode(b.dataset.mode); });
 setMode(mode);
 
@@ -1019,13 +1061,13 @@ async function correctStream(text, onItem, system = AI_SYSTEM) {
   flush(true);
 }
 
-async function instantCorrect(takes) {
+async function instantCorrect(takes, preText = null) {
   dbg("abriendo correcciones");
   const box = $("instant"), t0 = Date.now(), since = () => Math.round((Date.now() - t0) / 1000);
   $("recIdle").hidden = true; box.hidden = false;
   try { box.scrollIntoView({ block: "start" }); } catch {}
   box.innerHTML = `<div class="ix-label">Correcciones</div><h2 id="ixTitle">Tu monólogo</h2>
-    <div class="ix-status" id="ixStatus">Transcribiendo…</div><div class="ix-time" id="ixTime"></div>
+    <div class="ix-status" id="ixStatus">${preText ? "Corrigiendo…" : "Transcribiendo…"}</div><div class="ix-time" id="ixTime"></div>
     <div class="ix-page" id="ixPage"></div><div id="ixExtra"></div>
     <button class="ix-done" id="ixDone">Listo</button>`;
   $("ixDone").onclick = () => { box.hidden = true; box.innerHTML = ""; if (!rec) $("recIdle").hidden = false; };
@@ -1034,15 +1076,15 @@ async function instantCorrect(takes) {
     $("ixStatus").textContent = "No salió.";
     $("ixExtra").innerHTML = `<div class="ix-err">${esc(AI_ERRORS[e.message] || `Algo falló (${e.message}). Decile a Claude este código.`)}</div>`;
   };
-  if (!aiReady()) {
-    const k = aiKeys();
+  if (preText ? !aiKeys().claude : !aiReady()) {
+    const k = preText ? { ...aiKeys(), openai: "x" } : aiKeys();
     $("ixStatus").textContent = "Faltan claves.";
     $("ixExtra").innerHTML = `<div class="ix-err">${!k.claude && !k.openai ? "Faltan las dos claves" : !k.claude ? "Falta la clave de Claude" : "Falta la clave de transcripción (OpenAI)"}. Tocá ⚙︎ arriba a la derecha, pegala y tocá Guardar.</div>`;
     return;
   }
   let texts, tStt, tFirst = null, n = { fraseo: 0, "gramática": 0 };
   try {
-    texts = await Promise.all(takes.map((t) => transcribeNow(t.blob, t.name)));
+    texts = preText ? [preText] : await Promise.all(takes.map((t) => transcribeNow(t.blob, t.name)));
     if (!texts.join("").trim()) throw new Error("EMPTY");
   } catch (e) { return fail(e); }
   tStt = since();
@@ -1050,13 +1092,13 @@ async function instantCorrect(takes) {
   const pace = wpm.length ? ` · Ritmo: ${wpm.join(" → ")} palabras por minuto` : "";
   const text = takes.length > 1 ? texts.map((t, i) => `Ronda ${i + 1}:\n${t}`).join("\n\n") : texts[0];
   $("ixStatus").textContent = "Corrigiendo…";
-  $("ixTime").textContent = `Transcripción: ${tStt} s`;
+  $("ixTime").textContent = preText ? "Texto pegado" : `Transcripción: ${tStt} s`;
   $("ixExtra").innerHTML = `<details><summary>Lo que entendí</summary><p style="white-space:pre-line">${esc(text)}</p></details>`;
   try {
     await correctStream(text, (it) => {
       if (it.titulo) { $("ixTitle").textContent = it.titulo; return; }
       if (!it.porteno) return;
-      if (tFirst === null) { tFirst = since(); $("ixTime").textContent = `Transcripción: ${tStt} s · primera corrección: ${tFirst} s`; }
+      if (tFirst === null) { tFirst = since(); $("ixTime").textContent = `${preText ? "Texto pegado" : `Transcripción: ${tStt} s`} · primera corrección: ${tFirst} s`; }
       const tipo = it.tipo === "gramática" ? "gramática" : "fraseo"; n[tipo]++;
       const d = wordDiff(it.dijiste || "", it.porteno);
       $("ixPage").insertAdjacentHTML("beforeend",
@@ -1781,10 +1823,11 @@ function hSentences() {
 // Function: what you've missed, then what you've never had, then what you saw longest ago; up to H_FOCUS_MAX,
 // laid out frame by frame so sentences built the same way come one after another. Event: the pack's own order.
 const H_FOCUS_MAX = 40;
-const hFocusName = (f) => !f ? "" : f.startsWith("fn:") ? fnName(f.slice(3)) : EVENTS().find((e) => e.id === f.slice(3))?.title || "Evento";
+const hFocusName = (f) => !f ? "" : f.startsWith("fn:") ? fnName(f.slice(3)) : f.startsWith("mix:") ? mixFind(f.slice(4))?.name || "A medida" : EVENTS().find((e) => e.id === f.slice(3))?.title || "Evento";
 function hFocusPool(focus) {
   const all = [...hSentences().values()];
   if (focus.startsWith("fn:")) return all.filter((s) => s.fn === focus.slice(3));
+  if (focus.startsWith("mix:")) { const m = mixFind(focus.slice(4)); return m ? all.filter(mixMatcher(m)) : []; }
   const o = eventOrder(focus.slice(3)), at = (s) => Math.min(...s.cards.map((c) => o.get(c.k) ?? 1e9));
   return all.filter((s) => s.cards.some((c) => o.has(c.k))).sort((a, b) => at(a) - at(b));
 }
@@ -1807,14 +1850,145 @@ function hFocusQueue(focus) {
 function hFocusHtml() {
   const sents = [...hSentences().values()], n = {};
   for (const s of sents) if (s.fn) n[s.fn] = (n[s.fn] || 0) + 1;
-  const fs = FNS().filter((f) => n[f.slug]), evs = EVENTS();
-  if (!fs.length && !evs.length) return "";
+  const fs = FNS().filter((f) => n[f.slug]), evs = EVENTS(), mixes = mixAll();
   const row = (f, name, sub, note) => `<div class="mg-main"><button class="mg-link" data-h="focus" data-f="${esc(f)}" style="text-align:left;padding:0;text-decoration:none"><span class="mg-row">${esc(name)}</span></button>${sub ? `<div class="mg-why">${esc(sub)}</div>` : ""}</div><div class="mg-note">${note}</div>`;
   return `<h2 style="font-size:24px;margin-top:28px">Practicar algo puntual</h2>
     <div class="mg-sub">Una ronda de frases enteras de un solo tipo, sin importar el tema. Cuenta igual que el repaso de siempre.</div>
-    <div class="mg-page">${evs.map((e) => row(`ev:${e.id}`, e.title, `Evento · ${fmtDate(e.date)}`, `${hFocusPool(`ev:${e.id}`).length} frases`)).join("")}
+    <div class="mg-page">${mixes.map((m) => `<div class="mg-main"><button class="mg-link" data-h="focus" data-f="mix:${esc(m.id)}" style="text-align:left;padding:0;text-decoration:none"><span class="mg-row">${esc(m.name)}</span></button><div class="mg-why">${esc(mixSummary(m))}</div></div><div class="mg-note"><span>${hFocusPool(`mix:${m.id}`).length} frases</span><button class="mg-link" data-h="mixedit" data-f="${esc(m.id)}" style="font-size:14px;min-height:0;padding:0;text-align:left">editar</button></div>`).join("")}
+      <div class="mg-main"><button class="mg-link" data-h="mixnew" style="text-align:left;padding:0;text-decoration:none"><span class="mg-row">+ Elegir qué repasar</span></button><div class="mg-why">Para algo puntual: el gym, una cita, salir a comprar. Juntás las listas y palabras que quieras.</div></div><div class="mg-note"></div>
+      ${evs.map((e) => row(`ev:${e.id}`, e.title, `Evento · ${fmtDate(e.date)}`, `${hFocusPool(`ev:${e.id}`).length} frases`)).join("")}
       ${fs.map((f) => row(`fn:${f.slug}`, f.name, (f.frames || []).slice(0, 3).map((x) => x.es.split(" / ")[0]).join(" · "), `${n[f.slug]} frases`)).join("")}</div>
     <button class="mg-link" data-h="evnew">Preparar un evento (una cita, un asado, un trámite)</button>`;
+}
+/* Repaso a medida: a round made of the sentences you pick. A mix is a set of lists (sheet tabs and
+   categories, topics and their packs, your recordings, functions, events) plus words; a sentence is in
+   it when one of its chunks comes from a picked list, or its Spanish or English contains one of the words.
+   Mixes are kept on the phone; their grades count like any other round. */
+const mixAll = () => store.get("mixes", []);
+const mixFind = (id) => mixAll().find((m) => m.id === id);
+const mixWords = (q) => String(q || "").split(/[,;\n]+/).map((w) => fold(w.trim())).filter((w) => w.length >= 3);
+function mixGroupsOf(c) {
+  const g = [];
+  if (c.src === "library") g.push(`cat:${c.cat}`, `tab:${c.cat}|${c.tab}`);
+  else if (c.src === "topic") g.push(`top:${c.topic}`, `tt:${c.topic}|${c.tab}`);
+  else if (c.src === "session") g.push(`ses:${c.sid}`);
+  else if (c.src === "event") g.push(`evt:${c.tab}`);
+  if (c.fn) g.push(`fn:${c.fn}`);
+  return g;
+}
+let mixIdx = null, mixIdxOf = null;
+function mixIndex() {   // every list you can pick, with how many sentences it has
+  if (mixIdxOf === CARDS) return mixIdx;
+  const m = new Map(), topicName = (slug) => (DATA.topics || []).find((t) => t.slug === slug)?.name || slug;
+  const label = (id, c) => {
+    const [k, v] = [id.slice(0, id.indexOf(":")), id.slice(id.indexOf(":") + 1)];
+    if (k === "cat") return { label: v, sub: "Categoría de la hoja" };
+    if (k === "tab") return { label: c.tab, sub: `Hoja · ${c.cat}` };
+    if (k === "top") return { label: topicName(c.topic), sub: "Tema" };
+    if (k === "tt") return { label: c.tab, sub: `Tema · ${topicName(c.topic)}` };
+    if (k === "ses") { const s = (DATA.sessions || []).find((x) => x.id === c.sid); return { label: s?.title || "Grabación", sub: `Tu grabación${s ? " · " + fmtDate(s.date) : ""}` }; }
+    if (k === "evt") return { label: c.tab, sub: "Evento" };
+    return { label: fnName(v), sub: "Función" };
+  };
+  for (const s of hSentences().values()) {
+    const ids = new Set(s.cards.flatMap(mixGroupsOf));
+    for (const id of ids) { let x = m.get(id); if (!x) m.set(id, x = { id, ...label(id, s.cards[0]), n: 0 }); x.n++; }
+  }
+  for (const x of m.values()) x.key = fold(`${x.label} ${x.sub}`);
+  mixIdx = m; mixIdxOf = CARDS;
+  return m;
+}
+function mixMatcher(m) {
+  const groups = new Set(m.groups || []), words = (m.words || []).map(fold).filter((w) => w.length >= 3);
+  return (s) => s.cards.some((c) => mixGroupsOf(c).some((g) => groups.has(g)))
+    || (words.length > 0 && words.some((w) => mixText(s).includes(w)));
+}
+const mixFolded = new Map();   // sentence → its Spanish and English, folded once (typing re-filters thousands)
+const mixText = (s) => { let t = mixFolded.get(s.key); if (t === undefined) mixFolded.set(s.key, t = fold(`${s.es} \u0001 ${s.en}`)); return t; };
+function mixSummary(m) {
+  const idx = mixIndex(), names = (m.groups || []).map((g) => idx.get(g)?.label).filter(Boolean);
+  const parts = [];
+  if (names.length) parts.push(names.slice(0, 3).join(", ") + (names.length > 3 ? ` y ${names.length - 3} más` : ""));
+  if ((m.words || []).length) parts.push("palabras: " + m.words.slice(0, 4).join(", ") + (m.words.length > 4 ? "…" : ""));
+  return parts.join(" · ");
+}
+let hPick = null; // the builder while it's open: { id, name, q, groups: [], words: [], busy, err }
+function mixOpen(id) {
+  const m = id ? mixFind(id) : null;
+  hPick = m ? { id: m.id, name: m.name, q: (m.words || []).join(", "), groups: [...(m.groups || [])] }
+            : { id: null, name: "", q: "", groups: [] };
+  horaRender(); $("scroller").scrollTo(0, 0);
+}
+function mixHtml() {
+  const P = hPick, claude = !!aiKeys().claude;
+  return `<div class="mg-top"><span>Repaso a medida</span><span><button class="mg-link" data-h="mixclose" style="min-height:0;padding:0;font-size:13px;letter-spacing:.08em;text-transform:uppercase">cerrar</button></span></div>
+    <h2>¿Qué querés repasar?</h2>
+    <div class="mg-sub">Escribí palabras o el nombre de una lista, separadas por comas (gym, pesas, entrenar). Marcá las listas que quieras: entran todas sus frases, y también cualquier frase que contenga esas palabras.</div>
+    <div class="ev-form" style="margin-top:12px">
+      <input id="mixQ" value="${esc(P.q)}" placeholder="gym, pesas · cita, chamuyo · comprar, precio" autocomplete="off" autocapitalize="off">
+      ${claude ? `<textarea id="mixAsk" placeholder="O contale a Claude qué viene: «voy al gym a hacer piernas», «primera cita el viernes, quiero mostrar que viajé», «voy a comprar zapatillas»"></textarea>
+      <button class="mg-b wide" data-h="mixai" style="width:100%" ${P.busy ? "disabled" : ""}>${P.busy ? "Buscando…" : "Elegir con Claude"}</button>` : ""}
+      ${P.err ? `<div class="mg-why" style="color:#B3261E">${esc(P.err)}</div>` : ""}
+    </div>
+    <div id="mixList"></div>
+    <div class="ev-form" style="margin-top:16px"><input id="mixName" value="${esc(P.name)}" placeholder="Nombre (por ejemplo: Gym)" autocomplete="off"></div>
+    <div class="mg-btns"><button class="mg-b pri wide" data-h="mixsave">Guardar y empezar</button>
+      ${P.id ? `<button class="mg-b" data-h="mixdel">Borrar</button><button class="mg-b" data-h="mixclose">Cancelar</button>` : `<button class="mg-b wide" data-h="mixclose">Cancelar</button>`}</div>`;
+}
+function mixDraw() {   // only the list and the count, so typing in the box keeps the keyboard up
+  const el = $("mixList"); if (!el || !hPick) return;
+  const P = hPick, idx = mixIndex(), words = mixWords(P.q), sel = new Set(P.groups);
+  const picked = P.groups.map((g) => idx.get(g)).filter(Boolean);
+  const found = words.length ? [...idx.values()].filter((x) => !sel.has(x.id) && words.some((w) => x.key.includes(w)))
+    .sort((a, b) => b.n - a.n).slice(0, 25) : [];
+  const pool = [...hSentences().values()].filter(mixMatcher({ groups: P.groups, words: P.q.split(/[,;\n]+/) }));
+  const byWord = words.length ? [...hSentences().values()].filter(mixMatcher({ groups: [], words: P.q.split(/[,;\n]+/) })).length : 0;
+  const row = (x, on) => `<div class="mg-main"><button class="mg-link" data-h="mixtog" data-f="${esc(x.id)}" style="text-align:left;padding:0;text-decoration:none"><span class="mg-row">${on ? "✓ " : ""}${esc(x.label)}</span></button><div class="mg-why">${esc(x.sub)}</div></div><div class="mg-note">${on ? "elegida" : `${x.n} frases`}</div>`;
+  el.innerHTML = `<h2 style="font-size:24px;margin-top:20px">${pool.length} frases en esta ronda</h2>
+    <div class="mg-sub">${byWord ? `${byWord} por las palabras${picked.length ? ", el resto por las listas elegidas" : ""}.` : picked.length ? "Por las listas elegidas." : "Escribí algo o elegí listas."} Cada ronda toma hasta ${H_FOCUS_MAX}: primero las que fallaste, después las nuevas, después las que viste hace más.</div>
+    ${picked.length ? `<div class="mg-page">${picked.map((x) => row(x, true)).join("")}</div>` : ""}
+    ${found.length ? `<h2 style="font-size:20px;margin-top:18px">Listas que coinciden</h2><div class="mg-page">${found.map((x) => row(x, false)).join("")}</div>`
+      : words.length ? `<div class="mg-sub" style="margin-top:10px">Ninguna lista se llama así; entran solo las frases que lo contienen.</div>` : ""}`;
+}
+const MIX_SYSTEM = `You help a learner of Rioplatense Spanish pick which of his saved sentences to review before something he is about to do. You receive what's coming, then his lists, one per line: id <TAB> name <TAB> kind <TAB> number of sentences. Lists come from his study sheet (tabs and categories), topic packs, his own recordings, conversation functions and event packs.
+Output ONLY JSON Lines, one object per line, no other text:
+{"name": "<2-4 word name in Spanish for this round>"}
+then one line per list that clearly fits, most useful first, at most 15: {"g": "<id exactly as given>"}
+then 4-12 search words that sentences for this situation would contain, in Spanish and in English, single words or short stems, at least 3 letters, no generic words: {"w": "<word>"}
+For a date, include lists about dating, flirting, relationships, telling stories about himself and showing what makes him interesting. Pick fewer, better lists over many loose ones.
+Last line: {"fin": true}`;
+async function mixAsk() {
+  const P = hPick, text = ($("mixAsk")?.value || "").trim();
+  if (text.length < 4) { $("mixAsk")?.focus(); return; }
+  P.q = $("mixQ").value; P.name = $("mixName").value; P.busy = true; P.err = ""; horaRender();
+  const idx = mixIndex(), lines = [...idx.values()].filter((x) => x.n >= 2).sort((a, b) => b.n - a.n).slice(0, 700)
+    .map((x) => `${x.id}\t${x.label}\t${x.sub}\t${x.n}`).join("\n");
+  const groups = [], words = []; let name = "";
+  try {
+    await correctStream(`<coming>\n${text}\n</coming>\n<lists>\n${lines}\n</lists>`, (it) => {
+      if (it.name) name = it.name;
+      if (it.g && idx.has(it.g)) groups.push(it.g);
+      if (it.w) words.push(String(it.w).trim());
+    }, MIX_SYSTEM);
+  } catch (e) { P.busy = false; P.err = AI_ERRORS[e.message] || `Algo falló (${e.message}).`; return horaRender(); }
+  if (hPick !== P) return;
+  P.busy = false;
+  P.groups = [...new Set([...P.groups, ...groups])];
+  const have = mixWords(P.q), add = words.filter((w) => w.length >= 3 && !have.includes(fold(w)));
+  P.q = [P.q.trim(), ...add].filter(Boolean).join(", ");
+  if (!P.name) P.name = name;
+  if (!groups.length && !add.length) P.err = "Claude no encontró listas para eso. Probá con palabras.";
+  horaRender();
+}
+function mixSave() {
+  const P = hPick; P.q = $("mixQ").value; P.name = $("mixName").value.trim();
+  const words = P.q.split(/[,;\n]+/).map((w) => w.trim()).filter((w) => w.length >= 3);
+  if (!P.groups.length && !words.length) { $("mixQ").focus(); return null; }
+  const name = P.name || words[0] || mixIndex().get(P.groups[0])?.label || "A medida";
+  const m = { id: P.id || Date.now().toString(36), name: name.charAt(0).toUpperCase() + name.slice(1), groups: P.groups, words };
+  const all = mixAll().filter((x) => x.id !== m.id); all.unshift(m); store.set("mixes", all.slice(0, 30));
+  hPick = null;
+  return m;
 }
 function hBuildQueue(focus) {
   if (focus) return hFocusQueue(focus);
@@ -2036,6 +2210,7 @@ function horaRender() {
   const el = $("hora"); if (!el) return;
   el.hidden = hOld; $("recall").hidden = !hOld; $("horaBack").hidden = !hOld;
   if (hOld) return;
+  if (hPick && CARDS.length) { el.innerHTML = mixHtml(); mixDraw(); return; }
   const st = hState(), B = H_BLOCKS[st.block];
   if (!CARDS.length) {
     el.innerHTML = connected()
@@ -2149,7 +2324,18 @@ $("hora").addEventListener("click", (ev) => {
   if (a === "recStop") return hRecStop();
   if (a === "recCancel") { if (confirm("¿Descartar esta respuesta? No se va a subir.")) hRecStop(true); return; }
   if (a === "start" || a === "again") { st.short = false; st.focus = null; hStartBlock(st, hBuildQueue().length ? "ancho" : "usar"); }
-  else if (a === "focus") { st.short = false; st.focus = b.dataset.f; if (!hBuildQueue(st.focus).length) { st.focus = null; return; } hStartBlock(st, "ancho"); $("scroller").scrollTo(0, 0); }
+  else if (a === "focus") { st.short = false; st.focus = b.dataset.f; if (!hBuildQueue(st.focus).length) { if (st.focus.startsWith("mix:")) alert("Ya repasaste hoy todas las frases de esta ronda."); st.focus = null; return; } hStartBlock(st, "ancho"); $("scroller").scrollTo(0, 0); }
+  else if (a === "mixnew" || a === "mixedit") return mixOpen(a === "mixedit" ? b.dataset.f : null);
+  else if (a === "mixclose") { hPick = null; }
+  else if (a === "mixai") return mixAsk();
+  else if (a === "mixtog") { const P = hPick, g = b.dataset.f; P.q = $("mixQ").value; P.name = $("mixName").value; P.groups = P.groups.includes(g) ? P.groups.filter((x) => x !== g) : [...P.groups, g]; mixDraw(); return; }
+  else if (a === "mixdel") { if (!confirm(`¿Borrar «${hPick.name || "esta ronda"}»? Las tarjetas no se tocan.`)) return; store.set("mixes", mixAll().filter((x) => x.id !== hPick.id)); hPick = null; }
+  else if (a === "mixsave") {
+    const m = mixSave(); if (!m) return;
+    st.short = false; st.focus = `mix:${m.id}`;
+    if (!hBuildQueue(st.focus).length) { st.focus = null; alert("Guardada, pero no hay frases para hoy en esta ronda (o ya las repasaste)."); horaRender(); return; }
+    hStartBlock(st, "ancho"); $("scroller").scrollTo(0, 0);
+  }
   else if (a === "show") { hShown = true; }
   else if (a === "ok" || a === "miss" || a === "casi") return hGrade(a);
   else if (a === "say") { const s = hCurrent(st); if (s) speak(s.es); return; }
@@ -2164,6 +2350,7 @@ $("hora").addEventListener("click", (ev) => {
   horaRender();
 });
 $("horaBack").onclick = () => { hOld = false; horaRender(); };
+$("hora").addEventListener("input", (ev) => { if (ev.target.id === "mixQ" && hPick) { hPick.q = ev.target.value; mixDraw(); } });
 // The clock runs only while you're on this screen, inside a block, and not paused or in the overview.
 setInterval(() => {
   if (document.hidden || hOld || hMenu || !$("v-recall").classList.contains("on")) return;
@@ -2583,6 +2770,7 @@ function buildReadIndex() {
   return texts;
 }
 const fold = (t) => (t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const PAIR_HEAD = `<div class="pair pair-head"><div class="en">Inglés</div><div class="es">Castellano</div></div>`;
 const pairHtml = (p, src, prev) => `<div class="pair">${src ? `<div class="src">${esc(src)}</div>` : ""}${p.head ? `<div class="role">${esc(p.head)}</div>` : ""}${p.role && p.role !== prev?.role ? `<div class="role">${ROLE[p.role]}</div>` : ""}<div class="en">${esc(p.en)}</div><div class="es" data-say="${esc(p.es)}">${esc(p.es)}</div></div>`;
 function renderRead() {
   if (!$("read")) return;
@@ -2609,7 +2797,7 @@ function drawRead() {
     for (const t of texts) for (const p of t.pairs)
       if (hits.length < 200 && (fold(p.es).includes(qry) || fold(p.en).includes(qry))) hits.push(pairHtml(p, `${t.sec} · ${t.title}`));
     $("read").innerHTML = `<div class="small muted" style="margin:0 4px 8px">${hits.length >= 200 ? "Las primeras 200" : hits.length} frases</div>`
-      + (hits.length ? `<div class="card">${hits.join("")}</div>` : "");
+      + (hits.length ? `<div class="card">${PAIR_HEAD}${hits.join("")}</div>` : "");
     return;
   }
   let html = "", last = "";
@@ -2638,7 +2826,7 @@ $("read").addEventListener("click", (ev) => {
   const say = ev.target.closest("[data-say]"); if (say) { speak(say.dataset.say); return; }
   const b = ev.target.closest("[data-a=open]"); if (!b) return;
   const card = b.parentElement, box = card.querySelector(".pairs");
-  if (!box.innerHTML) box.innerHTML = readShown[card.dataset.i].pairs.map((p, i, a) => pairHtml(p, "", a[i - 1])).join("");
+  if (!box.innerHTML) box.innerHTML = PAIR_HEAD + readShown[card.dataset.i].pairs.map((p, i, a) => pairHtml(p, "", a[i - 1])).join("");
   card.classList.toggle("open");
 });
 
